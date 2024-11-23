@@ -5,11 +5,11 @@ from psycopg.sql import SQL, Composed, Identifier, Literal
 from psycopg.rows import scalar_row, tuple_row, class_row, RowFactory, AsyncRowFactory
 from pydantic import BaseModel
 
-from pgcrud._col import SingleCol, make_col, Col
+from pgcrud._col import SingleCol, Col
 from pgcrud._operators.assign_operator import Assign
 from pgcrud._operators.sort_operators import CompositeSort
 from pgcrud._operations.type_hints import *
-from pgcrud._tab import Tab
+from pgcrud._tab import SimpleTab
 
 
 __all__ = [
@@ -158,7 +158,7 @@ def prepare_execute_params_seq(params: Sequence[ParamsType]) -> list[Sequence[An
 
 def construct_composed_table(table: TableType) -> Composed:
     if isinstance(table, str):
-        table = Tab(table)
+        table = SimpleTab(table)
     return table.get_composed()
 
 
