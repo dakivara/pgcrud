@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from pgcrud._col import Col
 from pgcrud._operators.assign_operator import Assign
 from pgcrud._operators.filter_operators import FilterOperator
+from pgcrud._operators.join_operators import JoinOperator
 from pgcrud._operators.sort_operators import SortOperator
 from pgcrud._tab import Tab
 
@@ -13,6 +14,7 @@ from pgcrud._tab import Tab
 __all__ = [
     'PydanticModel',
     'TableType',
+    'JoinType',
     'WhereType',
     'OrderByType',
     'SelectType',
@@ -29,6 +31,7 @@ PydanticModel = TypeVar('PydanticModel', bound=BaseModel)
 
 TableType = str | Tab
 
+JoinType = JoinOperator | Sequence[JoinOperator]
 WhereType = FilterOperator
 OrderByType = Col | SortOperator | Sequence[Col | SortOperator]
 

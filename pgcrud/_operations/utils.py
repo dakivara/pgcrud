@@ -46,16 +46,20 @@ def get_async_row_factory(select: SelectType) -> AsyncRowFactory:
 def prepare_select_query(
         select: SelectType,
         from_: TableType,
+        join: JoinType | None,
         where: WhereType | None,
         order_by: OrderByType | None,
         limit: int | None,
-        offset: int | None
+        offset: int | None,
 ) -> Composed:
 
     composed_select = construct_composed_select(select)
     composed_from = construct_composed_table(from_)
 
     composed_list = [SQL('SELECT {} FROM {}').format(composed_select, composed_from)]   # type: ignore
+
+    if composed_join := construct_composed_join(join):
+        composed_list.append(composed_join)
 
     if composed_where := construct_composed_where(where):
         composed_list.append(SQL('WHERE {}').format(composed_where))
@@ -166,7 +170,26 @@ def construct_composed_select(select: SelectType) -> Composed:
     elif isinstance(select, Sequence):
         return SQL(', ').join([SingleCol(v).get_composed() if isinstance(v, str) else v.get_composed() for v in select])
     else:
-        return SQL(', ').join([Identifier(str(field.validation_alias) if field.validation_alias else name) for name, field in select.model_fields.items()])
+        composed_list = []
+
+        for name, field in select.model_fields.items():
+            col = SingleCol(name)
+
+            for m in field.metadata:
+                if isinstance(m, Col):
+                    col = m
+                    break
+
+            composed_list.append(col.get_composed())
+
+        return SQL(', ').join(composed_list)
+
+
+def construct_composed_join(join: JoinType | None) -> Composed | None:
+    if join:
+        if not isinstance(join, Sequence):
+            join = [join]
+        return SQL(' ').join([j.get_composed() for j in join])
 
 
 def construct_composed_where(where: WhereType | None) -> Composed | None:
