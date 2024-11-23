@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import Any, TYPE_CHECKING
+from typing import Any, Self, TYPE_CHECKING
 
 from psycopg.sql import SQL, Identifier, Composed, Literal
 
@@ -27,6 +27,7 @@ __all__ = [
     'MulCol',
     'TrueDivCol',
     'PowCol',
+    'AliasCol',
 ]
 
 
@@ -96,6 +97,9 @@ class Col:
 
     def desc(self, flag: bool = True) -> Descending:
         return Descending(self, flag)
+
+    def as_(self, alias: str) -> 'AliasCol':
+        return AliasCol(self, alias)
 
     @abstractmethod
     def __add__(self, other: Any) -> 'AddCol | UndefinedCol':
@@ -497,3 +501,28 @@ class PowCol(ArithmeticCol):
             return UndefinedCol()
         else:
             return PowCol(self.cols + [power])
+
+
+@dataclass(repr=False, eq=False)
+class AliasCol(Col):
+    col: Col
+    alias: str
+
+    @abstractmethod
+    def get_composed(self) -> Composed:
+        return SQL('{} AS {}').format(self.col.get_composed(), Identifier(self.alias))
+
+    def __add__(self, other: Any) -> 'AddCol | UndefinedCol':
+        return self.col.__add__(other)
+
+    def __sub__(self, other) -> 'SubCol | UndefinedCol':
+        return self.col.__sub__(other)
+
+    def __mul__(self, other) -> 'MulCol | UndefinedCol':
+        return self.col.__mul__(other)
+
+    def __truediv__(self, other) -> 'TrueDivCol | UndefinedCol':
+        return self.col.__truediv__(other)
+
+    def __pow__(self, power) -> 'PowCol | UndefinedCol':
+        return self.col.__pow__(power)
