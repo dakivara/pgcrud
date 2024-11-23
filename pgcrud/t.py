@@ -1,4 +1,4 @@
-from pgcrud._tab import SimpleTab
+from pgcrud.tab import SimpleTab
 
 
 __all__ = [

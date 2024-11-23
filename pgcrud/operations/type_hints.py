@@ -3,12 +3,12 @@ from typing import Any, TypeVar
 
 from pydantic import BaseModel
 
-from pgcrud._col import Col
-from pgcrud._operators.assign_operator import Assign
-from pgcrud._operators.filter_operators import FilterOperator
-from pgcrud._operators.join_operators import JoinOperator
-from pgcrud._operators.sort_operators import SortOperator
-from pgcrud._tab import Tab
+from pgcrud.col import Col
+from pgcrud.operators.assign_operator import Assign
+from pgcrud.operators.filter_operators import FilterOperator
+from pgcrud.operators.join_operators import JoinOperator
+from pgcrud.operators.sort_operators import SortOperator
+from pgcrud.tab import Tab
 
 
 __all__ = [

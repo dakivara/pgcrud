@@ -5,11 +5,11 @@ from psycopg.sql import SQL, Composed, Identifier, Literal
 from psycopg.rows import scalar_row, tuple_row, class_row, RowFactory, AsyncRowFactory
 from pydantic import BaseModel
 
-from pgcrud._col import SingleCol, Col
-from pgcrud._operators.assign_operator import Assign
-from pgcrud._operators.sort_operators import CompositeSort
-from pgcrud._operations.type_hints import *
-from pgcrud._tab import SimpleTab
+from pgcrud.col import SingleCol, Col
+from pgcrud.operators.assign_operator import Assign
+from pgcrud.operators.sort_operators import CompositeSort
+from pgcrud.operations.type_hints import *
+from pgcrud.tab import SimpleTab
 
 
 __all__ = [

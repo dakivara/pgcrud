@@ -1,16 +1,16 @@
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import Any, Self, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 from psycopg.sql import SQL, Identifier, Composed, Literal
 
-from pgcrud._operators.assign_operator import *
-from pgcrud._operators.filter_operators import *
-from pgcrud._operators.sort_operators import *
-from pgcrud._undefined import Undefined
+from pgcrud.operators.assign_operator import *
+from pgcrud.operators.filter_operators import *
+from pgcrud.operators.sort_operators import *
+from pgcrud.undefined import Undefined
 
 if TYPE_CHECKING:
-    from pgcrud._tab import Tab
+    from pgcrud.tab import Tab
 
 
 __all__ = [

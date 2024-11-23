@@ -1,9 +1,9 @@
 from typing import TYPE_CHECKING
 
-from pgcrud._col import SingleCol
+from pgcrud.col import SingleCol
 
 if TYPE_CHECKING:
-    from pgcrud._tab import Tab
+    from pgcrud.tab import Tab
 
 
 __all__ = [

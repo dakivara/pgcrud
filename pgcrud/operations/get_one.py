@@ -1,16 +1,16 @@
 from collections.abc import Sequence
 from typing import Any, overload
 
-from psycopg import AsyncCursor
+from psycopg import Cursor
 
-from pgcrud._col import Col
-from pgcrud._operations.type_hints import *
-from pgcrud._operations.utils import *
+from pgcrud.col import Col
+from pgcrud.operations.type_hints import *
+from pgcrud.operations.utils import *
 
 
 @overload
-async def get_one(
-        cursor: AsyncCursor,
+def get_one(
+        cursor: Cursor,
         select: str | Col,
         from_: TableType,
         *,
@@ -22,8 +22,8 @@ async def get_one(
 
 
 @overload
-async def get_one(
-        cursor: AsyncCursor,
+def get_one(
+        cursor: Cursor,
         select: Sequence[str | Col],
         from_: TableType,
         *,
@@ -35,8 +35,8 @@ async def get_one(
 
 
 @overload
-async def get_one(
-        cursor: AsyncCursor,
+def get_one(
+        cursor: Cursor,
         select: type[PydanticModel],
         from_: TableType,
         *,
@@ -47,8 +47,8 @@ async def get_one(
 ) -> PydanticModel | None: ...
 
 
-async def get_one(
-        cursor: AsyncCursor,
+def get_one(
+        cursor: Cursor,
         select: SelectType,
         from_: TableType,
         *,
@@ -58,8 +58,8 @@ async def get_one(
         offset: int | None = None,
 ) -> ReturnType | None:
 
-    cursor.row_factory = get_async_row_factory(select)
+    cursor.row_factory = get_row_factory(select)
     query = prepare_select_query(select, from_, join, where, order_by, 1, offset)
-    await cursor.execute(query)
+    cursor.execute(query)
 
-    return await cursor.fetchone()
+    return cursor.fetchone()

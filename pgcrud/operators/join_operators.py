@@ -6,8 +6,8 @@ from dataclasses import dataclass
 from psycopg.sql import SQL, Composed
 
 if TYPE_CHECKING:
-    from pgcrud._tab import Tab
-    from pgcrud._operators.filter_operators import FilterOperator
+    from pgcrud.tab import Tab
+    from pgcrud.operators.filter_operators import FilterOperator
 
 
 __all__ = [

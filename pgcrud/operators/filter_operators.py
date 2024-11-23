@@ -4,11 +4,11 @@ from typing import TYPE_CHECKING
 
 from psycopg.sql import SQL, Composed
 
-from pgcrud._undefined import Undefined
+from pgcrud.undefined import Undefined
 
 
 if TYPE_CHECKING:
-    from pgcrud._col import Col
+    from pgcrud.col import Col
 
 
 __all__ = [

@@ -4,12 +4,12 @@ from typing import TYPE_CHECKING
 
 from psycopg.sql import SQL, Composed, Identifier
 
-from pgcrud._c import c
-from pgcrud._operators.join_operators import Join, InnerJoin
+from pgcrud.c import c
+from pgcrud.operators.join_operators import Join, InnerJoin
 
 
 if TYPE_CHECKING:
-    from pgcrud._operators.filter_operators import FilterOperator
+    from pgcrud.operators.filter_operators import FilterOperator
 
 
 __all__ = [

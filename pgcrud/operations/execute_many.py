@@ -4,9 +4,9 @@ from typing import Any, Literal, overload
 from psycopg import Cursor
 from psycopg.abc import Query
 
-from pgcrud._col import Col
-from pgcrud._operations.type_hints import *
-from pgcrud._operations.utils import *
+from pgcrud.col import Col
+from pgcrud.operations.type_hints import *
+from pgcrud.operations.utils import *
 
 
 @overload

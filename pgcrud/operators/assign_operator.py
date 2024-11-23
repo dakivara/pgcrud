@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from psycopg.sql import SQL, Composed
 
 if TYPE_CHECKING:
-    from pgcrud._col import Col
+    from pgcrud.col import Col
 
 
 __all__ = [
