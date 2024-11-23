@@ -1,9 +1,14 @@
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from psycopg.sql import SQL, Composed, Identifier
 
 from pgcrud._c import c
-from pgcrud._col import SingleCol
+from pgcrud._operators.join_operators import Join, InnerJoin
+
+
+if TYPE_CHECKING:
+    from pgcrud._operators.filter_operators import FilterOperator
 
 
 __all__ = [
@@ -27,3 +32,9 @@ class Tab:
     @property
     def c(self) -> type[c]:
         return c[self]
+
+    def join(self, on: 'FilterOperator') -> Join:
+        return Join(self, on)
+
+    def inner_join(self, on: 'FilterOperator') -> InnerJoin:
+        return InnerJoin(self, on)
