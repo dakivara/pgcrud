@@ -9,4 +9,4 @@ from pgcrud._operations.execute_many import execute_many
 from pgcrud import a
 from pgcrud._c import c
 from pgcrud._t import t
-from pgcrud.undefined import Undefined
+from pgcrud._undefined import Undefined

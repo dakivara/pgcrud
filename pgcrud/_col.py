@@ -8,7 +8,7 @@ from psycopg.sql import SQL, Identifier, Composed, Literal
 from pgcrud._operators.assign_operator import *
 from pgcrud._operators.filter_operators import *
 from pgcrud._operators.sort_operators import *
-from pgcrud.undefined import Undefined
+from pgcrud._undefined import Undefined
 
 
 __all__ = [

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from psycopg.sql import SQL, Composed
 
-from pgcrud.undefined import Undefined
+from pgcrud._undefined import Undefined
 
 
 if TYPE_CHECKING:
