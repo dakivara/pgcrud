@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -13,15 +14,17 @@ if TYPE_CHECKING:
 
 __all__ = [
     'Tab',
+    'SimpleTab',
+    'AliasTab',
 ]
 
 
 @dataclass
 class Tab:
-    name: str
 
+    @abstractmethod
     def get_composed(self) -> Composed:
-        return SQL('{}').format(Identifier(self.name))
+        pass
 
     def __str__(self):
         return self.get_composed().as_string()
@@ -30,11 +33,40 @@ class Tab:
         return self.__str__()
 
     @property
+    @abstractmethod
     def c(self) -> type[c]:
-        return c[self]
+        pass
+
+    def as_(self, alias) -> 'AliasTab':
+        return AliasTab(self, alias)
 
     def join(self, on: 'FilterOperator') -> Join:
         return Join(self, on)
 
     def inner_join(self, on: 'FilterOperator') -> InnerJoin:
         return InnerJoin(self, on)
+
+
+@dataclass(repr=False)
+class SimpleTab(Tab):
+    name: str
+
+    def get_composed(self) -> Composed:
+        return SQL('{}').format(Identifier(self.name))
+
+    @property
+    def c(self) -> type[c]:
+        return c[self]
+
+
+@dataclass(repr=False)
+class AliasTab(Tab):
+    tab: Tab
+    alias: str
+
+    def get_composed(self) -> Composed:
+        return SQL('{} AS {}').format(self.tab.get_composed(), Identifier(self.alias))
+
+    @property
+    def c(self) -> type[c]:
+        return c[self.tab]

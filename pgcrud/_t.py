@@ -1,4 +1,4 @@
-from pgcrud._tab import Tab
+from pgcrud._tab import SimpleTab
 
 
 __all__ = [
@@ -8,14 +8,14 @@ __all__ = [
 
 class tMeta(type):
 
-    def __getattr__(cls, name) -> Tab:
-        return Tab(name)
+    def __getattr__(cls, name) -> SimpleTab:
+        return SimpleTab(name)
 
     def __setattr__(cls, name, value):
         pass
 
-    def __call__(cls, name) -> Tab:
-        return Tab(name)
+    def __call__(cls, name) -> SimpleTab:
+        return SimpleTab(name)
 
 
 class t(metaclass=tMeta):
