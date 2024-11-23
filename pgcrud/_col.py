@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 from psycopg.sql import SQL, Identifier, Composed, Literal
 
@@ -8,6 +8,9 @@ from pgcrud._operators.assign_operator import *
 from pgcrud._operators.filter_operators import *
 from pgcrud._operators.sort_operators import *
 from pgcrud._undefined import Undefined
+
+if TYPE_CHECKING:
+    from pgcrud._tab import Tab
 
 
 __all__ = [
@@ -224,11 +227,11 @@ class LiteralCol(SimpleCol):
 @dataclass(repr=False, eq=False)
 class SingleCol(SimpleCol):
     name: str
-    table_name: str | None = None
+    table: 'Tab | None' = None
 
     def get_composed(self) -> Composed:
-        if self.table_name:
-            return SQL('{}.{}').format(Identifier(self.table_name), Identifier(self.name))
+        if self.table:
+            return SQL('{}.{}').format(Identifier(self.table.name), Identifier(self.name))
         else:
             return SQL('{}').format(Identifier(self.name))
 

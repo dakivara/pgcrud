@@ -13,10 +13,10 @@ __all__ = [
 
 @dataclass
 class Tab:
-    _pgcrud_name: str
+    name: str
 
     def get_composed(self) -> Composed:
-        return SQL('{}').format(Identifier(self._pgcrud_name))
+        return SQL('{}').format(Identifier(self.name))
 
     def __str__(self):
         return self.get_composed().as_string()
@@ -24,5 +24,6 @@ class Tab:
     def __repr__(self):
         return self.__str__()
 
-    def __getattr__(self, item) -> SingleCol:
-        return SingleCol(item, self._pgcrud_name)
+    @property
+    def c(self) -> type[c]:
+        return c[self]

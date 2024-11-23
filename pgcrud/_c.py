@@ -1,4 +1,9 @@
+from typing import TYPE_CHECKING
+
 from pgcrud._col import SingleCol
+
+if TYPE_CHECKING:
+    from pgcrud._tab import Tab
 
 
 __all__ = [
@@ -9,7 +14,7 @@ __all__ = [
 class cMeta(type):
 
     def __getattr__(cls, name) -> SingleCol:
-        return SingleCol(name, super().__getattribute__('_table_name'))
+        return SingleCol(name, super().__getattribute__('_table'))
 
     def __setattr__(cls, name, value):
         pass
@@ -17,9 +22,9 @@ class cMeta(type):
     def __call__(cls, name: str) -> SingleCol:
         return SingleCol(name)
 
-    def __getitem__(cls, name) -> type:
-        return type('c', (c,), {'_table_name': name})
+    def __getitem__(cls, table: 'Tab') -> type:
+        return type('c', (c,), {'_table': table})
 
 
 class c(metaclass=cMeta):
-    _table_name: str = None
+    _table: 'Tab | None' = None
