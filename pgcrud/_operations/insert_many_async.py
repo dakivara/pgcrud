@@ -3,64 +3,53 @@ from typing import Any, Literal, overload
 
 from psycopg import AsyncCursor
 
+from pgcrud._col import Col
 from pgcrud._operations.type_hints import *
 from pgcrud._operations.utils import *
-from pgcrud._star import *
 
 
 @overload
-async def insert_many(cursor: AsyncCursor, into: str, values: Sequence[ValuesType], *, returning: Literal[None] = None, exclude: ExcludeType = None, no_fetch: Literal[False] = False, **kwargs) -> None: ...
+async def insert_many(cursor: AsyncCursor, insert_into: TableType, values: Sequence[ValuesType], *, additional_values: AdditionalValuesType | None = None, returning: Literal[None] = None, exclude: ExcludeType | None = None, no_fetch: Literal[False] = False) -> None: ...
 
 
 @overload
-async def insert_many(cursor: AsyncCursor, into: str, values: Sequence[ValuesType], *, returning: str = None, exclude: ExcludeType = None, no_fetch: Literal[False] = False, **kwargs) -> list[Any]: ...
+async def insert_many(cursor: AsyncCursor, insert_into: TableType, values: Sequence[ValuesType], *, additional_values: AdditionalValuesType | None = None, returning: str | Col, exclude: ExcludeType | None = None, no_fetch: Literal[False] = False) -> list[Any]: ...
 
 
 @overload
-async def insert_many(cursor: AsyncCursor, into: str, values: Sequence[ValuesType], *, returning: tuple[str, ...] | _TSTAR = None, exclude: ExcludeType = None, no_fetch: Literal[False] = False, **kwargs) -> list[tuple[Any, ...]]: ...
+async def insert_many(cursor: AsyncCursor, insert_into: TableType, values: Sequence[ValuesType], *, additional_values: AdditionalValuesType | None = None, returning: Sequence[str | Col], exclude: ExcludeType | None = None, no_fetch: Literal[False] = False) -> list[tuple[Any, ...]]: ...
 
 
 @overload
-async def insert_many(cursor: AsyncCursor, into: str, values: Sequence[ValuesType], *, returning: list[str] | _DSTAR = None, exclude: ExcludeType = None, no_fetch: Literal[False] = False, **kwargs) -> list[dict[str, Any]]: ...
+async def insert_many(cursor: AsyncCursor, insert_into: TableType, values: Sequence[ValuesType], *, additional_values: AdditionalValuesType | None = None, returning: type[PydanticModel], exclude: ExcludeType | None = None, no_fetch: Literal[False] = False) -> list[PydanticModel]: ...
 
 
 @overload
-async def insert_many(cursor: AsyncCursor, into: str, values: Sequence[ValuesType], *, returning: type[OutputModel] = None, exclude: ExcludeType = None, no_fetch: Literal[False] = False, **kwargs) -> list[OutputModel]: ...
-
-
-@overload
-async def insert_many(cursor: AsyncCursor, into: str, values: Sequence[ValuesType], *, returning: SelectType = None, exclude: ExcludeType = None, no_fetch: Literal[True] = False, **kwargs) -> None: ...
+async def insert_many(cursor: AsyncCursor, insert_into: TableType, values: Sequence[ValuesType], *, additional_values: AdditionalValuesType | None = None, returning: SelectType | None = None, exclude: ExcludeType | None = None, no_fetch: Literal[True]) -> None: ...
 
 
 async def insert_many(
         cursor: AsyncCursor,
-        into: str,
+        insert_into: TableType,
         values: Sequence[ValuesType],
         *,
-        returning: SelectType = None,
-        exclude: ExcludeType = None,
+        additional_values: AdditionalValuesType | None = None,
+        returning: SelectType | None = None,
+        exclude: ExcludeType | None = None,
         no_fetch: bool = False,
-        **kwargs,
 ) -> list[ReturnType] | None:
 
     if len(values) == 0:
         raise ValueError('Input list must have at least one element')
 
     if returning:
-        cursor.row_factory = get_row_factory(returning)
+        cursor.row_factory = get_async_row_factory(returning)
 
-    params = [prepare_insert_params(val, kwargs, exclude) for val in values]
-    query = prepare_insert_query(into, params[0], returning)
+    params = [prepare_insert_params(val, additional_values, exclude) for val in values]
+    query = prepare_insert_query(insert_into, params, returning)
 
-    await cursor.executemany(query, params, returning=True if returning else False)
+    await cursor.execute(query)
 
     if not no_fetch:
         if returning:
-            rows = []
-
-            while True:
-                rows.append(await cursor.fetchone())
-                if not cursor.nextset():
-                    break
-
-            return rows
+            return await cursor.fetchall()

@@ -5,4 +5,8 @@ from pgcrud._operations.insert_many import insert_many
 from pgcrud._operations.update_many import update_many
 from pgcrud._operations.delete_many import delete_many
 from pgcrud._operations.execute import execute
-import pgcrud.a
+from pgcrud._operations.execute_many import execute_many
+from pgcrud import a
+from pgcrud._c import c
+from pgcrud._t import t
+from pgcrud.undefined import Undefined

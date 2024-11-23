@@ -3,37 +3,41 @@ from typing import Any, TypeVar
 
 from pydantic import BaseModel
 
-from pgcrud._star import _TSTAR, _DSTAR
-from pgcrud.operators.filter_operators import FilterOperator
-from pgcrud.operators.logical_operators import LogicalOperator
-from pgcrud.operators.sort_operators import SortOperator
+from pgcrud._col import Col
+from pgcrud._operators.assign_operator import Assign
+from pgcrud._operators.filter_operators import FilterOperator
+from pgcrud._operators.sort_operators import SortOperator
+from pgcrud._tab import Tab
 
 
 __all__ = [
-    'OutputModel',
-    'InputModel',
+    'PydanticModel',
+    'TableType',
     'WhereType',
     'OrderByType',
     'SelectType',
     'ReturnType',
     'ValuesType',
     'SetType',
+    'AdditionalValuesType',
     'ExcludeType',
     'ParamsType',
 ]
 
 
-InputModel = TypeVar('InputModel', bound=BaseModel)
-OutputModel = TypeVar('OutputModel', bound=BaseModel)
+PydanticModel = TypeVar('PydanticModel', bound=BaseModel)
 
-WhereType = FilterOperator | LogicalOperator | Sequence[LogicalOperator | FilterOperator]
-OrderByType = SortOperator | Sequence[SortOperator]
+TableType = str | Tab
 
-SelectType = str | tuple[str] | _TSTAR | list[str] | _DSTAR | type[OutputModel]
-ReturnType = Any | tuple[Any] | dict[str, Any] | OutputModel
+WhereType = FilterOperator
+OrderByType = Col | SortOperator | Sequence[Col | SortOperator]
 
-ValuesType = Sequence[tuple[str, Any]] | dict[str, Any] | InputModel
-SetType = Sequence[tuple[str, Any]] | dict[str, Any] | InputModel
+SelectType = str | Col | Sequence[str | Col] | type[BaseModel]
+ReturnType = Any | tuple[Any, ...] | BaseModel
 
+ValuesType = dict[str, Any] | BaseModel
+SetType = Assign | dict[str, Any] | BaseModel | Sequence[Assign | dict[str, Any] | BaseModel]
+
+AdditionalValuesType = dict[str, Any]
 ExcludeType = str | Sequence[str]
-ParamsType = tuple[Any] | dict[str, Any] | InputModel
+ParamsType = Sequence[Any] | dict[str, Any] | BaseModel

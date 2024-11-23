@@ -1,42 +1,39 @@
+from collections.abc import Sequence
 from typing import Any, Literal, overload
 
 from psycopg import Cursor
 
+from pgcrud._col import Col
 from pgcrud._operations.type_hints import *
 from pgcrud._operations.utils import *
-from pgcrud._star import *
 
 
 @overload
-def delete_many(cursor: Cursor, delete_from: str, *, where: WhereType = None, returning: Literal[None] = None, no_fetch: Literal[False] = False) -> None: ...
+def delete_many(cursor: Cursor, delete_from: TableType, *, where: WhereType | None = None, returning: Literal[None] = None, no_fetch: Literal[False] = False) -> None: ...
 
 
 @overload
-def delete_many(cursor: Cursor, delete_from: str, *, where: WhereType = None, returning: str = None, no_fetch: Literal[False] = False) -> list[Any]: ...
+def delete_many(cursor: Cursor, delete_from: TableType, *, where: WhereType | None = None, returning: str | Col, no_fetch: Literal[False] = False) -> list[Any]: ...
 
 
 @overload
-def delete_many(cursor: Cursor, delete_from: str, *, where: WhereType = None, returning: tuple[str, ...] | _TSTAR = None, no_fetch: Literal[False] = False) -> list[tuple[Any, ...]]: ...
+def delete_many(cursor: Cursor, delete_from: TableType, *, where: WhereType | None = None, returning: Sequence[str | Col], no_fetch: Literal[False] = False) -> list[tuple[Any, ...]]: ...
 
 
 @overload
-def delete_many(cursor: Cursor, delete_from: str, *, where: WhereType = None, returning: list[str] | _DSTAR = None, no_fetch: Literal[False] = False) -> list[dict[str, Any]]: ...
+def delete_many(cursor: Cursor, delete_from: TableType, *, where: WhereType | None = None, returning: type[PydanticModel], no_fetch: Literal[False] = False) -> list[PydanticModel]: ...
 
 
 @overload
-def delete_many(cursor: Cursor, delete_from: str, *, where: WhereType = None, returning: type[OutputModel] = None, no_fetch: Literal[False] = False) -> list[OutputModel]: ...
-
-
-@overload
-def delete_many(cursor: Cursor, delete_from: str, *, where: WhereType = None, returning: SelectType = None, no_fetch: Literal[True] = False) -> None: ...
+def delete_many(cursor: Cursor, delete_from: TableType, *, where: WhereType | None = None, returning: SelectType | None = None, no_fetch: Literal[True]) -> None: ...
 
 
 def delete_many(
         cursor: Cursor,
-        delete_from: str,
+        delete_from: TableType,
         *,
-        where: WhereType = None,
-        returning: SelectType = None,
+        where: WhereType | None = None,
+        returning: SelectType | None = None,
         no_fetch: bool = False,
 ) -> list[ReturnType] | None:
 

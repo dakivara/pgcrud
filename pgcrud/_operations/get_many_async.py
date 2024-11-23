@@ -1,45 +1,41 @@
-from typing import Any, Literal, overload
+from typing import Any, Literal, Sequence, overload
 
 from psycopg import AsyncCursor
 
+from pgcrud._col import Col
 from pgcrud._operations.type_hints import *
 from pgcrud._operations.utils import *
-from pgcrud._star import *
 
 
 @overload
-async def get_many(cursor: AsyncCursor, select: str, from_: str, *, where: WhereType = None, order_by: OrderByType = None, limit: int = None, offset: int = None, no_fetch: Literal[False] = False) -> list[Any]: ...
+async def get_many(cursor: AsyncCursor, select: str | Col, from_: TableType, *, where: WhereType | None = None, order_by: OrderByType | None = None, limit: int | None = None, offset: int | None = None, no_fetch: Literal[False] = False) -> list[Any]: ...
 
 
 @overload
-async def get_many(cursor: AsyncCursor, select: tuple[str] | _TSTAR, from_: str, *, where: WhereType = None, order_by: OrderByType = None, limit: int = None, offset: int = None, no_fetch: Literal[False] = False) -> list[tuple[Any, ...]]: ...
+async def get_many(cursor: AsyncCursor, select: Sequence[str | Col], from_: TableType, *, where: WhereType | None = None, order_by: OrderByType | None = None, limit: int | None = None, offset: int | None = None, no_fetch: Literal[False] = False) -> list[tuple[Any, ...]]: ...
 
 
 @overload
-async def get_many(cursor: AsyncCursor, select: list[str] | _DSTAR, from_: str, *, where: WhereType = None, order_by: OrderByType = None, limit: int = None, offset: int = None, no_fetch: Literal[False] = False) -> list[dict[str, Any]]: ...
+async def get_many(cursor: AsyncCursor, select: type[PydanticModel], from_: TableType, *, where: WhereType | None = None, order_by: OrderByType | None = None, limit: int | None = None, offset: int | None = None, no_fetch: Literal[False] = False) -> list[PydanticModel]: ...
 
 
 @overload
-async def get_many(cursor: AsyncCursor, select: type[OutputModel], from_: str, *, where: WhereType = None, order_by: OrderByType = None, limit: int = None, offset: int = None, no_fetch: Literal[False] = False) -> list[OutputModel]: ...
-
-
-@overload
-async def get_many(cursor: AsyncCursor, select: SelectType, from_: str, *, where: WhereType = None, order_by: OrderByType = None, limit: int = None, offset: int = None, no_fetch: Literal[True] = False) -> None: ...
+async def get_many(cursor: AsyncCursor, select: SelectType, from_: TableType, *, where: WhereType | None = None, order_by: OrderByType | None = None, limit: int | None = None, offset: int | None = None, no_fetch: Literal[True]) -> None: ...
 
 
 async def get_many(
         cursor: AsyncCursor,
         select: SelectType,
-        from_: str,
+        from_: TableType,
         *,
-        where: WhereType = None,
-        order_by: OrderByType = None,
-        limit: int = None,
-        offset: int = None,
+        where: WhereType | None = None,
+        order_by: OrderByType | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
         no_fetch: bool = False,
-) -> list[ReturnType]:
+) -> list[ReturnType] | None:
 
-    cursor.row_factory = get_row_factory(select)
+    cursor.row_factory = get_async_row_factory(select)
     query = prepare_select_query(select, from_, where, order_by, limit, offset)
     await cursor.execute(query)
 

@@ -5,3 +5,4 @@ from pgcrud._operations.insert_many_async import insert_many
 from pgcrud._operations.update_many_async import update_many
 from pgcrud._operations.delete_many_async import delete_many
 from pgcrud._operations.execute_async import execute
+from pgcrud._operations.execute_many_async import execute_many

@@ -1,43 +1,40 @@
+from collections.abc import Sequence
 from typing import Any, Literal, overload
 
 from psycopg import Cursor
 from psycopg.abc import Query
 
+from pgcrud._col import Col
 from pgcrud._operations.type_hints import *
 from pgcrud._operations.utils import *
-from pgcrud._star import *
 
 
 @overload
-def execute(cursor: Cursor, query: Query, *, params: ParamsType = None, returning: Literal[None] = None, no_fetch: Literal[False] = False) -> None: ...
+def execute(cursor: Cursor, query: Query, *, params: ParamsType | None = None, returning: Literal[None] = None, no_fetch: Literal[False] = False) -> None: ...
 
 
 @overload
-def execute(cursor: Cursor, query: Query, *, params: ParamsType = None, returning: str = None, no_fetch: Literal[False] = False) -> list[Any]: ...
+def execute(cursor: Cursor, query: Query, *, params: ParamsType | None = None, returning: str | Col, no_fetch: Literal[False] = False) -> list[Any]: ...
 
 
 @overload
-def execute(cursor: Cursor, query: Query, *, params: ParamsType = None, returning: tuple[str, ...] | _TSTAR = None, no_fetch: Literal[False] = False) -> list[tuple[Any, ...]]: ...
+def execute(cursor: Cursor, query: Query, *, params: ParamsType | None = None, returning: Sequence[str | Col], no_fetch: Literal[False] = False) -> list[tuple[Any, ...]]: ...
 
 
 @overload
-def execute(cursor: Cursor, query: Query, *, params: ParamsType = None, returning: list[str] | _DSTAR = None, no_fetch: Literal[False] = False) -> list[dict[str, Any]]: ...
+def execute(cursor: Cursor, query: Query, *, params: ParamsType | None = None, returning: type[PydanticModel], no_fetch: Literal[False] = False) -> list[PydanticModel]: ...
 
 
 @overload
-def execute(cursor: Cursor, query: Query, *, params: ParamsType = None, returning: type[OutputModel] = None, no_fetch: Literal[False] = False) -> list[OutputModel]: ...
-
-
-@overload
-def execute(cursor: Cursor, query: Query, *, params: ParamsType = None, returning: SelectType = None, no_fetch: Literal[True] = False) -> None: ...
+def execute(cursor: Cursor, query: Query, *, params: ParamsType | None = None, returning: SelectType | None = None, no_fetch: Literal[True]) -> None: ...
 
 
 def execute(
         cursor: Cursor,
         query: Query,
         *,
-        params: ParamsType = None,
-        returning: SelectType = None,
+        params: ParamsType | None = None,
+        returning: SelectType | None = None,
         no_fetch: bool = False,
 ) -> ReturnType | None:
 

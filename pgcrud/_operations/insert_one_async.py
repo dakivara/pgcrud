@@ -1,39 +1,44 @@
-from typing import Any, overload
+from collections.abc import Sequence
+from typing import Any, Literal, overload
 
 from psycopg import AsyncCursor
 
+from pgcrud._col import Col
 from pgcrud._operations.type_hints import *
 from pgcrud._operations.utils import *
-from pgcrud._star import *
 
 
 @overload
-async def insert_one(cursor: AsyncCursor, insert_into: str, values: ValuesType, *, returning: str, exclude: ExcludeType = None, **kwargs) -> Any | None: ...
+async def insert_one(cursor: AsyncCursor, insert_into: TableType, values: ValuesType, *, additional_values: AdditionalValuesType | None = None, returning: Literal[None] = None, exclude: ExcludeType | None = None) -> None: ...
 
 
 @overload
-async def insert_one(cursor: AsyncCursor, insert_into: str, values: ValuesType, *, returning: tuple[str, ...] | _TSTAR, exclude: ExcludeType = None, **kwargs) -> tuple[Any, ...] | None: ...
+async def insert_one(cursor: AsyncCursor, insert_into: TableType, values: ValuesType, *, additional_values: AdditionalValuesType | None = None, returning: str | Col, exclude: ExcludeType | None = None) -> Any | None: ...
 
 
 @overload
-async def insert_one(cursor: AsyncCursor, insert_into: str, values: ValuesType, *, returning: list[str] | _DSTAR, exclude: ExcludeType = None, **kwargs) -> dict[str, Any] | None: ...
+async def insert_one(cursor: AsyncCursor, insert_into: TableType, values: ValuesType, *, additional_values: AdditionalValuesType | None = None, returning: Sequence[str | Col], exclude: ExcludeType | None = None) -> tuple[Any, ...] | None: ...
 
 
 @overload
-async def insert_one(cursor: AsyncCursor, insert_into: str, values: ValuesType, *, returning: type[OutputModel], exclude: ExcludeType = None, **kwargs) -> OutputModel | None: ...
+async def insert_one(cursor: AsyncCursor, insert_into: TableType, values: ValuesType, *, additional_values: AdditionalValuesType | None = None, returning: type[PydanticModel], exclude: ExcludeType | None = None) -> PydanticModel | None: ...
 
 
-@overload
-async def insert_one(cursor: AsyncCursor, insert_into: str, values: ValuesType, *, exclude: ExcludeType = None, **kwargs) -> None: ...
-
-
-async def insert_one(cursor: AsyncCursor, insert_into: str, values: ValuesType, *, returning: SelectType = None, exclude: ExcludeType = None, **kwargs) -> ReturnType | None:
+async def insert_one(
+        cursor: AsyncCursor,
+        insert_into: TableType,
+        values: ValuesType,
+        *,
+        additional_values: AdditionalValuesType | None = None,
+        returning: SelectType | None = None,
+        exclude: ExcludeType | None = None,
+) -> ReturnType | None:
 
     if returning:
-        cursor.row_factory = get_row_factory(returning)
+        cursor.row_factory = get_async_row_factory(returning)
 
-    params = prepare_insert_params(values, kwargs, exclude)
-    query = prepare_insert_query(insert_into, params, returning)
+    params = prepare_insert_params(values, additional_values, exclude)
+    query = prepare_insert_query(insert_into, [params], returning)
 
     await cursor.execute(query, params)
 
