@@ -1,4 +1,3 @@
-from _ast import LShift
 from abc import abstractmethod
 from dataclasses import dataclass
 from typing import Any
@@ -24,6 +23,7 @@ __all__ = [
     'SubCol',
     'MulCol',
     'TrueDivCol',
+    'PowCol',
 ]
 
 
@@ -122,6 +122,13 @@ class Col:
     def __rtruediv__(self, other) -> 'TrueDivCol | UndefinedCol':
         return make_col(other) / self
 
+    @abstractmethod
+    def __pow__(self, power) -> 'PowCol | UndefinedCol':
+        pass
+
+    def __rpow__(self, power) -> 'PowCol | UndefinedCol':
+        return make_col(power) ** self
+
 
 @dataclass(repr=False, eq=False)
 class UndefinedCol(Col):
@@ -140,6 +147,9 @@ class UndefinedCol(Col):
         return UndefinedCol()
 
     def __truediv__(self, other) -> 'UndefinedCol':
+        return UndefinedCol()
+
+    def __pow__(self, power) -> 'UndefinedCol':
         return UndefinedCol()
 
 
@@ -185,6 +195,15 @@ class SimpleCol(Col):
             return UndefinedCol()
         else:
             return TrueDivCol([self, other])
+
+    def __pow__(self, power) -> 'PowCol | UndefinedCol':
+        power = make_col(power)
+        if isinstance(power, PowCol):
+            return PowCol([self] + power.cols)
+        elif isinstance(power, UndefinedCol):
+            return UndefinedCol()
+        else:
+            return PowCol([self, power])
 
 
 @dataclass(repr=False, eq=False)
@@ -281,6 +300,13 @@ class AddCol(ArithmeticCol):
         else:
             return TrueDivCol([self, other])
 
+    def __pow__(self, power: Any) -> 'PowCol | UndefinedCol':
+        power = make_col(power)
+        if isinstance(power, UndefinedCol):
+            return UndefinedCol()
+        else:
+            return PowCol([self, power])
+
 
 @dataclass(repr=False, eq=False)
 class SubCol(ArithmeticCol):
@@ -320,6 +346,13 @@ class SubCol(ArithmeticCol):
             return UndefinedCol()
         else:
             return TrueDivCol([self, other])
+
+    def __pow__(self, power: Any) -> 'PowCol | UndefinedCol':
+        power = make_col(power)
+        if isinstance(power, UndefinedCol):
+            return UndefinedCol()
+        else:
+            return PowCol([self, power])
 
 
 @dataclass(repr=False, eq=False)
@@ -361,6 +394,13 @@ class MulCol(ArithmeticCol):
         else:
             return TrueDivCol([self, other])
 
+    def __pow__(self, power: Any) -> 'PowCol | UndefinedCol':
+        power = make_col(power)
+        if isinstance(power, UndefinedCol):
+            return UndefinedCol()
+        else:
+            return PowCol([self, power])
+
 
 @dataclass(repr=False, eq=False)
 class TrueDivCol(ArithmeticCol):
@@ -400,3 +440,57 @@ class TrueDivCol(ArithmeticCol):
             return UndefinedCol()
         else:
             return TrueDivCol(self.cols + [other])
+
+    def __pow__(self, power: Any) -> 'PowCol | UndefinedCol':
+        power = make_col(power)
+        if isinstance(power, UndefinedCol):
+            return UndefinedCol()
+        else:
+            return PowCol([self, power])
+
+
+@dataclass(repr=False, eq=False)
+class PowCol(ArithmeticCol):
+
+    @property
+    def operator(self) -> SQL:
+        return SQL(' ^ ')
+
+    def __add__(self, other: Any) -> 'AddCol | UndefinedCol':
+        other = make_col(other)
+        if isinstance(other, UndefinedCol):
+            return UndefinedCol()
+        else:
+            return AddCol([self, other])
+
+    def __sub__(self, other: Any) -> 'SubCol | UndefinedCol':
+        other = make_col(other)
+        if isinstance(other, UndefinedCol):
+            return UndefinedCol()
+        else:
+            return SubCol([self, other])
+
+    def __mul__(self, other: Any) -> 'MulCol | UndefinedCol':
+        other = make_col(other)
+        if isinstance(other, UndefinedCol):
+            return UndefinedCol()
+        else:
+            return MulCol([self, other])
+
+    def __truediv__(self, other: Any) -> 'TrueDivCol | UndefinedCol':
+        other = make_col(other)
+        if isinstance(other, UndefinedCol):
+            return UndefinedCol()
+        else:
+            return TrueDivCol([self, other])
+
+    def __pow__(self, power: Any) -> 'PowCol | UndefinedCol':
+        power = make_col(power)
+        if isinstance(power, PowCol):
+            return PowCol(self.cols + power.cols)
+        elif isinstance(power, ArithmeticCol):
+            return PowCol([self, power])
+        elif isinstance(power, UndefinedCol):
+            return UndefinedCol()
+        else:
+            return PowCol(self.cols + [power])
