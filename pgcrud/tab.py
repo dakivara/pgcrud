@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 from psycopg.sql import SQL, Composed, Identifier
 
 from pgcrud.c import c
-from pgcrud.col import ToJsonCol
 from pgcrud.operators.join_operators import Join, InnerJoin
 
 
@@ -46,9 +45,6 @@ class Tab:
 
     def inner_join(self, on: 'FilterOperator') -> InnerJoin:
         return InnerJoin(self, on)
-
-    def to_json(self) -> ToJsonCol:
-        return ToJsonCol(self)
 
 
 @dataclass(repr=False)
