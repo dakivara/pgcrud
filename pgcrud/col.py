@@ -28,6 +28,8 @@ __all__ = [
     'TrueDivCol',
     'PowCol',
     'AliasCol',
+    'FunCol',
+    'ToJsonCol',
 ]
 
 
@@ -526,3 +528,20 @@ class AliasCol(Col):
 
     def __pow__(self, power) -> 'PowCol | UndefinedCol':
         return self.col.__pow__(power)
+
+
+@dataclass(repr=False, eq=False)
+class FunCol(SimpleCol):
+
+    @abstractmethod
+    def get_composed(self) -> Composed:
+        pass
+
+
+@dataclass(repr=False, eq=False)
+class ToJsonCol(FunCol):
+    tab: 'Tab'
+
+    @abstractmethod
+    def get_composed(self) -> Composed:
+        return SQL('to_json({})').format(self.tab.get_composed())
