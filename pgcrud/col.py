@@ -29,6 +29,7 @@ __all__ = [
     'AliasCol',
     'FunCol',
     'ToJsonCol',
+    'JsonAggCol',
 ]
 
 
@@ -540,3 +541,12 @@ class ToJsonCol(FunCol):
     @abstractmethod
     def get_composed(self) -> Composed:
         return SQL('to_json({})').format(self.tab.get_composed())
+
+
+@dataclass(repr=False, eq=False)
+class JsonAggCol(FunCol):
+    value: 'Tab | Col'
+
+    @abstractmethod
+    def get_composed(self) -> Composed:
+        return SQL('json_agg({})').format(self.value.get_composed())

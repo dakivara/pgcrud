@@ -3,8 +3,8 @@ from dataclasses import dataclass
 
 from psycopg.sql import SQL, Composed
 
-from pgcrud.components import GroupBy
 from pgcrud.components.component import Component
+from pgcrud.components.group_by import GroupBy
 from pgcrud.components.limit import Limit
 from pgcrud.components.offset import Offset
 from pgcrud.components.order_by import OrderBy

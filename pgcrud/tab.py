@@ -11,6 +11,7 @@ from pgcrud.types import HowValueType
 
 if TYPE_CHECKING:
     from pgcrud.col import SingleCol
+    from pgcrud.query import Query
     from pgcrud.operators import FilterOperator
 
 
@@ -18,6 +19,7 @@ __all__ = [
     'Tab',
     'SimpleTab',
     'AliasTab',
+    'SubQueryTab',
 ]
 
 
@@ -33,14 +35,6 @@ class Tab:
     @abstractmethod
     def get_composed(self) -> Composed:
         pass
-
-    @property
-    @abstractmethod
-    def c(self) -> type[c]:
-        pass
-
-    def as_(self, alias) -> 'AliasTab':
-        return AliasTab(self, alias)
 
     def on(self, operator: 'FilterOperator', how: HowValueType | None = None) -> JoinOn:
         return JoinOn(self, operator, how)
@@ -66,6 +60,9 @@ class SimpleTab(Tab):
     def c(self) -> type[c]:
         return c[self]
 
+    def as_(self, alias) -> 'AliasTab':
+        return AliasTab(self, alias)
+
 
 @dataclass(repr=False)
 class AliasTab(Tab):
@@ -75,6 +72,11 @@ class AliasTab(Tab):
     def get_composed(self) -> Composed:
         return SQL('{} AS {}').format(self.tab.get_composed(), Identifier(self.alias))
 
-    @property
-    def c(self) -> type[c]:
-        return c[self.tab]
+
+@dataclass(repr=False)
+class SubQueryTab(Tab):
+    query: 'Query'
+    alias: str
+
+    def get_composed(self) -> Composed:
+        return SQL('({}) AS {}').format(self.query.get_composed(), Identifier(self.alias))

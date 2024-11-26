@@ -3,6 +3,9 @@ from dataclasses import dataclass
 
 from psycopg.sql import SQL, Composed
 
+from pgcrud.query import Query
+from pgcrud.tab import SubQueryTab
+
 
 __all__ = ['Component']
 
@@ -30,3 +33,6 @@ class Component:
 
     def get_composed(self) -> Composed:
         return SQL(' ').join([component.get_single_composed() for component in self.components if component])
+
+    def as_(self, alias: str) -> SubQueryTab:
+        return SubQueryTab(Query(self), alias)
