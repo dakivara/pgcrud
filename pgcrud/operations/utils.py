@@ -9,8 +9,7 @@ from pgcrud.col import SingleCol, Col
 from pgcrud.operators.assign import Assign
 from pgcrud.operations.type_hints import *
 from pgcrud.query_builder import QueryBuilder as q
-from pgcrud.tab import SimpleTab
-from pgcrud.types import DeleteFromValueType, SelectValueType, FromValueType, JoinValueType, SetColsType, SetValueType, UpdateValueType, WhereValueType, OrderByValueType, InsertIntoValueType, ValuesValueType, ReturningValueType, AdditionalValuesType
+from pgcrud.types import DeleteFromValueType, ParamsValueItemType, ParamsValueType, SelectValueType, FromValueType, JoinValueType, SetColsType, SetValueType, UpdateValueType, WhereValueType, OrderByValueType, InsertIntoValueType, ValuesValueType, ReturningValueType, AdditionalValuesType
 
 
 __all__ = [
@@ -20,13 +19,15 @@ __all__ = [
     'construct_composed_insert_query',
     'construct_composed_update_query',
     'construct_composed_delete_query',
+    'prepare_execute_params',
+    'prepare_execute_many_params',
+
     'prepare_select_query',
     'prepare_insert_params',
     'prepare_insert_query',
     'prepare_update_query',
     'prepare_delete_query',
-    'prepare_execute_params',
-    'prepare_execute_params_seq',
+
 ]
 
 
@@ -127,6 +128,18 @@ def construct_composed_delete_query(
     return query.get_composed()
 
 
+def prepare_execute_params(params: ParamsValueItemType | None) -> Sequence[Any] | dict[str, Any] | None:
+
+    if isinstance(params, BaseModel):
+        params = params.model_dump(by_alias=True)
+
+    return params
+
+
+def prepare_execute_many_params(params: ParamsValueType) -> list[Sequence[Any] | dict[str, Any]]:
+    return [p.model_dump(by_alias=True) if isinstance(p, BaseModel) else p for p in params]
+
+
 def prepare_select_query(
         select: SelectType,
         from_: TableType,
@@ -225,19 +238,6 @@ def prepare_delete_query(delete_from: TableType, where: WhereType | None, return
         composed_list.append(SQL('RETURNING {}').format(composed_returning))
 
     return SQL(' ').join(composed_list)
-
-
-def prepare_execute_params(params: ParamsType | None) -> Sequence[Any] | dict[str, Any] | None:
-
-    if params:
-        if isinstance(params, BaseModel):
-            params = params.model_dump(by_alias=True)
-
-    return params
-
-
-def prepare_execute_params_seq(params: Sequence[ParamsType]) -> list[Sequence[Any] | dict[str, Any]]:
-    return [p.model_dump(by_alias=True) if isinstance(p, BaseModel) else p for p in params]
 
 
 def construct_composed_table(table: TableType) -> Composed:
