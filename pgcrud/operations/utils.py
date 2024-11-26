@@ -10,7 +10,7 @@ from pgcrud.operators.assign import Assign
 from pgcrud.operations.type_hints import *
 from pgcrud.query_builder import QueryBuilder as q
 from pgcrud.tab import SimpleTab
-from pgcrud.types import SelectValueType, FromValueType, JoinValueType, WhereValueType, OrderByValueType, InsertIntoValueType, ValuesValueType, ReturningValueType, AdditionalValuesType
+from pgcrud.types import DeleteFromValueType, SelectValueType, FromValueType, JoinValueType, SetColsType, SetValueType, UpdateValueType, WhereValueType, OrderByValueType, InsertIntoValueType, ValuesValueType, ReturningValueType, AdditionalValuesType
 
 
 __all__ = [
@@ -18,6 +18,8 @@ __all__ = [
     'get_async_row_factory',
     'construct_composed_get_query',
     'construct_composed_insert_query',
+    'construct_composed_update_query',
+    'construct_composed_delete_query',
     'prepare_select_query',
     'prepare_insert_params',
     'prepare_insert_query',
@@ -83,6 +85,42 @@ def construct_composed_insert_query(
 
     query = q.insert_into(insert_into).values(*values, **additional_values)
 
+    if returning:
+        query = query.returning(returning)
+
+    return query.get_composed()
+
+
+def construct_composed_update_query(
+        update: UpdateValueType,
+        set_: tuple[SetColsType, SetValueType],
+        where: WhereValueType | None,
+        returning: ReturningValueType | None,
+        additional_values: AdditionalValuesType | None,
+) -> Composed:
+
+    additional_values = additional_values or {}
+
+    query = q.update(update).set(set_[0], set_[1], **additional_values)
+
+    if where:
+        query = query.where(where)
+    if returning:
+        query = query.returning(returning)
+
+    return query.get_composed()
+
+
+def construct_composed_delete_query(
+        delete_from: DeleteFromValueType,
+        where: WhereValueType | None,
+        returning: ReturningValueType | None,
+) -> Composed:
+
+    query = q.delete_from(delete_from)
+
+    if where:
+        query = query.where(where)
     if returning:
         query = query.returning(returning)
 

@@ -1,9 +1,7 @@
 from pgcrud.tab import SimpleTab
 
 
-__all__ = [
-    'TabGenerator',
-]
+__all__ = ['TabGenerator']
 
 
 class TabGeneratorType(type):

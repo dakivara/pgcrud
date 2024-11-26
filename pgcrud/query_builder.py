@@ -1,6 +1,8 @@
-from pgcrud.components import Select, InsertInto
-from pgcrud.components.update import Update
-from pgcrud.types import SelectValueType, InsertIntoValueType, UpdateValueType
+from pgcrud.components import Select, InsertInto, Update, DeleteFrom
+from pgcrud.types import DeleteFromValueType, SelectValueType, InsertIntoValueType, UpdateValueType
+
+
+__all__ = ['QueryBuilder']
 
 
 class QueryBuilder:
@@ -19,3 +21,7 @@ class QueryBuilder:
     @staticmethod
     def update(value: UpdateValueType) -> Update:
         return Update([], value)
+
+    @staticmethod
+    def delete_from(value: DeleteFromValueType) -> DeleteFrom:
+        return DeleteFrom([], value)

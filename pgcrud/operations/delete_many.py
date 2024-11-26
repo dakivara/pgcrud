@@ -5,42 +5,78 @@ from psycopg import Cursor
 
 from pgcrud.col import Col
 from pgcrud.operations.type_hints import *
-from pgcrud.operations.utils import *
+from pgcrud.operations.utils import get_row_factory, construct_composed_delete_query
+from pgcrud.types import DeleteFromValueType, ResultManyValueType, ReturningValueType, WhereValueType
 
 
 @overload
-def delete_many(cursor: Cursor, delete_from: TableType, *, where: WhereType | None = None, returning: Literal[None] = None, no_fetch: Literal[False] = False) -> None: ...
+def delete_many(
+        cursor: Cursor,
+        delete_from: DeleteFromValueType,
+        *,
+        where: WhereValueType | None = None,
+        returning: Literal[None] = None,
+        no_fetch: Literal[False] = False,
+) -> None: ...
 
 
 @overload
-def delete_many(cursor: Cursor, delete_from: TableType, *, where: WhereType | None = None, returning: str | Col, no_fetch: Literal[False] = False) -> list[Any]: ...
+def delete_many(
+        cursor: Cursor,
+        delete_from: DeleteFromValueType,
+        *,
+        where: WhereValueType | None = None,
+        returning: Col,
+        no_fetch: Literal[False] = False,
+) -> list[Any]: ...
 
 
 @overload
-def delete_many(cursor: Cursor, delete_from: TableType, *, where: WhereType | None = None, returning: Sequence[str | Col], no_fetch: Literal[False] = False) -> list[tuple[Any, ...]]: ...
+def delete_many(
+        cursor: Cursor,
+        delete_from: DeleteFromValueType,
+        *,
+        where: WhereValueType | None = None,
+        returning: Sequence[Col],
+        no_fetch: Literal[False] = False,
+) -> list[tuple[Any, ...]]: ...
 
 
 @overload
-def delete_many(cursor: Cursor, delete_from: TableType, *, where: WhereType | None = None, returning: type[PydanticModel], no_fetch: Literal[False] = False) -> list[PydanticModel]: ...
+def delete_many(
+        cursor: Cursor,
+        delete_from: DeleteFromValueType,
+        *,
+        where: WhereValueType | None = None,
+        returning: type[PydanticModel],
+        no_fetch: Literal[False] = False,
+) -> list[PydanticModel]: ...
 
 
 @overload
-def delete_many(cursor: Cursor, delete_from: TableType, *, where: WhereType | None = None, returning: SelectType | None = None, no_fetch: Literal[True]) -> None: ...
+def delete_many(
+        cursor: Cursor,
+        delete_from: DeleteFromValueType,
+        *,
+        where: WhereValueType | None = None,
+        returning: ReturningValueType | None = None,
+        no_fetch: Literal[True],
+) -> None: ...
 
 
 def delete_many(
         cursor: Cursor,
-        delete_from: TableType,
+        delete_from: DeleteFromValueType,
         *,
-        where: WhereType | None = None,
-        returning: SelectType | None = None,
+        where: WhereValueType | None = None,
+        returning: ReturningValueType | None = None,
         no_fetch: bool = False,
-) -> list[ReturnType] | None:
+) -> ResultManyValueType | None:
 
     if returning:
         cursor.row_factory = get_row_factory(returning)
 
-    query = prepare_delete_query(delete_from, where, returning)
+    query = construct_composed_delete_query(delete_from, where, returning)
     cursor.execute(query)
 
     if not no_fetch:

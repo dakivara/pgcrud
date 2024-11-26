@@ -6,9 +6,7 @@ if TYPE_CHECKING:
     from pgcrud.tab import Tab
 
 
-__all__ = [
-    'ColGenerator',
-]
+__all__ = ['ColGenerator']
 
 
 class ColGeneratorType(type):

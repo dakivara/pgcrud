@@ -10,6 +10,8 @@ from pgcrud.components.insert_into import InsertInto
 from pgcrud.components.values import Values
 from pgcrud.components.returning import Returning
 from pgcrud.components.update import Update
+from pgcrud.components.set_ import Set
+from pgcrud.components.delete_from import DeleteFrom
 
 
 __all__ = [
@@ -27,4 +29,6 @@ __all__ = [
     'Values',
     'Returning',
     'Update',
+    'Set',
+    'DeleteFrom',
 ]

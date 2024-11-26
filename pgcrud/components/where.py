@@ -6,7 +6,8 @@ from pgcrud.components.component import Component
 from pgcrud.components.limit import Limit
 from pgcrud.components.offset import Offset
 from pgcrud.components.order_by import OrderBy
-from pgcrud.types import WhereValueType, OrderByValueType
+from pgcrud.components.returning import Returning
+from pgcrud.types import ReturningValueType, WhereValueType, OrderByValueType
 
 
 __all__ = ['Where']
@@ -30,3 +31,6 @@ class Where(Component):
 
     def offset(self, value: int) -> Offset:
         return Offset(self.components, value)
+
+    def returning(self, value: ReturningValueType) -> Returning:
+        return Returning(self.components, value)
