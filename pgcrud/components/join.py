@@ -1,21 +1,17 @@
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
 
 from psycopg.sql import SQL, Composed
 
+from pgcrud.components import GroupBy
 from pgcrud.components.component import Component
 from pgcrud.components.limit import Limit
 from pgcrud.components.offset import Offset
 from pgcrud.components.order_by import OrderBy
 from pgcrud.components.where import Where
 from pgcrud.operators import JoinOn
-from pgcrud.types import JoinValueType, OrderByValueType
+from pgcrud.types import GroupByValueType, JoinValueType, OrderByValueType, WhereValueType
 from pgcrud.utils import ensure_list
-
-
-if TYPE_CHECKING:
-    from pgcrud.operators import FilterOperator
 
 
 __all__ = [
@@ -56,8 +52,11 @@ class JoinComponent(Component):
     def left_join(self, value: JoinValueType) -> 'LeftJoin':
         return LeftJoin(self.components, value)
 
-    def where(self, value: 'FilterOperator') -> Where:
+    def where(self, value: WhereValueType) -> Where:
         return Where(self.components, value)
+
+    def group_by(self, value: GroupByValueType) -> GroupBy:
+        return GroupBy(self.components, value)
 
     def order_by(self, value: OrderByValueType) -> OrderBy:
         return OrderBy(self.components, value)
