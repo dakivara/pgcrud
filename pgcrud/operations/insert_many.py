@@ -16,7 +16,7 @@ def insert_many(
         *,
         returning: None = None,
         additional_values: AdditionalValuesType | None = None,
-        no_fetch: Literal[False],
+        no_fetch: Literal[False] = False,
 ) -> None: ...
 
 
