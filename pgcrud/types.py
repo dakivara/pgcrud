@@ -16,6 +16,7 @@ __all__ = [
     'FromValueType',
     'JoinValueType',
     'WhereValueType',
+    'GroupByValueType',
     'OrderByValueType',
     'InsertIntoValueType',
     'ValuesValueItemType',
@@ -37,6 +38,7 @@ SelectValueType = Union['Col', Sequence['Col'], type[BaseModel]]
 FromValueType = Union['Tab']
 JoinValueType = Union['JoinOn', Sequence['JoinOn']]
 WhereValueType = Union['FilterOperator']
+GroupByValueType = Union['Col', Sequence['Col']]
 OrderByValueType = Union['Col', 'SortOperator', Sequence[Union['Col', 'SortOperator']]]
 InsertIntoValueType = Union['SimpleTab']
 ValuesValueItemType = Sequence[Any] | dict[str, Any] | BaseModel

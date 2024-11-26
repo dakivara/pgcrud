@@ -6,6 +6,7 @@ from pgcrud.components.offset import Offset
 from pgcrud.components.order_by import OrderBy
 from pgcrud.components.select import Select
 from pgcrud.components.where import Where
+from pgcrud.components.group_by import GroupBy
 from pgcrud.components.insert_into import InsertInto
 from pgcrud.components.values import Values
 from pgcrud.components.returning import Returning
@@ -25,6 +26,7 @@ __all__ = [
     'OrderBy',
     'Select',
     'Where',
+    'GroupBy',
     'InsertInto',
     'Values',
     'Returning',

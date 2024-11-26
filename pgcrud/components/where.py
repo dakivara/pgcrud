@@ -3,11 +3,12 @@ from dataclasses import dataclass
 from psycopg.sql import SQL, Composed
 
 from pgcrud.components.component import Component
+from pgcrud.components.group_by import GroupBy
 from pgcrud.components.limit import Limit
 from pgcrud.components.offset import Offset
 from pgcrud.components.order_by import OrderBy
 from pgcrud.components.returning import Returning
-from pgcrud.types import ReturningValueType, WhereValueType, OrderByValueType
+from pgcrud.types import GroupByValueType, ReturningValueType, WhereValueType, OrderByValueType
 
 
 __all__ = ['Where']
@@ -22,6 +23,9 @@ class Where(Component):
             return SQL('WHERE {}').format(self.value.get_composed())
         else:
             return Composed([])
+
+    def group_by(self, value: GroupByValueType) -> GroupBy:
+        return GroupBy(self.components, value)
 
     def order_by(self, value: OrderByValueType) -> OrderBy:
         return OrderBy(self.components, value)
