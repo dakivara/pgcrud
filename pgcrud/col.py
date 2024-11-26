@@ -4,9 +4,8 @@ from typing import Any, TYPE_CHECKING
 
 from psycopg.sql import SQL, Identifier, Composed, Literal
 
-from pgcrud.operators.assign import *
-from pgcrud.operators.filter import *
-from pgcrud.operators.sort import *
+from pgcrud.operators.filter import Equal, NotEqual, GreaterThan, GreaterThanEqual, LessThan, LessThanEqual, IsNull, IsNotNull, IsIn, IsNotIn
+from pgcrud.operators.sort import Ascending, Descending
 from pgcrud.undefined import Undefined
 
 if TYPE_CHECKING:
@@ -81,9 +80,6 @@ class Col:
 
     def __le__(self, other: Any) -> LessThanEqual:
         return LessThanEqual(self, make_col(other))
-
-    def __lshift__(self, other: Any) -> Assign:
-        return Assign(self, make_col(other))
 
     def is_null(self, flag: bool = True) -> IsNull:
         return IsNull(self, flag)

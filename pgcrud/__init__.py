@@ -4,8 +4,6 @@ from pgcrud.operations.insert_one import insert_one
 from pgcrud.operations.insert_many import insert_many
 from pgcrud.operations.update_many import update_many
 from pgcrud.operations.delete_many import delete_many
-from pgcrud.operations.execute import execute
-from pgcrud.operations.execute_many import execute_many
 from pgcrud import a
 from pgcrud.col_generator import ColGenerator as c
 from pgcrud import fun as f
@@ -21,8 +19,6 @@ __all__ = [
     'insert_many',
     'update_many',
     'delete_many',
-    'execute',
-    'execute_many',
     'a',
     'c',
     'f',

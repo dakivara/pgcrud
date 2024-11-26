@@ -26,8 +26,6 @@ __all__ = [
     'SetColsType',
     'SetValueType',
     'DeleteFromValueType',
-    'ParamsValueItemType',
-    'ParamsValueType',
     'ResultOneValueType',
     'ResultManyValueType',
     'HowValueType',
@@ -49,8 +47,6 @@ UpdateValueType = Union['Tab']
 SetColsType = Sequence['SingleCol']
 SetValueType = Sequence[Any] | dict[str, Any] | BaseModel
 DeleteFromValueType = Union['Tab']
-ParamsValueItemType = Sequence[Any] | dict[str, Any] | BaseModel
-ParamsValueType = Sequence[ParamsValueItemType]
 ResultOneValueType = Any | tuple[Any, ...] | BaseModel
 ResultManyValueType = list[Any] | list[tuple[Any, ...]] | list[BaseModel]
 HowValueType = Literal['INNER', 'LEFT']
