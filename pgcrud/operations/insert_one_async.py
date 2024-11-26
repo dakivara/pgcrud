@@ -1,46 +1,71 @@
 from collections.abc import Sequence
-from typing import Any, Literal, overload
+from typing import Any, overload
 
 from psycopg import AsyncCursor
 
 from pgcrud.col import Col
-from pgcrud.operations.type_hints import *
-from pgcrud.operations.utils import *
+from pgcrud.operations.utils import get_async_row_factory, construct_composed_insert_query
+from pgcrud.types import PydanticModel, InsertIntoValueType, AdditionalValuesType, ResultOneValueType, ReturningValueType, ValuesValueItemType
 
 
 @overload
-async def insert_one(cursor: AsyncCursor, insert_into: TableType, values: ValuesType, *, additional_values: AdditionalValuesType | None = None, returning: Literal[None] = None, exclude: ExcludeType | None = None) -> None: ...
+async def insert_one(
+        cursor: AsyncCursor,
+        insert_into: InsertIntoValueType,
+        values: ValuesValueItemType,
+        *,
+        returning: None = None,
+        additional_values: AdditionalValuesType | None = None,
+) -> None: ...
 
 
 @overload
-async def insert_one(cursor: AsyncCursor, insert_into: TableType, values: ValuesType, *, additional_values: AdditionalValuesType | None = None, returning: str | Col, exclude: ExcludeType | None = None) -> Any | None: ...
+async def insert_one(
+        cursor: AsyncCursor,
+        insert_into: InsertIntoValueType,
+        values: ValuesValueItemType,
+        *,
+        returning: Col,
+        additional_values: AdditionalValuesType | None = None,
+) -> Any | None: ...
 
 
 @overload
-async def insert_one(cursor: AsyncCursor, insert_into: TableType, values: ValuesType, *, additional_values: AdditionalValuesType | None = None, returning: Sequence[str | Col], exclude: ExcludeType | None = None) -> tuple[Any, ...] | None: ...
+async def insert_one(
+        cursor: AsyncCursor,
+        insert_into: InsertIntoValueType,
+        values: ValuesValueItemType,
+        *,
+        returning: Sequence[Col],
+        additional_values: AdditionalValuesType | None = None,
+) -> tuple[Any, ...] | None: ...
 
 
 @overload
-async def insert_one(cursor: AsyncCursor, insert_into: TableType, values: ValuesType, *, additional_values: AdditionalValuesType | None = None, returning: type[PydanticModel], exclude: ExcludeType | None = None) -> PydanticModel | None: ...
+async def insert_one(
+        cursor: AsyncCursor,
+        insert_into: InsertIntoValueType,
+        values: ValuesValueItemType,
+        *,
+        returning: type[PydanticModel],
+        additional_values: AdditionalValuesType | None = None,
+) -> PydanticModel | None: ...
 
 
 async def insert_one(
         cursor: AsyncCursor,
-        insert_into: TableType,
-        values: ValuesType,
+        insert_into: InsertIntoValueType,
+        values: ValuesValueItemType,
         *,
+        returning: ReturningValueType | None = None,
         additional_values: AdditionalValuesType | None = None,
-        returning: SelectType | None = None,
-        exclude: ExcludeType | None = None,
-) -> ReturnType | None:
+) -> ResultOneValueType | None:
 
     if returning:
         cursor.row_factory = get_async_row_factory(returning)
 
-    params = prepare_insert_params(values, additional_values, exclude)
-    query = prepare_insert_query(insert_into, [params], returning)
-
-    await cursor.execute(query, params)
+    query = construct_composed_insert_query(insert_into, (values,), returning, additional_values)
+    await cursor.execute(query)
 
     if returning:
         return await cursor.fetchone()

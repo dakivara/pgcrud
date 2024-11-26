@@ -4,9 +4,8 @@ from typing import Any, Literal, overload
 from psycopg import Cursor
 
 from pgcrud.col import Col
-from pgcrud.operations.type_hints import *
 from pgcrud.operations.utils import get_row_factory, construct_composed_delete_query
-from pgcrud.types import DeleteFromValueType, ResultManyValueType, ReturningValueType, WhereValueType
+from pgcrud.types import PydanticModel, DeleteFromValueType, ResultManyValueType, ReturningValueType, WhereValueType
 
 
 @overload

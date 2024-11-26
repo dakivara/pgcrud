@@ -4,45 +4,89 @@ from typing import Any, Literal, overload
 from psycopg import AsyncCursor
 
 from pgcrud.col import Col
-from pgcrud.operations.type_hints import *
-from pgcrud.operations.utils import *
+from pgcrud.operations.utils import get_async_row_factory, construct_composed_update_query
+from pgcrud.types import PydanticModel, UpdateValueType, SetColsType, SetValueType, WhereValueType, ReturningValueType, AdditionalValuesType, ResultManyValueType
 
 
 @overload
-async def update_many(cursor: AsyncCursor, update: TableType, set_: SetType, *, where: WhereType | None = None, returning: Literal[None] = None, exclude: ExcludeType | None = None, no_fetch: Literal[False] = False) -> None: ...
+async def update_many(
+        cursor: AsyncCursor,
+        update: UpdateValueType,
+        set_: tuple[SetColsType, SetValueType],
+        *,
+        where: WhereValueType | None = None,
+        returning: Literal[None] = None,
+        no_fetch: Literal[False] = False,
+) -> None: ...
 
 
 @overload
-async def update_many(cursor: AsyncCursor, update: TableType, set_: SetType, *, where: WhereType | None = None, returning: str | Col, exclude: ExcludeType | None = None, no_fetch: Literal[False] = False) -> list[Any]: ...
+async def update_many(
+        cursor: AsyncCursor,
+        update: UpdateValueType,
+        set_: tuple[SetColsType, SetValueType],
+        *,
+        where: WhereValueType | None = None,
+        returning: Col,
+        additional_values: AdditionalValuesType | None = None,
+        no_fetch: Literal[False] = False,
+) -> list[Any]: ...
 
 
 @overload
-async def update_many(cursor: AsyncCursor, update: TableType, set_: SetType, *, where: WhereType | None = None, returning: Sequence[str | Col], exclude: ExcludeType | None = None, no_fetch: Literal[False] = False) -> list[tuple[Any, ...]]: ...
+async def update_many(
+        cursor: AsyncCursor,
+        update: UpdateValueType,
+        set_: tuple[SetColsType, SetValueType],
+        *,
+        where: WhereValueType | None = None,
+        returning: Sequence[Col],
+        additional_values: AdditionalValuesType | None = None,
+        no_fetch: Literal[False] = False,
+) -> list[tuple[Any, ...]]: ...
 
 
 @overload
-async def update_many(cursor: AsyncCursor, update: TableType, set_: SetType, *, where: WhereType | None = None, returning: type[PydanticModel], exclude: ExcludeType | None = None, no_fetch: Literal[False] = False) -> list[PydanticModel]: ...
+async def update_many(
+        cursor: AsyncCursor,
+        update: UpdateValueType,
+        set_: tuple[SetColsType, SetValueType],
+        *,
+        where: WhereValueType | None = None,
+        returning: type[PydanticModel],
+        additional_values: AdditionalValuesType | None = None,
+        no_fetch: Literal[False] = False,
+) -> list[PydanticModel]: ...
 
 
 @overload
-async def update_many(cursor: AsyncCursor, update: TableType, set_: SetType, *, where: WhereType | None = None, returning: SelectType | None = None, exclude: ExcludeType | None = None, no_fetch: Literal[True]) -> None: ...
+async def update_many(
+        cursor: AsyncCursor,
+        update: UpdateValueType,
+        set_: tuple[SetColsType, SetValueType],
+        *,
+        where: WhereValueType | None = None,
+        returning: ReturningValueType | None = None,
+        additional_values: AdditionalValuesType | None = None,
+        no_fetch: Literal[True],
+) -> None: ...
 
 
 async def update_many(
         cursor: AsyncCursor,
-        update: TableType,
-        set_: SetType,
+        update: UpdateValueType,
+        set_: tuple[SetColsType, SetValueType],
         *,
-        where: WhereType | None = None,
-        returning: SelectType | None = None,
-        exclude: ExcludeType | None = None,
+        where: WhereValueType | None = None,
+        returning: ReturningValueType | None = None,
+        additional_values: AdditionalValuesType | None = None,
         no_fetch: bool = False,
-) -> list[ReturnType] | None:
+) -> ResultManyValueType | None:
 
     if returning:
         cursor.row_factory = get_async_row_factory(returning)
 
-    query = prepare_update_query(update, set_, where, returning, exclude)
+    query = construct_composed_update_query(update, set_, where, returning, additional_values)
     await cursor.execute(query)
 
     if not no_fetch:
