@@ -6,15 +6,18 @@ from psycopg.rows import scalar_row, tuple_row, class_row, RowFactory, AsyncRowF
 from pydantic import BaseModel
 
 from pgcrud.col import SingleCol, Col
-from pgcrud.operators.assign_operator import Assign
-from pgcrud.operators.sort_operators import CompositeSort
+from pgcrud.operators.assign import Assign
 from pgcrud.operations.type_hints import *
+from pgcrud.query_builder import QueryBuilder as q
 from pgcrud.tab import SimpleTab
+from pgcrud.types import SelectValueType, FromValueType, JoinValueType, WhereValueType, OrderByValueType, InsertIntoValueType, ValuesValueType, ReturningValueType, AdditionalValuesType
 
 
 __all__ = [
     'get_row_factory',
     'get_async_row_factory',
+    'construct_composed_get_query',
+    'construct_composed_insert_query',
     'prepare_select_query',
     'prepare_insert_params',
     'prepare_insert_query',
@@ -43,10 +46,53 @@ def get_async_row_factory(select: SelectType) -> AsyncRowFactory:
         return class_row(select)  # type: ignore
 
 
+def construct_composed_get_query(
+        select: SelectValueType,
+        from_: FromValueType,
+        join: JoinValueType | None,
+        where: WhereValueType | None,
+        order_by: OrderByValueType | None,
+        limit: int | None,
+        offset: int | None,
+) -> Composed:
+
+    query = q.select(select).from_(from_)
+
+    if join:
+        query = query.join(join)
+    if where:
+        query = query.where(where)
+    if order_by:
+        query = query.order_by(order_by)
+    if limit:
+        query = query.limit(limit)
+    if offset:
+        query = query.offset(offset)
+
+    return query.get_composed()
+
+
+def construct_composed_insert_query(
+        insert_into: InsertIntoValueType,
+        values: ValuesValueType,
+        returning: ReturningValueType | None,
+        additional_values: AdditionalValuesType | None,
+) -> Composed:
+
+    additional_values = additional_values or {}
+
+    query = q.insert_into(insert_into).values(*values, **additional_values)
+
+    if returning:
+        query = query.returning(returning)
+
+    return query.get_composed()
+
+
 def prepare_select_query(
         select: SelectType,
         from_: TableType,
-        join: JoinType | None,
+        join: None,
         where: WhereType | None,
         order_by: OrderByType | None,
         limit: int | None,
@@ -157,8 +203,6 @@ def prepare_execute_params_seq(params: Sequence[ParamsType]) -> list[Sequence[An
 
 
 def construct_composed_table(table: TableType) -> Composed:
-    if isinstance(table, str):
-        table = SimpleTab(table)
     return table.get_composed()
 
 
@@ -185,7 +229,7 @@ def construct_composed_select(select: SelectType) -> Composed:
         return SQL(', ').join(composed_list)
 
 
-def construct_composed_join(join: JoinType | None) -> Composed | None:
+def construct_composed_join(join: None) -> Composed | None:
     if join:
         if not isinstance(join, Sequence):
             join = [join]
@@ -203,10 +247,10 @@ def construct_composed_order_by(order_by: OrderByType | None) -> Composed | None
         if not isinstance(order_by, Sequence):
             order_by = [order_by]
 
-        order_by = CompositeSort([operator.asc() if isinstance(operator, Col) else operator for operator in order_by])
-
-        if order_by:
-            return order_by.get_composed()
+        # order_by = CompositeSort([operator.asc() if isinstance(operator, Col) else operator for operator in order_by])
+        #
+        # if order_by:
+        #     return order_by.get_composed()
 
 
 def construct_composed_set(set_: SetType, exclude: ExcludeType | None) -> Composed:

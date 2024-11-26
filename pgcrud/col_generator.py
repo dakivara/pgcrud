@@ -7,11 +7,11 @@ if TYPE_CHECKING:
 
 
 __all__ = [
-    'c',
+    'ColGenerator',
 ]
 
 
-class cMeta(type):
+class ColGeneratorType(type):
 
     def __getattr__(cls, name) -> SingleCol:
         return SingleCol(name, super().__getattribute__('_table'))
@@ -23,8 +23,8 @@ class cMeta(type):
         return SingleCol(name)
 
     def __getitem__(cls, table: 'Tab') -> type:
-        return type('c', (c,), {'_table': table})
+        return type('ColGenerator', (ColGenerator,), {'_table': table})
 
 
-class c(metaclass=cMeta):
+class ColGenerator(metaclass=ColGeneratorType):
     _table: 'Tab | None' = None

@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 
 from psycopg.sql import SQL, Composed
 
+from pgcrud.operators.operator import Operator
 from pgcrud.undefined import Undefined
 
 
@@ -33,17 +34,8 @@ __all__ = [
 ]
 
 
-@dataclass
-class FilterOperator:
-
-    def __str__(self):
-        return self.get_composed().as_string()
-
-    def __repr__(self):
-        return self.__str__()
-
-    def __bool__(self):
-        return len(self.get_composed()._obj) > 0
+@dataclass(repr=False)
+class FilterOperator(Operator):
 
     @abstractmethod
     def __and__(self, other: 'FilterOperator') -> 'Intersection':
@@ -55,6 +47,10 @@ class FilterOperator:
 
     @abstractmethod
     def get_composed(self) -> Composed:
+        pass
+
+    @abstractmethod
+    def get_inner_composed(self) -> Composed:
         pass
 
 
@@ -71,6 +67,9 @@ class SingleFilterOperator(FilterOperator):
     def get_composed(self) -> Composed:
         pass
 
+    def get_inner_composed(self) -> Composed:
+        return self.get_composed()
+
 
 @dataclass(repr=False)
 class ComparisonOperator(SingleFilterOperator):
@@ -83,10 +82,10 @@ class ComparisonOperator(SingleFilterOperator):
         pass
 
     def get_composed(self) -> Composed:
-        if self.left.is_undefined_col or self.right.is_undefined_col:
-            return Composed([])
-        else:
+        if self.left and self.right:
             return SQL("{} {} {}").format(self.left.get_composed(), self.operator, self.right.get_composed())
+        else:
+            return Composed([])
 
 
 @dataclass(repr=False)
@@ -159,7 +158,7 @@ class IsNull(SingleFilterOperator):
     flag: bool = True
 
     def get_composed(self) -> Composed:
-        if self.col.is_undefined_col or self.flag is Undefined:
+        if not self.col or self.flag is Undefined:
             return Composed([])
         elif self.flag:
             return SQL("{} IS NULL").format(self.col.get_composed())
@@ -173,7 +172,7 @@ class IsNotNull(SingleFilterOperator):
     flag: bool = True
 
     def get_composed(self) -> Composed:
-        if self.col.is_undefined_col or self.flag is Undefined:
+        if not self.col or self.flag is Undefined:
             return Composed([])
         elif self.flag:
             return SQL("{} IS NOT NULL").format(self.col.get_composed())
@@ -197,15 +196,14 @@ class Intersection(FilterOperator):
         return Union([self, other])
 
     def get_composed(self) -> Composed:
-        return SQL(' AND ').join([operator.get_inner_composed() if isinstance(operator, Intersection) or isinstance(operator, Union) else operator.get_composed() for operator in self.operators if operator])
+        return SQL(' AND ').join([operator.get_inner_composed() for operator in self.operators if operator])
 
     def get_inner_composed(self) -> Composed:
         composed = self.get_composed()
-
         if len(composed._obj) > 1:
-            composed = Composed([SQL('('), composed, SQL(')')])
-
-        return composed
+            return Composed([SQL('('), composed, SQL(')')])
+        else:
+            return composed
 
 
 @dataclass(repr=False)
@@ -224,15 +222,14 @@ class Union(FilterOperator):
             return Union(self.operators + [other])
 
     def get_composed(self) -> Composed:
-        return SQL(' OR ').join([operator.get_inner_composed() if isinstance(operator, Intersection) or isinstance(operator, Union) else operator.get_composed() for operator in self.operators if operator])
+        return SQL(' OR ').join([operator.get_inner_composed() for operator in self.operators if operator])
 
     def get_inner_composed(self) -> Composed:
         composed = self.get_composed()
-
         if len(composed._obj) > 1:
-            composed = Composed([SQL('('), composed, SQL(')')])
-
-        return composed
+            return Composed([SQL('('), composed, SQL(')')])
+        else:
+            return composed
 
 
 # @dataclass

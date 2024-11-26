@@ -1,21 +1,22 @@
-from typing import Any, Literal, Sequence, overload
+from collections.abc import Sequence
+from typing import Any, Literal, overload
 
 from psycopg import AsyncCursor
 
 from pgcrud.col import Col
-from pgcrud.operations.type_hints import *
-from pgcrud.operations.utils import *
+from pgcrud.operations.utils import get_async_row_factory, construct_composed_get_query
+from pgcrud.types import PydanticModel, SelectValueType, FromValueType, JoinValueType, WhereValueType, OrderByValueType, ResultManyValueType
 
 
 @overload
 async def get_many(
         cursor: AsyncCursor,
-        select: str | Col,
-        from_: TableType,
+        select: Col,
+        from_: FromValueType,
         *,
-        join: JoinType | None = None,
-        where: WhereType | None = None,
-        order_by: OrderByType | None = None,
+        join: JoinValueType | None = None,
+        where: WhereValueType | None = None,
+        order_by: OrderByValueType | None = None,
         limit: int | None = None,
         offset: int | None = None,
         no_fetch: Literal[False] = False,
@@ -25,12 +26,12 @@ async def get_many(
 @overload
 async def get_many(
         cursor: AsyncCursor,
-        select: Sequence[str | Col],
-        from_: TableType,
+        select: Sequence[Col],
+        from_: FromValueType,
         *,
-        join: JoinType | None = None,
-        where: WhereType | None = None,
-        order_by: OrderByType | None = None,
+        join: JoinValueType | None = None,
+        where: WhereValueType | None = None,
+        order_by: OrderByValueType | None = None,
         limit: int | None = None,
         offset: int | None = None,
         no_fetch: Literal[False] = False,
@@ -41,11 +42,11 @@ async def get_many(
 async def get_many(
         cursor: AsyncCursor,
         select: type[PydanticModel],
-        from_: TableType,
+        from_: FromValueType,
         *,
-        join: JoinType | None = None,
-        where: WhereType | None = None,
-        order_by: OrderByType | None = None,
+        join: JoinValueType | None = None,
+        where: WhereValueType | None = None,
+        order_by: OrderByValueType | None = None,
         limit: int | None = None,
         offset: int | None = None,
         no_fetch: Literal[False] = False,
@@ -55,12 +56,12 @@ async def get_many(
 @overload
 async def get_many(
         cursor: AsyncCursor,
-        select: SelectType,
-        from_: TableType,
+        select: SelectValueType,
+        from_: FromValueType,
         *,
-        join: JoinType | None = None,
-        where: WhereType | None = None,
-        order_by: OrderByType | None = None,
+        join: JoinValueType | None = None,
+        where: WhereValueType | None = None,
+        order_by: OrderByValueType | None = None,
         limit: int | None = None,
         offset: int | None = None,
         no_fetch: Literal[True],
@@ -69,19 +70,19 @@ async def get_many(
 
 async def get_many(
         cursor: AsyncCursor,
-        select: SelectType,
-        from_: TableType,
+        select: SelectValueType,
+        from_: FromValueType,
         *,
-        join: JoinType | None = None,
-        where: WhereType | None = None,
-        order_by: OrderByType | None = None,
+        join: JoinValueType | None = None,
+        where: WhereValueType | None = None,
+        order_by: OrderByValueType | None = None,
         limit: int | None = None,
         offset: int | None = None,
-        no_fetch: bool = False,
-) -> list[ReturnType] | None:
+        no_fetch: bool | None = False,
+) -> ResultManyValueType | None:
 
     cursor.row_factory = get_async_row_factory(select)
-    query = prepare_select_query(select, from_, join, where, order_by, limit, offset)
+    query = construct_composed_get_query(select, from_, join, where, order_by, limit, offset)
     await cursor.execute(query)
 
     if not no_fetch:

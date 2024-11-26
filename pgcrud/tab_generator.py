@@ -2,11 +2,11 @@ from pgcrud.tab import SimpleTab
 
 
 __all__ = [
-    't',
+    'TabGenerator',
 ]
 
 
-class tMeta(type):
+class TabGeneratorType(type):
 
     def __getattr__(cls, name) -> SimpleTab:
         return SimpleTab(name)
@@ -18,5 +18,5 @@ class tMeta(type):
         return SimpleTab(name)
 
 
-class t(metaclass=tMeta):
+class TabGenerator(metaclass=TabGeneratorType):
     pass

@@ -4,17 +4,15 @@ from typing import Any, TypeVar
 from pydantic import BaseModel
 
 from pgcrud.col import Col
-from pgcrud.operators.assign_operator import Assign
-from pgcrud.operators.filter_operators import FilterOperator
-from pgcrud.operators.join_operators import JoinOperator
-from pgcrud.operators.sort_operators import SortOperator
+from pgcrud.operators.assign import Assign
+from pgcrud.operators.filter import FilterOperator
+from pgcrud.operators.sort import SortOperator
 from pgcrud.tab import Tab
 
 
 __all__ = [
     'PydanticModel',
     'TableType',
-    'JoinType',
     'WhereType',
     'OrderByType',
     'SelectType',
@@ -29,9 +27,8 @@ __all__ = [
 
 PydanticModel = TypeVar('PydanticModel', bound=BaseModel)
 
-TableType = str | Tab
+TableType = Tab
 
-JoinType = JoinOperator | Sequence[JoinOperator]
 WhereType = FilterOperator
 OrderByType = Col | SortOperator | Sequence[Col | SortOperator]
 

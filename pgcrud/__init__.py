@@ -7,8 +7,10 @@ from pgcrud.operations.delete_many import delete_many
 from pgcrud.operations.execute import execute
 from pgcrud.operations.execute_many import execute_many
 from pgcrud import a
-from pgcrud.c import c
-from pgcrud.t import t
+from pgcrud.col_generator import ColGenerator as c
+from pgcrud import fun as f
+from pgcrud.query_builder import QueryBuilder as q
+from pgcrud.tab_generator import TabGenerator as t
 from pgcrud.undefined import Undefined
 
 
@@ -23,6 +25,8 @@ __all__ = [
     'execute_many',
     'a',
     'c',
+    'f',
+    'q',
     't',
     'Undefined',
 ]

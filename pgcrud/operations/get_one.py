@@ -4,19 +4,19 @@ from typing import Any, overload
 from psycopg import Cursor
 
 from pgcrud.col import Col
-from pgcrud.operations.type_hints import *
-from pgcrud.operations.utils import *
+from pgcrud.operations.utils import get_row_factory, construct_composed_get_query
+from pgcrud.types import PydanticModel, SelectValueType, FromValueType, WhereValueType, JoinValueType, OrderByValueType, ResultOneValueType
 
 
 @overload
 def get_one(
         cursor: Cursor,
-        select: str | Col,
-        from_: TableType,
+        select: Col,
+        from_: FromValueType,
         *,
-        join: JoinType | None = None,
-        where: WhereType | None = None,
-        order_by: OrderByType | None = None,
+        join: JoinValueType | None = None,
+        where: WhereValueType | None = None,
+        order_by: OrderByValueType | None = None,
         offset: int | None = None,
 ) -> Any | None: ...
 
@@ -24,12 +24,12 @@ def get_one(
 @overload
 def get_one(
         cursor: Cursor,
-        select: Sequence[str | Col],
-        from_: TableType,
+        select: Sequence[Col],
+        from_: FromValueType,
         *,
-        join: JoinType | None = None,
-        where: WhereType | None = None,
-        order_by: OrderByType | None = None,
+        join: JoinValueType | None = None,
+        where: WhereValueType | None = None,
+        order_by: OrderByValueType | None = None,
         offset: int | None = None,
 ) -> tuple[Any, ...] | None: ...
 
@@ -38,28 +38,28 @@ def get_one(
 def get_one(
         cursor: Cursor,
         select: type[PydanticModel],
-        from_: TableType,
+        from_: FromValueType,
         *,
-        join: JoinType | None = None,
-        where: WhereType | None = None,
-        order_by: OrderByType | None = None,
+        join: JoinValueType | None = None,
+        where: WhereValueType | None = None,
+        order_by: OrderByValueType | None = None,
         offset: int | None = None,
 ) -> PydanticModel | None: ...
 
 
 def get_one(
         cursor: Cursor,
-        select: SelectType,
-        from_: TableType,
+        select: SelectValueType,
+        from_: FromValueType,
         *,
-        join: JoinType | None = None,
-        where: WhereType | None = None,
-        order_by: OrderByType | None = None,
+        join: JoinValueType | None = None,
+        where: WhereValueType | None = None,
+        order_by: OrderByValueType | None = None,
         offset: int | None = None,
-) -> ReturnType | None:
+) -> ResultOneValueType | None:
 
     cursor.row_factory = get_row_factory(select)
-    query = prepare_select_query(select, from_, join, where, order_by, 1, offset)
+    query = construct_composed_get_query(select, from_, join, where, order_by, 1, offset)
     cursor.execute(query)
 
     return cursor.fetchone()

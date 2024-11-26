@@ -4,12 +4,14 @@ from typing import TYPE_CHECKING
 
 from psycopg.sql import SQL, Composed, Identifier
 
-from pgcrud.c import c
-from pgcrud.operators.join_operators import Join, InnerJoin
+from pgcrud.col_generator import ColGenerator as c
+from pgcrud.operators import JoinOn
+from pgcrud.types import HowValueType
 
 
 if TYPE_CHECKING:
-    from pgcrud.operators.filter_operators import FilterOperator
+    from pgcrud.col import SingleCol
+    from pgcrud.operators import FilterOperator
 
 
 __all__ = [
@@ -22,15 +24,15 @@ __all__ = [
 @dataclass
 class Tab:
 
-    @abstractmethod
-    def get_composed(self) -> Composed:
-        pass
-
     def __str__(self):
         return self.get_composed().as_string()
 
     def __repr__(self):
         return self.__str__()
+
+    @abstractmethod
+    def get_composed(self) -> Composed:
+        pass
 
     @property
     @abstractmethod
@@ -40,19 +42,25 @@ class Tab:
     def as_(self, alias) -> 'AliasTab':
         return AliasTab(self, alias)
 
-    def join(self, on: 'FilterOperator') -> Join:
-        return Join(self, on)
-
-    def inner_join(self, on: 'FilterOperator') -> InnerJoin:
-        return InnerJoin(self, on)
+    def on(self, operator: 'FilterOperator', how: HowValueType | None = None) -> JoinOn:
+        return JoinOn(self, operator, how)
 
 
 @dataclass(repr=False)
 class SimpleTab(Tab):
     name: str
+    cols: tuple['SingleCol', ...] = ()
+
+    def __getitem__(self, cols: 'SingleCol | tuple[SingleCol, ...]') -> 'SimpleTab':
+        if not isinstance(cols, tuple):
+            cols = (cols,)
+        return SimpleTab(self.name, cols)
 
     def get_composed(self) -> Composed:
-        return SQL('{}').format(Identifier(self.name))
+        if self.cols:
+            return SQL('{} ({})').format(Identifier(self.name), SQL(', ').join([col.get_composed() for col in self.cols]))
+        else:
+            return SQL('{}').format(Identifier(self.name))
 
     @property
     def c(self) -> type[c]:

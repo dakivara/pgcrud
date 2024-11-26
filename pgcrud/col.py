@@ -4,9 +4,9 @@ from typing import Any, TYPE_CHECKING
 
 from psycopg.sql import SQL, Identifier, Composed, Literal
 
-from pgcrud.operators.assign_operator import *
-from pgcrud.operators.filter_operators import *
-from pgcrud.operators.sort_operators import *
+from pgcrud.operators.assign import *
+from pgcrud.operators.filter import *
+from pgcrud.operators.sort import *
 from pgcrud.undefined import Undefined
 
 if TYPE_CHECKING:
@@ -47,12 +47,12 @@ def make_col(value: Any) -> 'Col':
 @dataclass
 class Col:
 
-    @property
-    def is_undefined_col(self) -> bool:
-        return isinstance(self, UndefinedCol)
-
     @abstractmethod
     def get_composed(self) -> Composed:
+        pass
+
+    @abstractmethod
+    def get_inner_composed(self) -> Composed:
         pass
 
     def __str__(self):
@@ -60,6 +60,9 @@ class Col:
 
     def __repr__(self):
         return self.__str__()
+
+    def __bool__(self):
+        return not isinstance(self, UndefinedCol)
 
     def __eq__(self, other: Any) -> Equal:  # type: ignore
         return Equal(self, make_col(other))
@@ -94,10 +97,10 @@ class Col:
     def is_not_in(self, values: Any) -> IsNotIn:
         return IsNotIn(self, make_col(values))
 
-    def asc(self, flag: bool = True) -> Ascending:
+    def asc(self, flag: bool | type[Undefined] = True) -> Ascending:
         return Ascending(self, flag)
 
-    def desc(self, flag: bool = True) -> Descending:
+    def desc(self, flag: bool | type[Undefined] = True) -> Descending:
         return Descending(self, flag)
 
     def as_(self, alias: str) -> 'AliasCol':
@@ -142,9 +145,11 @@ class Col:
 @dataclass(repr=False, eq=False)
 class UndefinedCol(Col):
 
-    @abstractmethod
     def get_composed(self) -> Composed:
         return Composed([])
+
+    def get_inner_composed(self) -> Composed:
+        return self.get_composed()
 
     def __add__(self, other: Any) -> 'UndefinedCol':
         return UndefinedCol()
@@ -169,6 +174,9 @@ class SimpleCol(Col):
     def get_composed(self) -> Composed:
         pass
 
+    def get_inner_composed(self) -> Composed:
+        return self.get_composed()
+        
     def __add__(self, other: Any) -> 'AddCol | UndefinedCol':
         other = make_col(other)
         if isinstance(other, AddCol):
@@ -233,11 +241,11 @@ class LiteralCol(SimpleCol):
 @dataclass(repr=False, eq=False)
 class SingleCol(SimpleCol):
     name: str
-    table: 'Tab | None' = None
+    tab: 'Tab | None' = None
 
     def get_composed(self) -> Composed:
-        if self.table:
-            return SQL('{}.{}').format(Identifier(self.table.name), Identifier(self.name))
+        if self.tab:
+            return SQL('{}.{}').format(self.tab.get_composed(), Identifier(self.name))
         else:
             return SQL('{}').format(Identifier(self.name))
 
@@ -251,23 +259,14 @@ class ArithmeticCol(Col):
     def operator(self) -> SQL:
         pass
 
-    def get_composed(self, _inner: bool = False) -> Composed:
-        composed_list = []
+    def get_composed(self) -> Composed:
+        return self.operator.join([col.get_inner_composed() for col in self.cols])
 
-        for col in self.cols:
-            if isinstance(col, ArithmeticCol):
-                composed_list.append(col.get_composed(True))
-            elif isinstance(col, SimpleCol):
-                composed_list.append(col.get_composed())
-            else:
-                composed_list.append(SQL('{}').format(Literal(col)))
-
-        composed = self.operator.join(composed_list)
-
-        if len(composed_list) > 1 and _inner:
-            composed = Composed([SQL('('), composed, SQL(')')])
-
-        return composed
+    def get_inner_composed(self) -> Composed:
+        if len(self.get_composed()._obj) > 1:
+            return Composed([SQL('('), self.get_composed(), SQL(')')])
+        else:
+            return self.get_composed()
 
 
 @dataclass(repr=False, eq=False)

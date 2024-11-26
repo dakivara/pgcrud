@@ -3,6 +3,8 @@ from typing import TYPE_CHECKING
 
 from psycopg.sql import SQL, Composed
 
+from pgcrud.operators.operator import Operator
+
 if TYPE_CHECKING:
     from pgcrud.col import Col
 
@@ -12,22 +14,13 @@ __all__ = [
 ]
 
 
-@dataclass
-class Assign:
+@dataclass(repr=False)
+class Assign(Operator):
     left: 'Col'
     right: 'Col'
 
-    def __str__(self):
-        return self.get_composed().as_string()
-
-    def __repr__(self):
-        return self.__str__()
-
-    def __bool__(self):
-        return len(self.get_composed()._obj) > 0
-
     def get_composed(self) -> Composed:
-        if self.left.is_undefined_col or self.right.is_undefined_col:
-            return Composed([])
-        else:
+        if self.left and self.right:
             return SQL("{} = {}").format(self.left.get_composed(), self.right.get_composed())
+        else:
+            return Composed([])

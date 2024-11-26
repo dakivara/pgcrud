@@ -4,50 +4,84 @@ from typing import Any, Literal, overload
 from psycopg import Cursor
 
 from pgcrud.col import Col
-from pgcrud.operations.type_hints import *
-from pgcrud.operations.utils import *
+from pgcrud.operations.utils import get_row_factory, construct_composed_insert_query
+from pgcrud.types import PydanticModel, InsertIntoValueType, AdditionalValuesType, ResultManyValueType, ReturningValueType, ValuesValueType
 
 
 @overload
-def insert_many(cursor: Cursor, insert_into: TableType, values: Sequence[ValuesType], *, additional_values: AdditionalValuesType | None = None, returning: Literal[None] = None, exclude: ExcludeType | None, no_fetch: Literal[False]) -> None: ...
+def insert_many(
+        cursor: Cursor,
+        insert_into: InsertIntoValueType,
+        values: ValuesValueType,
+        *,
+        returning: None = None,
+        additional_values: AdditionalValuesType | None = None,
+        no_fetch: Literal[False],
+) -> None: ...
 
 
 @overload
-def insert_many(cursor: Cursor, insert_into: TableType, values: Sequence[ValuesType], *, additional_values: AdditionalValuesType | None = None, returning: str | Col, exclude: ExcludeType | None = None, no_fetch: Literal[False] = False) -> list[Any]: ...
+def insert_many(
+        cursor: Cursor,
+        insert_into: InsertIntoValueType,
+        values: ValuesValueType,
+        *,
+        returning: Col,
+        additional_values: AdditionalValuesType | None = None,
+        no_fetch: Literal[False] = False,
+) -> list[Any]: ...
 
 
 @overload
-def insert_many(cursor: Cursor, insert_into: TableType, values: Sequence[ValuesType], *, additional_values: AdditionalValuesType | None = None, returning: Sequence[str | Col], exclude: ExcludeType | None = None, no_fetch: Literal[False] = False) -> list[tuple[Any, ...]]: ...
+def insert_many(
+        cursor: Cursor,
+        insert_into: InsertIntoValueType,
+        values: ValuesValueType,
+        *,
+        returning: Sequence[Col],
+        additional_values: AdditionalValuesType | None = None,
+        no_fetch: Literal[False] = False,
+) -> list[tuple[Any, ...]]: ...
 
 
 @overload
-def insert_many(cursor: Cursor, insert_into: TableType, values: Sequence[ValuesType], *, additional_values: AdditionalValuesType | None = None, returning: type[PydanticModel], exclude: ExcludeType | None = None, no_fetch: Literal[False] = False) -> list[PydanticModel]: ...
+def insert_many(
+        cursor: Cursor,
+        insert_into: InsertIntoValueType,
+        values: ValuesValueType,
+        *,
+        returning: type[PydanticModel],
+        additional_values: AdditionalValuesType | None = None,
+        no_fetch: Literal[False] = False,
+) -> list[PydanticModel]: ...
 
 
 @overload
-def insert_many(cursor: Cursor, insert_into: TableType, values: Sequence[ValuesType], *, additional_values: AdditionalValuesType | None = None, returning: SelectType | None = None, exclude: ExcludeType | None = None, no_fetch: Literal[True]) -> None: ...
+def insert_many(
+        cursor: Cursor,
+        insert_into: InsertIntoValueType,
+        values: ValuesValueType,
+        *,
+        returning: ReturningValueType | None = None,
+        additional_values: AdditionalValuesType | None = None,
+        no_fetch: Literal[True],
+) -> None: ...
 
 
 def insert_many(
         cursor: Cursor,
-        insert_into: TableType,
-        values: Sequence[ValuesType],
+        insert_into: InsertIntoValueType,
+        values: ValuesValueType,
         *,
+        returning: ReturningValueType | None = None,
         additional_values: AdditionalValuesType | None = None,
-        returning: SelectType | None = None,
-        exclude: ExcludeType | None = None,
         no_fetch: bool = False,
-) -> list[ReturnType] | None:
-
-    if len(values) == 0:
-        raise ValueError('Input list must have at least one element')
+) -> ResultManyValueType | None:
 
     if returning:
         cursor.row_factory = get_row_factory(returning)
 
-    params = [prepare_insert_params(val, additional_values, exclude) for val in values]
-    query = prepare_insert_query(insert_into, params, returning)
-
+    query = construct_composed_insert_query(insert_into, values, returning, additional_values)
     cursor.execute(query)
 
     if not no_fetch:
