@@ -4,7 +4,7 @@ from typing import Any, Literal, overload
 from psycopg import Cursor
 
 from pgcrud.col import Col
-from pgcrud.operations.utils import get_row_factory, construct_composed_get_query
+from pgcrud.operations.shared import get_row_factory, construct_composed_get_query
 from pgcrud.types import GroupByValueType, HavingValueType, PydanticModel, SelectValueType, FromValueType, JoinValueType, WhereValueType, OrderByValueType, ResultManyValueType
 
 

@@ -4,7 +4,7 @@ from typing import Any, overload
 from psycopg import AsyncCursor
 
 from pgcrud.col import Col
-from pgcrud.operations.utils import get_async_row_factory, construct_composed_insert_query
+from pgcrud.operations.shared import get_async_row_factory, construct_composed_insert_query
 from pgcrud.types import PydanticModel, InsertIntoValueType, AdditionalValuesType, ResultOneValueType, ReturningValueType, ValuesValueItemType
 
 

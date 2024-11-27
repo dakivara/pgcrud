@@ -4,7 +4,7 @@ from typing import Any, Literal, overload
 from psycopg import AsyncCursor
 
 from pgcrud.col import Col
-from pgcrud.operations.utils import get_async_row_factory, construct_composed_delete_query
+from pgcrud.operations.shared import get_async_row_factory, construct_composed_delete_query
 from pgcrud.types import PydanticModel, DeleteFromValueType, ResultManyValueType, ReturningValueType, UsingValueType, WhereValueType
 
 
