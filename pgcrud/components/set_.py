@@ -45,7 +45,7 @@ class Set(Component):
                 composed_values.append(params[col.name])
 
         if len(composed_cols) > 1:
-            return SQL('SET ({}) = ({})').format(SQL(', ').join(*composed_cols), SQL(', ').join(*composed_values))
+            return SQL('SET ({}) = ({})').format(SQL(', ').join(composed_cols), SQL(', ').join(composed_values))
         elif len(composed_cols) == 1:
             return SQL('SET {} = {}').format(composed_cols[0], composed_values[0])
         else:
