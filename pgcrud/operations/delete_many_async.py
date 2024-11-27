@@ -15,7 +15,7 @@ async def delete_many(
         *,
         using: UsingValueType | None = None,
         where: WhereValueType | None = None,
-        returning: Literal[None] = None,
+        returning: None = None,
         no_fetch: Literal[False] = False,
 ) -> None: ...
 
