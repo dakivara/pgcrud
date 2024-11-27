@@ -27,6 +27,7 @@ __all__ = [
     'SetColsType',
     'SetValueType',
     'DeleteFromValueType',
+    'HavingValueType',
     'ResultOneValueType',
     'ResultManyValueType',
     'HowValueType',
@@ -49,6 +50,7 @@ UpdateValueType = Union['Tab']
 SetColsType = Sequence['SingleCol']
 SetValueType = Sequence[Any] | dict[str, Any] | BaseModel
 DeleteFromValueType = Union['Tab']
+HavingValueType = Union['FilterOperator']
 ResultOneValueType = Any | tuple[Any, ...] | BaseModel
 ResultManyValueType = list[Any] | list[tuple[Any, ...]] | list[BaseModel]
 HowValueType = Literal['INNER', 'LEFT', 'RIGHT', 'FULL', 'CROSS']

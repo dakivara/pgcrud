@@ -13,6 +13,7 @@ from pgcrud.components.returning import Returning
 from pgcrud.components.update import Update
 from pgcrud.components.set_ import Set
 from pgcrud.components.delete_from import DeleteFrom
+from pgcrud.components.having import Having
 
 
 __all__ = [
@@ -33,4 +34,5 @@ __all__ = [
     'Update',
     'Set',
     'DeleteFrom',
+    'Having',
 ]
