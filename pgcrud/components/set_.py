@@ -5,8 +5,9 @@ from psycopg.sql import SQL, Composed
 
 from pgcrud.components.component import Component
 from pgcrud.components.returning import Returning
+from pgcrud.components.ufrom import UFrom
 from pgcrud.components.where import Where
-from pgcrud.types import ReturningValueType, SetColsType, SetValueType, AdditionalValuesType, WhereValueType
+from pgcrud.types import FromValueType, ReturningValueType, SetColsType, SetValueType, AdditionalValuesType, WhereValueType
 
 
 __all__ = ['Set']
@@ -50,6 +51,9 @@ class Set(Component):
             return SQL('SET {} = {}').format(composed_cols[0], composed_values[0])
         else:
             return Composed([])
+
+    def from_(self, value: FromValueType) -> UFrom:
+        return UFrom(self.components, value)
 
     def where(self, value: WhereValueType) -> Where:
         return Where(self.components, value)
