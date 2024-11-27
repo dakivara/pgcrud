@@ -5,7 +5,7 @@ from psycopg import Cursor
 
 from pgcrud.col import Col
 from pgcrud.operations.utils import get_row_factory, construct_composed_update_query
-from pgcrud.types import PydanticModel, UpdateValueType, SetColsType, SetValueType, WhereValueType, ReturningValueType, AdditionalValuesType, ResultManyValueType
+from pgcrud.types import FromValueType, PydanticModel, UpdateValueType, SetColsType, SetValueType, WhereValueType, ReturningValueType, AdditionalValuesType, ResultManyValueType
 
 
 @overload
@@ -14,8 +14,10 @@ def update_many(
         update: UpdateValueType,
         set_: tuple[SetColsType, SetValueType],
         *,
+        from_: FromValueType | None = None,
         where: WhereValueType | None = None,
-        returning: Literal[None] = None,
+        returning: None = None,
+        additional_values: AdditionalValuesType | None = None,
         no_fetch: Literal[False] = False,
 ) -> None: ...
 
@@ -26,6 +28,7 @@ def update_many(
         update: UpdateValueType,
         set_: tuple[SetColsType, SetValueType],
         *,
+        from_: FromValueType | None = None,
         where: WhereValueType | None = None,
         returning: Col,
         additional_values: AdditionalValuesType | None = None,
@@ -39,6 +42,7 @@ def update_many(
         update: UpdateValueType,
         set_: tuple[SetColsType, SetValueType],
         *,
+        from_: FromValueType | None = None,
         where: WhereValueType | None = None,
         returning: Sequence[Col],
         additional_values: AdditionalValuesType | None = None,
@@ -52,6 +56,7 @@ def update_many(
         update: UpdateValueType,
         set_: tuple[SetColsType, SetValueType],
         *,
+        from_: FromValueType | None = None,
         where: WhereValueType | None = None,
         returning: type[PydanticModel],
         additional_values: AdditionalValuesType | None = None,
@@ -65,6 +70,7 @@ def update_many(
         update: UpdateValueType,
         set_: tuple[SetColsType, SetValueType],
         *,
+        from_: FromValueType | None = None,
         where: WhereValueType | None = None,
         returning: ReturningValueType | None = None,
         additional_values: AdditionalValuesType | None = None,
@@ -77,6 +83,7 @@ def update_many(
         update: UpdateValueType,
         set_: tuple[SetColsType, SetValueType],
         *,
+        from_: FromValueType | None = None,
         where: WhereValueType | None = None,
         returning: ReturningValueType | None = None,
         additional_values: AdditionalValuesType | None = None,
@@ -86,7 +93,7 @@ def update_many(
     if returning:
         cursor.row_factory = get_row_factory(returning)
 
-    query = construct_composed_update_query(update, set_, where, returning, additional_values)
+    query = construct_composed_update_query(update, set_, from_, where, returning, additional_values)
     cursor.execute(query)
 
     if not no_fetch:

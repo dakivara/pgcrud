@@ -88,6 +88,7 @@ def construct_composed_insert_query(
 def construct_composed_update_query(
         update: UpdateValueType,
         set_: tuple[SetColsType, SetValueType],
+        from_: FromValueType | None,
         where: WhereValueType | None,
         returning: ReturningValueType | None,
         additional_values: AdditionalValuesType | None,
@@ -97,6 +98,8 @@ def construct_composed_update_query(
 
     query = q.update(update).set(set_[0], set_[1], **additional_values)
 
+    if from_:
+        query = query.from_(from_)
     if where:
         query = query.where(where)
     if returning:
