@@ -3,8 +3,8 @@ from dataclasses import dataclass
 from psycopg.sql import SQL, Composed
 
 from pgcrud.components.component import Component
-from pgcrud.components.where import Where
 from pgcrud.components.returning import Returning
+from pgcrud.components.udwhere import UDWhere
 from pgcrud.components.using import Using
 from pgcrud.types import DeleteFromValueType, ReturningValueType, UsingValueType, WhereValueType
 
@@ -22,8 +22,8 @@ class DeleteFrom(Component):
     def using(self, value: UsingValueType) -> Using:
         return Using(self.components, value)
 
-    def where(self, value: WhereValueType) -> Where:
-        return Where(self.components, value)
+    def where(self, value: WhereValueType) -> UDWhere:
+        return UDWhere(self.components, value)
 
     def returning(self, value: ReturningValueType) -> Returning:
         return Returning(self.components, value)

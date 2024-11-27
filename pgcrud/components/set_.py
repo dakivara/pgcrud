@@ -3,10 +3,11 @@ from dataclasses import dataclass
 
 from psycopg.sql import SQL, Composed
 
+
 from pgcrud.components.component import Component
 from pgcrud.components.returning import Returning
 from pgcrud.components.ufrom import UFrom
-from pgcrud.components.where import Where
+from pgcrud.components.udwhere import UDWhere
 from pgcrud.types import FromValueType, ReturningValueType, SetColsType, SetValueType, AdditionalValuesType, WhereValueType
 
 
@@ -55,8 +56,8 @@ class Set(Component):
     def from_(self, value: FromValueType) -> UFrom:
         return UFrom(self.components, value)
 
-    def where(self, value: WhereValueType) -> Where:
-        return Where(self.components, value)
+    def where(self, value: WhereValueType) -> UDWhere:
+        return UDWhere(self.components, value)
 
     def returning(self, value: ReturningValueType) -> Returning:
         return Returning(self.components, value)

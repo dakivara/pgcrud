@@ -16,6 +16,7 @@ from pgcrud.components.delete_from import DeleteFrom
 from pgcrud.components.having import Having
 from pgcrud.components.using import Using
 from pgcrud.components.ufrom import UFrom
+from pgcrud.components.udwhere import UDWhere
 
 
 __all__ = [
@@ -39,4 +40,5 @@ __all__ = [
     'Having',
     'Using',
     'UFrom',
+    'UDWhere',
 ]
