@@ -1,111 +1,178 @@
 # pgcrud
 
-**pgcrud** is a fast and lightweight library that enables seamless integration between PostgreSQL databases, the psycopg adapter and Pydantic models. 
-**pgcrud** simplifies CRUD operations with straightforward, abstractly declarative functions, eliminating the need for ORMs or redundant SQL queries.
+**pgcrud** makes Create, Read, Update, and Delete (CRUD) operations for PostgreSQL simple and fast. It serves as 
+the bridge between the popular PostgreSQL adapter psycopg and Pydantic, the leading library for data serialization and validation. 
+**pgcrud** redefines ORMs by mapping Python data model annotations to corresponding objects in the database.
 
 ## Installation
 
-**pgcrud** is not yet available on PyPI, but you can install it with pip using the following command:
+The **pgcrud** package is not yet available on PyPI. However, you can install it using pip with the following command:
 
 ```
 pip install git+https://github.com/dakivara/pgcrud.git
 ```
 
+Do not download the pgcrud package from PyPi. This is an abandoned package and is not affiliated with us.
+
 ## Documentation
 
-The **pgcrud** documentation is currently under development. We are working on providing comprehensive guides, examples, and API references to help you get the most out of **pgcrud**.
+The **pgcrud** documentation is currently under development. We are working on providing comprehensive guides, examples, and 
+API references. Please be a little more patient.
 
-## Simple Example
+## Example
+
+Here we demonstrate how to manage relationships (parent and children) using **pgcrud**. Imagine you have an Author 
+model that belongs to a Publisher (the parent) and has authored several Books (the children). With **pgcrud**, you can 
+efficiently fetch a list of authors as Pydantic models, including their associated publisher and books, all in a single request.
 
 ```python
-import pgcrud as pg
-from pgcrud import t, c
+from typing import Annotated
+
 import psycopg
 from pydantic import BaseModel
 
+import pgcrud as pg
+from pgcrud import t, c, q, f
 
-class User(BaseModel):
+
+class Publisher(BaseModel):
     id: int
     name: str
-    age: int
+    address: str
 
 
-class UserInput(BaseModel):
-    name: str
-    age: int
-    
-    
-conn_str = 'YOUR-CONN-STR'
+class Book(BaseModel):
+    id: int
+    title: str
+    pages: int
+
+
+# Define the select statement using annotations
+class Author(BaseModel):
+    id: Annotated[int, t.author.c.id]                                           # Selects the 'id' column from the 'author' table
+    name: Annotated[str, t.author.c.name]                                       # Selects the 'name' column from the 'author' table
+    email: str                                                                  # No annotation needed; the field is uniquely identified by its name (annotation still recommended)
+    publisher: Annotated[Publisher, f.to_json(t.publisher).as_('publisher')]    # Defines the 'to_json' transformation on the joined 'publisher' table 
+    books: Annotated[list[Book], t.author_books.c.books]                        # Selects 'books' from a 'author_books' subquery
+
+
+conn_str = 'YOUR-CONNECTION-STRING'
 
 with psycopg.connect(conn_str) as conn:
     with conn.cursor() as cursor:
-   
-        # get a list of instances from the 'User' model 
-        users = pg.get_many(
-            cursor=cursor, 
-            select=User,        # Map the result to the Pydantic model 'User'
-            from_=t.user,       # Specify to query the 'user' table
-            where=c.age > 18,   # Filter: Only include users older than 18
-            order_by=c.id,      # Sort the results by the 'id' column
-        )
-
-        # insert user and return the user_id
-        user_id = pg.insert_one(
+        authors = pg.get_many(
             cursor=cursor,
-            insert_into=t.user,                     # Specify the target table ("user" table)
-            values=UserInput(name='Dan', age=30),   # Data to insert, using a Pydantic model (UserInput)
-            returning=c.id,                         # Return the "id" column of the newly inserted row
+            select=Author,                                                                  # Maps the result to the Author Pydantic model
+            from_=t.author,                                                                 # Specifies the main table to query from
+            join=(
+                # Joins the publisher table on the author's publisher_id
+                t.publisher.on(t.author.c.publisher_id == t.publisher.c.id, how='INNER'),
+                
+                # Joins a subquery to fetch books grouped by author_id
+                q.select((c.author_id, f.json_agg(t.book).as_('books'))).                   # Selects author_id and JSON aggregated books
+                    from_(t.book).                                                          # Specifies the book table for the subquery
+                    group_by(c.author_id).                                                  # Groups books by author_id
+                    as_('author_books').                                                    # Defines the 'author_books' alias
+                    on(t.author.c.id == t.author_books.c.author_id, how='INNER'),           # Joins subquery on author_id
+            ),
+            where=t.publisher.c.id == 1,                                                    # Filters authors by publisher_id = 1
+            order_by=t.author.c.id,                                                         # Orders results by author ID
         )
 ```
 
-## Some Advanced Features
+## Main Components
 
-You can easily chain filter expressions in **pgcrud** using logical operators like & (AND) or | (OR).
+### Column Generator
 
-```python
-from pgcrud import c
-
-(c.age > 18) & (c.age < 60) 
-# "age" > 18 AND "age" < 60
-```
-
-**pgcrud** allows you to declare arithmetic operations between columns python types.
+You can import the column generator with `from pgcrud import c`. The column generator allows you to define generic references to columns 
+in a table, view, or subquery. These references fully support arithmetic and comparison operations, allow you to define aliases, and offer much more flexibility.
 
 ```python
 from pgcrud import c
 
-c.weight / c.height ** 2
-# "weight" / ("height" ^ 2)
+(c.age > 18) & (c.age < 60) & (c.id.is_in([1, 2, 3])) 
+# "age" > 18 AND "age" < 60 AND "id" IN '{1,2,3}::int2[]'
+
+(c.weight / c.height ** 2).as_('bmi')
+# weight" / ("height" ^ 2) AS "bmi"
 ```
 
 
-The special **Undefined** object is used to handle optional query parameters. When Undefined is included in an expression, it is ignored during query resolution. This makes it easy to build dynamic queries without writing additional conditional logic.
+### Table Generator
+
+You can import the table generator with `from pgcrud import t`. The table generator allows you to define generic 
+references to a table (or view). Each table reference has access to the column generator for defining table/column 
+references, and offers the ability to define aliases, create join expressions, and much more.
+
 ```python
-from pgcrud import c, Undefined
+from pgcrud import t
 
-(c.age > 18) & (c.age < Undefined) 
-# "age" > 18
+t.user.c.name
+# "user"."name"
+
+t.publisher.as_('p').on(t.author.c.id == t.p.c.author_id)
+# "publisher" AS "p" ON "author"."id" = "p"."author_id"
 ```
 
+### Function Bearer
+
+You can import the function bearer with `from pgcrud import f`. The function bearer provides access to functions that 
+correspond to PostgreSQL functions. You can use it to declare transformations, aggregations, and more.
+
+```python
+from pgcrud import c, f, t
+
+f.avg(c.salary + c.bonus).as_('average_compensation')
+# avg("salary" + "bonus") AS "average_compensation"
+
+f.to_json(t.publisher).as_('publisher')
+# to_json("publisher") AS "publisher"
+```
+
+### Query Builder
+
+You can import the query builder with `from pgcrud import q`. The query builder is used to construct queries and subqueries for performing any CRUD operation.
+
+```python
+from pgcrud import c, f, q, t
+
+
+q.select((t.department.c.id, t.department.c.name, f.avg(t.employee.c.salary).as_('avg_salary'))).\
+    from_(t.employee).\
+    join(t.deparment.on(t.employee.c.department_id == t.departement.c.id)).\
+    group_by(t.employee.c.department_id)
+# SELECT "department"."id", "department"."name", avg("employee"."salary") AS "avg_salary" FROM "employee" JOIN "deparment" ON "employee"."department_id" = "departement"."id" GROUP BY "employee"."department_id"
+
+
+q.insert_into(t.employee[c.name, c.salary, c.department_id]).\
+    values(('John Doe', 1000, 1), {'name': 'Jane Doe', 'salary': 2000, 'department_id': 2}).\
+    returning(c.id)
+# INSERT INTO "employee" ("name", "salary", "department_id") VALUES ('John Doe', 1000, 1), ('Jane Doe', 2000, 2) RETURNING "id"
+
+
+q.update(t.employee).\
+    set((c.salary, c.deparment_id), (3000, 3)).\
+    where(c.id == 1)
+# UPDATE "employee" SET ("salary", "deparment_id") = (3000, 3) WHERE "id" = 1
+
+
+q.delete_from(t.employee).\
+    where(c.salary > 10000).\
+    returning(c.id)
+# DELETE FROM "employee" WHERE "salary" > 10000 RETURNING "id"
+```
 
 ## Why choose pgcrud?
 
-When building applications with a PostgreSQL backend, most developers either opt for ORMs (like SQLAlchemy or SQLModel) or write 
+When building a Python application with PostgreSQL database, most developers either opt for ORMs (like SQLAlchemy or SQLModel) or write 
 raw SQL. Both approaches have their upsides and downsides:
 
 - ORMs: While convenient, ORMs map directly to tables, but real-world applications often require modeling relationships. This leads to additional data models and more database requests, increasing complexity and overhead.
 - Raw SQL: Writing raw SQL avoids the abstraction but comes with its own challenges, such as repetitive code and difficulty handling optional filters or sorting conditions effectively.
 
-Unlike traditional ORMs, **pgcrud** is a purely abstract declarative module and is not tied to specific database tables. This pure declarative nature makes it far more flexible, allowing developers to model their logic and data flow without rigid constraints. It strikes the perfect balance between writing SQL and Python code. We recommend the following approach to make the most of **pgcrud**:
-
-- **Define your database schema**: Use raw SQL to define tables, views, and other static schema elements.
-- **Handle regular CRUD operations with pgcrud**: Combine it with Pydantic for a seamless workflow:
-  - **Reading**: Leverage PostgreSQL’s powerful JSON aggregation features to define relationships in views, then model these views in Python using Pydantic.
-  - **Writing**: Directly map Pydantic models to database tables for clean and efficient data handling.
-- **Complex queries**: For advanced use cases, such as Common Table Expressions (CTEs), stick with raw SQL for maximum flexibility.
-
-This approach balances the strengths of SQL and Python, keeping your backend both simple and powerful, and it will drastically reduce your codebase.
-
+Unlike traditional ORMs, **pgcrud** uses powerful data annotations to map database objects to Python models only when needed. This drastically 
+reduces the code base and enables highly efficient querying. It offers built-in Pydantic integration and is specifically tailored for 
+PostgreSQL, providing a more flexible and streamlined approach than SQLAlchemy.
 
 ## Type Hints
 **pgcrud** offers full support for type hints, making it easier to write and maintain your code with better autocompletion and error checking.
