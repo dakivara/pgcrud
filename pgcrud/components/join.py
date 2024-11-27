@@ -19,6 +19,9 @@ __all__ = [
     'Join',
     'InnerJoin',
     'LeftJoin',
+    'RightJoin',
+    'FullJoin',
+    'CrossJoin',
 ]
 
 
@@ -87,3 +90,24 @@ class LeftJoin(JoinComponent):
 
     def get_composed_join_type(self, on: JoinOn) -> Composed:
         return Composed([SQL('LEFT JOIN')])
+
+
+@dataclass(repr=False)
+class RightJoin(JoinComponent):
+
+    def get_composed_join_type(self, on: JoinOn) -> Composed:
+        return Composed([SQL('RIGHT JOIN')])
+
+
+@dataclass(repr=False)
+class FullJoin(JoinComponent):
+
+    def get_composed_join_type(self, on: JoinOn) -> Composed:
+        return Composed([SQL('FULL JOIN')])
+
+
+@dataclass(repr=False)
+class CrossJoin(JoinComponent):
+
+    def get_composed_join_type(self, on: JoinOn) -> Composed:
+        return Composed([SQL('CROSS JOIN')])

@@ -51,4 +51,4 @@ SetValueType = Sequence[Any] | dict[str, Any] | BaseModel
 DeleteFromValueType = Union['Tab']
 ResultOneValueType = Any | tuple[Any, ...] | BaseModel
 ResultManyValueType = list[Any] | list[tuple[Any, ...]] | list[BaseModel]
-HowValueType = Literal['INNER', 'LEFT']
+HowValueType = Literal['INNER', 'LEFT', 'RIGHT', 'FULL', 'CROSS']

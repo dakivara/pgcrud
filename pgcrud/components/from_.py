@@ -4,7 +4,7 @@ from psycopg.sql import SQL, Composed
 
 from pgcrud.components.component import Component
 from pgcrud.components.group_by import GroupBy
-from pgcrud.components.join import Join, InnerJoin, LeftJoin
+from pgcrud.components.join import Join, InnerJoin, LeftJoin, RightJoin, FullJoin, CrossJoin
 from pgcrud.components.limit import Limit
 from pgcrud.components.offset import Offset
 from pgcrud.components.order_by import OrderBy
@@ -45,3 +45,12 @@ class From(Component):
 
     def left_join(self, value: JoinValueType) -> LeftJoin:
         return LeftJoin(self.components, value)
+
+    def right_join(self, value: JoinValueType) -> RightJoin:
+        return RightJoin(self.components, value)
+
+    def full_join(self, value: JoinValueType) -> FullJoin:
+        return FullJoin(self.components, value)
+
+    def cross_join(self, value: JoinValueType) -> CrossJoin:
+        return CrossJoin(self.components, value)
