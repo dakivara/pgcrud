@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import Any, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING, Sequence
 
 from psycopg.sql import SQL, Identifier, Composed, Literal
 
@@ -30,8 +30,9 @@ __all__ = [
     'FunCol',
     'SumCol',
     'AvgCol',
-    'ToJsonCol',
     'JsonAggCol',
+    'CoalesceCol',
+    'ToJsonCol',
 ]
 
 
@@ -553,16 +554,24 @@ class AvgCol(FunCol):
 
 
 @dataclass(repr=False, eq=False)
-class ToJsonCol(FunCol):
-    tab: 'Tab'
-
-    def get_composed(self) -> Composed:
-        return SQL('to_json({})').format(self.tab.get_composed())
-
-
-@dataclass(repr=False, eq=False)
 class JsonAggCol(FunCol):
     value: 'Tab | Col'
 
     def get_composed(self) -> Composed:
         return SQL('json_agg({})').format(self.value.get_composed())
+
+
+@dataclass(repr=False, eq=False)
+class CoalesceCol(FunCol):
+    cols: Sequence[Col]
+
+    def get_composed(self) -> Composed:
+        return SQL('coalesce({})').format(SQL(', ').join([col.get_inner_composed() for col in self.cols]))
+
+
+@dataclass(repr=False, eq=False)
+class ToJsonCol(FunCol):
+    tab: 'Tab'
+
+    def get_composed(self) -> Composed:
+        return SQL('to_json({})').format(self.tab.get_composed())

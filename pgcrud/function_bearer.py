@@ -1,7 +1,6 @@
-from typing import TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
-from pgcrud.col import AvgCol, SumCol, ToJsonCol, JsonAggCol
-
+from pgcrud.col import make_col, AvgCol, SumCol, ToJsonCol, JsonAggCol, CoalesceCol
 
 if TYPE_CHECKING:
     from pgcrud.col import Col
@@ -25,9 +24,13 @@ class FunctionBearer:
         return AvgCol(col)
 
     @staticmethod
-    def to_json(tab: 'Tab') -> ToJsonCol:
-        return ToJsonCol(tab)
-
-    @staticmethod
     def json_agg(value: 'Tab | Col') -> JsonAggCol:
         return JsonAggCol(value)
+
+    @staticmethod
+    def coalesce(*args: Any) -> CoalesceCol:
+        return CoalesceCol([make_col(arg) for arg in args])
+
+    @staticmethod
+    def to_json(tab: 'Tab') -> ToJsonCol:
+        return ToJsonCol(tab)
