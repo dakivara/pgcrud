@@ -5,7 +5,7 @@ from psycopg import AsyncCursor
 
 from pgcrud.col import Col
 from pgcrud.operations.utils import get_async_row_factory, construct_composed_delete_query
-from pgcrud.types import PydanticModel, DeleteFromValueType, ResultManyValueType, ReturningValueType, WhereValueType
+from pgcrud.types import PydanticModel, DeleteFromValueType, ResultManyValueType, ReturningValueType, UsingValueType, WhereValueType
 
 
 @overload
@@ -13,6 +13,7 @@ async def delete_many(
         cursor: AsyncCursor,
         delete_from: DeleteFromValueType,
         *,
+        using: UsingValueType | None = None,
         where: WhereValueType | None = None,
         returning: Literal[None] = None,
         no_fetch: Literal[False] = False,
@@ -24,6 +25,7 @@ async def delete_many(
         cursor: AsyncCursor,
         delete_from: DeleteFromValueType,
         *,
+        using: UsingValueType | None = None,
         where: WhereValueType | None = None,
         returning: Col,
         no_fetch: Literal[False] = False,
@@ -35,6 +37,7 @@ async def delete_many(
         cursor: AsyncCursor,
         delete_from: DeleteFromValueType,
         *,
+        using: UsingValueType | None = None,
         where: WhereValueType | None = None,
         returning: Sequence[Col],
         no_fetch: Literal[False] = False,
@@ -46,6 +49,7 @@ async def delete_many(
         cursor: AsyncCursor,
         delete_from: DeleteFromValueType,
         *,
+        using: UsingValueType | None = None,
         where: WhereValueType | None = None,
         returning: type[PydanticModel],
         no_fetch: Literal[False] = False,
@@ -57,6 +61,7 @@ async def delete_many(
         cursor: AsyncCursor,
         delete_from: DeleteFromValueType,
         *,
+        using: UsingValueType | None = None,
         where: WhereValueType | None = None,
         returning: ReturningValueType | None = None,
         no_fetch: Literal[True],
@@ -67,6 +72,7 @@ async def delete_many(
         cursor: AsyncCursor,
         delete_from: DeleteFromValueType,
         *,
+        using: UsingValueType | None = None,
         where: WhereValueType | None = None,
         returning: ReturningValueType | None = None,
         no_fetch: bool = False,
@@ -75,7 +81,7 @@ async def delete_many(
     if returning:
         cursor.row_factory = get_async_row_factory(returning)
 
-    query = construct_composed_delete_query(delete_from, where, returning)
+    query = construct_composed_delete_query(delete_from, using, where, returning)
     await cursor.execute(query)
 
     if not no_fetch:

@@ -5,7 +5,7 @@ from psycopg.rows import scalar_row, tuple_row, class_row, RowFactory, AsyncRowF
 
 from pgcrud.col import Col
 from pgcrud.query_builder import QueryBuilder as q
-from pgcrud.types import DeleteFromValueType, GroupByValueType, HavingValueType, SelectValueType, FromValueType, JoinValueType, SetColsType, SetValueType, UpdateValueType, WhereValueType, OrderByValueType, InsertIntoValueType, ValuesValueType, ReturningValueType, AdditionalValuesType
+from pgcrud.types import DeleteFromValueType, GroupByValueType, HavingValueType, SelectValueType, FromValueType, JoinValueType, SetColsType, SetValueType, UpdateValueType, UsingValueType, WhereValueType, OrderByValueType, InsertIntoValueType, ValuesValueType, ReturningValueType, AdditionalValuesType
 
 
 __all__ = [
@@ -107,12 +107,15 @@ def construct_composed_update_query(
 
 def construct_composed_delete_query(
         delete_from: DeleteFromValueType,
+        using: UsingValueType | None,
         where: WhereValueType | None,
         returning: ReturningValueType | None,
 ) -> Composed:
 
     query = q.delete_from(delete_from)
 
+    if using:
+        query = query.using(using)
     if where:
         query = query.where(where)
     if returning:
