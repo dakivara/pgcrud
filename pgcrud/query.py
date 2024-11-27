@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from psycopg.sql import SQL, Composed
+from psycopg.sql import Composed
 
 
 if TYPE_CHECKING:
