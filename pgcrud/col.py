@@ -28,6 +28,8 @@ __all__ = [
     'PowCol',
     'AliasCol',
     'FunCol',
+    'SumCol',
+    'AvgCol',
     'ToJsonCol',
     'JsonAggCol',
 ]
@@ -535,10 +537,25 @@ class FunCol(SimpleCol):
 
 
 @dataclass(repr=False, eq=False)
+class SumCol(FunCol):
+    col: Col
+
+    def get_composed(self) -> Composed:
+        return SQL('sum({})').format(self.col.get_composed())
+
+
+@dataclass(repr=False, eq=False)
+class AvgCol(FunCol):
+    col: Col
+
+    def get_composed(self) -> Composed:
+        return SQL('avg({})').format(self.col.get_composed())
+
+
+@dataclass(repr=False, eq=False)
 class ToJsonCol(FunCol):
     tab: 'Tab'
 
-    @abstractmethod
     def get_composed(self) -> Composed:
         return SQL('to_json({})').format(self.tab.get_composed())
 
@@ -547,6 +564,5 @@ class ToJsonCol(FunCol):
 class JsonAggCol(FunCol):
     value: 'Tab | Col'
 
-    @abstractmethod
     def get_composed(self) -> Composed:
         return SQL('json_agg({})').format(self.value.get_composed())
