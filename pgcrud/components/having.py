@@ -2,7 +2,10 @@ from dataclasses import dataclass
 
 from psycopg.sql import SQL, Composed
 
-from pgcrud.components import Component, OrderBy, Limit, Offset
+from pgcrud.components.component import Component
+from pgcrud.components.limit import Limit
+from pgcrud.components.offset import Offset
+from pgcrud.components.order_by import OrderBy
 from pgcrud.types import HavingValueType, OrderByValueType
 
 
