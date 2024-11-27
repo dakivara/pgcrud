@@ -5,7 +5,7 @@ from psycopg.rows import scalar_row, tuple_row, class_row, RowFactory, AsyncRowF
 
 from pgcrud.col import Col
 from pgcrud.query_builder import QueryBuilder as q
-from pgcrud.types import DeleteFromValueType, GroupByValueType, SelectValueType, FromValueType, JoinValueType, SetColsType, SetValueType, UpdateValueType, WhereValueType, OrderByValueType, InsertIntoValueType, ValuesValueType, ReturningValueType, AdditionalValuesType
+from pgcrud.types import DeleteFromValueType, GroupByValueType, HavingValueType, SelectValueType, FromValueType, JoinValueType, SetColsType, SetValueType, UpdateValueType, WhereValueType, OrderByValueType, InsertIntoValueType, ValuesValueType, ReturningValueType, AdditionalValuesType
 
 
 __all__ = [
@@ -42,6 +42,7 @@ def construct_composed_get_query(
         join: JoinValueType | None,
         where: WhereValueType | None,
         group_by: GroupByValueType | None,
+        having: HavingValueType | None,
         order_by: OrderByValueType | None,
         limit: int | None,
         offset: int | None,
@@ -55,6 +56,8 @@ def construct_composed_get_query(
         query = query.where(where)
     if group_by:
         query = query.group_by(group_by)
+    if having:
+        query = query.having(having)
     if order_by:
         query = query.order_by(order_by)
     if limit:

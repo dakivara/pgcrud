@@ -5,7 +5,7 @@ from psycopg import Cursor
 
 from pgcrud.col import Col
 from pgcrud.operations.utils import get_row_factory, construct_composed_get_query
-from pgcrud.types import GroupByValueType, PydanticModel, SelectValueType, FromValueType, WhereValueType, JoinValueType, OrderByValueType, ResultOneValueType
+from pgcrud.types import GroupByValueType, HavingValueType, PydanticModel, SelectValueType, FromValueType, WhereValueType, JoinValueType, OrderByValueType, ResultOneValueType
 
 
 @overload
@@ -17,6 +17,7 @@ def get_one(
         join: JoinValueType | None = None,
         where: WhereValueType | None = None,
         group_by: GroupByValueType | None = None,
+        having: HavingValueType | None = None,
         order_by: OrderByValueType | None = None,
         offset: int | None = None,
 ) -> Any | None: ...
@@ -31,6 +32,7 @@ def get_one(
         join: JoinValueType | None = None,
         where: WhereValueType | None = None,
         group_by: GroupByValueType | None = None,
+        having: HavingValueType | None = None,
         order_by: OrderByValueType | None = None,
         offset: int | None = None,
 ) -> tuple[Any, ...] | None: ...
@@ -45,6 +47,7 @@ def get_one(
         join: JoinValueType | None = None,
         where: WhereValueType | None = None,
         group_by: GroupByValueType | None = None,
+        having: HavingValueType | None = None,
         order_by: OrderByValueType | None = None,
         offset: int | None = None,
 ) -> PydanticModel | None: ...
@@ -58,12 +61,13 @@ def get_one(
         join: JoinValueType | None = None,
         where: WhereValueType | None = None,
         group_by: GroupByValueType | None = None,
+        having: HavingValueType | None = None,
         order_by: OrderByValueType | None = None,
         offset: int | None = None,
 ) -> ResultOneValueType | None:
 
     cursor.row_factory = get_row_factory(select)
-    query = construct_composed_get_query(select, from_, join, where, group_by, order_by, 1, offset)
+    query = construct_composed_get_query(select, from_, join, where, group_by, having, order_by, 1, offset)
     cursor.execute(query)
 
     return cursor.fetchone()
