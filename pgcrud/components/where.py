@@ -4,11 +4,12 @@ from psycopg.sql import SQL, Composed
 
 from pgcrud.components.component import Component
 from pgcrud.components.group_by import GroupBy
+from pgcrud.components.having import Having
 from pgcrud.components.limit import Limit
 from pgcrud.components.offset import Offset
 from pgcrud.components.order_by import OrderBy
 from pgcrud.components.returning import Returning
-from pgcrud.types import GroupByValueType, ReturningValueType, WhereValueType, OrderByValueType
+from pgcrud.types import GroupByValueType, HavingValueType, ReturningValueType, WhereValueType, OrderByValueType
 
 
 __all__ = ['Where']
@@ -26,6 +27,9 @@ class Where(Component):
 
     def group_by(self, value: GroupByValueType) -> GroupBy:
         return GroupBy(self.components, value)
+
+    def having(self, value: HavingValueType) -> Having:
+        return Having(self.components, value)
 
     def order_by(self, value: OrderByValueType) -> OrderBy:
         return OrderBy(self.components, value)
