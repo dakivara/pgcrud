@@ -1,7 +1,7 @@
 [project]
 name = "pgcrud"
 version = "0.1.0"
-description = "Create, Read, Update, and Delete (CRUD) operations for PostgreSQL, made simple and fast."
+description = "Create, Read, Update, and Delete (CRUD) operations for PostgreSQL made simple and fast."
 authors = [{name = "Danijel Kivaranovic", email = "danijel@kivaranovic.com"}]
 readme = "README.md"
 license = {text = "MIT"}
