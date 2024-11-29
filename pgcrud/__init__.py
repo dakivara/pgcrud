@@ -9,7 +9,6 @@ from pgcrud.col_generator import ColGenerator as c
 from pgcrud.function_bearer import FunctionBearer as f
 from pgcrud.query_builder import QueryBuilder as q
 from pgcrud.tab_generator import TabGenerator as t
-from pgcrud.win_generator import WinGenerator as w
 from pgcrud.undefined import Undefined
 
 
@@ -25,6 +24,5 @@ __all__ = [
     'f',
     'q',
     't',
-    'w',
     'Undefined',
 ]
