@@ -18,5 +18,5 @@ class Update(Component):
     def get_single_composed(self) -> Composed:
         return SQL('UPDATE {}').format(self.value.get_composed())
 
-    def set(self, cols: SetColsType, value: SetValueType, **kwargs: Any) -> Set:
+    def SET(self, cols: SetColsType, value: SetValueType, **kwargs: Any) -> Set:
         return Set(self.components, cols, value, kwargs)

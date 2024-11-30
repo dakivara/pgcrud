@@ -3,7 +3,7 @@ from typing import Any, overload
 
 from psycopg import Cursor
 
-from pgcrud.col import Col
+from pgcrud.expr import Expr
 from pgcrud.operations.shared import get_row_factory, construct_composed_insert_query
 from pgcrud.types import PydanticModel, InsertIntoValueType, AdditionalValuesType, ResultOneValueType, ReturningValueType, ValuesValueItemType
 
@@ -25,7 +25,7 @@ def insert_one(
         insert_into: InsertIntoValueType,
         values: ValuesValueItemType,
         *,
-        returning: Col,
+        returning: Expr,
         additional_values: AdditionalValuesType | None = None,
 ) -> Any | None: ...
 
@@ -36,7 +36,7 @@ def insert_one(
         insert_into: InsertIntoValueType,
         values: ValuesValueItemType,
         *,
-        returning: Sequence[Col],
+        returning: Sequence[Expr],
         additional_values: AdditionalValuesType | None = None,
 ) -> tuple[Any, ...] | None: ...
 

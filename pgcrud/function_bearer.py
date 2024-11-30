@@ -1,10 +1,6 @@
-from typing import Any, TYPE_CHECKING
+from typing import Any
 
-from pgcrud.col import make_col, AvgCol, SumCol, ToJsonCol, JsonAggCol, CoalesceCol
-
-if TYPE_CHECKING:
-    from pgcrud.col import Col
-    from pgcrud.tab import Tab
+from pgcrud.expr import make_expr, Expr, UndefinedExpr, AvgExpr, SumExpr, ToJsonExpr, JsonAggExpr, CoalesceExpr
 
 
 __all__ = ['FunctionBearer']
@@ -16,21 +12,43 @@ class FunctionBearer:
         raise TypeError("'FunctionBearer' object is not callable")
 
     @staticmethod
-    def sum(col: 'Col') -> SumCol:
-        return SumCol(col)
+    def sum(expr: Expr) -> SumExpr | UndefinedExpr:
+        if expr:
+            return SumExpr(expr)
+        else:
+            return UndefinedExpr()
 
     @staticmethod
-    def avg(col: 'Col') -> AvgCol:
-        return AvgCol(col)
+    def avg(expr: Expr) -> AvgExpr | UndefinedExpr:
+        if expr:
+            return AvgExpr(expr)
+        else:
+            return UndefinedExpr()
 
     @staticmethod
-    def json_agg(value: 'Tab | Col') -> JsonAggCol:
-        return JsonAggCol(value)
+    def json_agg(expr: Expr) -> JsonAggExpr | UndefinedExpr:
+        if expr:
+            return JsonAggExpr(expr)
+        else:
+            return UndefinedExpr()
 
     @staticmethod
-    def coalesce(*args: Any) -> CoalesceCol:
-        return CoalesceCol([make_col(arg) for arg in args])
+    def coalesce(*args: Any) -> CoalesceExpr | UndefinedExpr:
+        exprs = []
+
+        for arg in args:
+            expr = make_expr(arg)
+            if expr:
+                exprs.append(expr)
+
+        if exprs:
+            return CoalesceExpr(exprs)
+        else:
+            return UndefinedExpr()
 
     @staticmethod
-    def to_json(tab: 'Tab') -> ToJsonCol:
-        return ToJsonCol(tab)
+    def to_json(expr: Expr) -> ToJsonExpr | UndefinedExpr:
+        if expr:
+            return ToJsonExpr(expr)
+        else:
+            return UndefinedExpr()

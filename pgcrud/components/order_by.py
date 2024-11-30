@@ -29,8 +29,8 @@ class OrderBy(Component):
         else:
             return Composed([])
 
-    def limit(self, value: int | None = None) -> Limit:
+    def LIMIT(self, value: int | None = None) -> Limit:
         return Limit(self.components, value)
 
-    def offset(self, value: int | None = None) -> Offset:
+    def OFFSET(self, value: int | None = None) -> Offset:
         return Offset(self.components, value)

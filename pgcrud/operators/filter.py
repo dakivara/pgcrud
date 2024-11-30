@@ -9,7 +9,7 @@ from pgcrud.undefined import Undefined
 
 
 if TYPE_CHECKING:
-    from pgcrud.col import Col
+    from pgcrud.expr import Expr
 
 
 __all__ = [
@@ -73,8 +73,8 @@ class SingleFilterOperator(FilterOperator):
 
 @dataclass(repr=False)
 class ComparisonOperator(SingleFilterOperator):
-    left: 'Col'
-    right: 'Col'
+    left: 'Expr'
+    right: 'Expr'
 
     @property
     @abstractmethod
@@ -154,30 +154,30 @@ class IsNotIn(ComparisonOperator):
 
 @dataclass(repr=False)
 class IsNull(SingleFilterOperator):
-    col: 'Col'
-    flag: bool = True
+    expr: 'Expr'
+    flag: bool | type[Undefined] = True
 
     def get_composed(self) -> Composed:
-        if not self.col or self.flag is Undefined:
+        if not self.expr or self.flag is Undefined:
             return Composed([])
         elif self.flag:
-            return SQL("{} IS NULL").format(self.col.get_composed())
+            return SQL("{} IS NULL").format(self.expr.get_composed())
         else:
-            return SQL("{} IS NOT NULL").format(self.col.get_composed())
+            return SQL("{} IS NOT NULL").format(self.expr.get_composed())
 
 
 @dataclass(repr=False)
 class IsNotNull(SingleFilterOperator):
-    col: 'Col'
-    flag: bool = True
+    expr: 'Expr'
+    flag: bool | type[Undefined] = True
 
     def get_composed(self) -> Composed:
-        if not self.col or self.flag is Undefined:
+        if not self.expr or self.flag is Undefined:
             return Composed([])
         elif self.flag:
-            return SQL("{} IS NOT NULL").format(self.col.get_composed())
+            return SQL("{} IS NOT NULL").format(self.expr.get_composed())
         else:
-            return SQL("{} IS NULL").format(self.col.get_composed())
+            return SQL("{} IS NULL").format(self.expr.get_composed())
 
 
 @dataclass(repr=False)

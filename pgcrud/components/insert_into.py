@@ -9,7 +9,7 @@ from pgcrud.types import InsertIntoValueType, ValuesValueItemType
 
 
 if TYPE_CHECKING:
-    from pgcrud.col import SingleCol
+    from pgcrud.expr import ReferenceExpr
 
 
 __all__ = ['InsertInto']
@@ -22,8 +22,8 @@ class InsertInto(Component):
     def get_single_composed(self) -> Composed:
         return SQL('INSERT INTO {}').format(self.value.get_composed())
 
-    def get_cols(self) -> tuple['SingleCol', ...]:
-        return self.value.cols
+    def get_exprs(self) -> tuple['ReferenceExpr', ...]:
+        return self.value.children
 
-    def values(self, *args: ValuesValueItemType, **kwargs: Any) -> Values:
+    def VALUES(self, *args: ValuesValueItemType, **kwargs: Any) -> Values:
         return Values(self.components, args, kwargs)

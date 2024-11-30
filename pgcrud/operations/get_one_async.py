@@ -3,7 +3,7 @@ from typing import Any, overload
 
 from psycopg import AsyncCursor
 
-from pgcrud.col import Col
+from pgcrud.expr import Expr
 from pgcrud.operations.shared import get_async_row_factory, construct_composed_get_query
 from pgcrud.types import GroupByValueType, HavingValueType, PydanticModel, SelectValueType, FromValueType, WhereValueType, JoinValueType, OrderByValueType, ResultOneValueType
 
@@ -11,7 +11,7 @@ from pgcrud.types import GroupByValueType, HavingValueType, PydanticModel, Selec
 @overload
 async def get_one(
         cursor: AsyncCursor,
-        select: Col,
+        select: Expr,
         from_: FromValueType,
         *,
         join: JoinValueType | None = None,
@@ -26,7 +26,7 @@ async def get_one(
 @overload
 async def get_one(
         cursor: AsyncCursor,
-        select: Sequence[Col],
+        select: Sequence[Expr],
         from_: FromValueType,
         *,
         join: JoinValueType | None = None,

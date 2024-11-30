@@ -3,7 +3,7 @@ from collections.abc import Sequence
 from psycopg.sql import Composed
 from psycopg.rows import scalar_row, tuple_row, class_row, RowFactory, AsyncRowFactory
 
-from pgcrud.col import Col
+from pgcrud.expr import Expr
 from pgcrud.query_builder import QueryBuilder as q
 from pgcrud.types import DeleteFromValueType, GroupByValueType, HavingValueType, SelectValueType, FromValueType, JoinValueType, SetColsType, SetValueType, UpdateValueType, UsingValueType, WhereValueType, OrderByValueType, InsertIntoValueType, ValuesValueType, ReturningValueType, AdditionalValuesType
 
@@ -19,7 +19,7 @@ __all__ = [
 
 
 def get_row_factory(select: SelectValueType) -> RowFactory:
-    if isinstance(select, Col):
+    if isinstance(select, Expr):
         return scalar_row
     elif isinstance(select, Sequence):
         return tuple_row
@@ -28,7 +28,7 @@ def get_row_factory(select: SelectValueType) -> RowFactory:
 
 
 def get_async_row_factory(select: SelectValueType) -> AsyncRowFactory:
-    if isinstance(select, Col):
+    if isinstance(select, Expr):
         return scalar_row
     elif isinstance(select, Sequence):
         return tuple_row
@@ -48,22 +48,22 @@ def construct_composed_get_query(
         offset: int | None,
 ) -> Composed:
 
-    query = q.select(select).from_(from_)
+    query = q.SELECT(select).FROM(from_)
 
     if join:
-        query = query.join(join)
+        query = query.JOIN(join)
     if where:
-        query = query.where(where)
+        query = query.WHERE(where)
     if group_by:
-        query = query.group_by(group_by)
+        query = query.GROUP_BY(group_by)
     if having:
-        query = query.having(having)
+        query = query.HAVING(having)
     if order_by:
-        query = query.order_by(order_by)
+        query = query.ORDER_BY(order_by)
     if limit:
-        query = query.limit(limit)
+        query = query.LIMIT(limit)
     if offset:
-        query = query.offset(offset)
+        query = query.OFFSET(offset)
 
     return query.get_composed()
 
@@ -77,10 +77,10 @@ def construct_composed_insert_query(
 
     additional_values = additional_values or {}
 
-    query = q.insert_into(insert_into).values(*values, **additional_values)
+    query = q.INSERT_INTO(insert_into).VALUES(*values, **additional_values)
 
     if returning:
-        query = query.returning(returning)
+        query = query.RETURNING(returning)
 
     return query.get_composed()
 
@@ -96,14 +96,14 @@ def construct_composed_update_query(
 
     additional_values = additional_values or {}
 
-    query = q.update(update).set(set_[0], set_[1], **additional_values)
+    query = q.UPDATE(update).SET(set_[0], set_[1], **additional_values)
 
     if from_:
-        query = query.from_(from_)
+        query = query.FROM(from_)
     if where:
-        query = query.where(where)
+        query = query.WHERE(where)
     if returning:
-        query = query.returning(returning)
+        query = query.RETURNING(returning)
 
     return query.get_composed()
 
@@ -115,13 +115,13 @@ def construct_composed_delete_query(
         returning: ReturningValueType | None,
 ) -> Composed:
 
-    query = q.delete_from(delete_from)
+    query = q.DELETE_FROM(delete_from)
 
     if using:
-        query = query.using(using)
+        query = query.USING(using)
     if where:
-        query = query.where(where)
+        query = query.WHERE(where)
     if returning:
-        query = query.returning(returning)
+        query = query.RETURNING(returning)
 
     return query.get_composed()

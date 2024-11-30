@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from psycopg.sql import SQL, Composed
 from pydantic import BaseModel
 
-from pgcrud.col import Col, SingleCol
+from pgcrud.expr import Expr, ReferenceExpr
 from pgcrud.components import Component
 from pgcrud.components.from_ import From
 from pgcrud.types import SelectValueType, FromValueType
@@ -23,14 +23,14 @@ class Select(Component):
 
         if isinstance(self.value, type) and issubclass(self.value, BaseModel):
             for name, field in self.value.model_fields.items():
-                col = SingleCol(name)
+                expr = ReferenceExpr(name)
 
                 for m in field.metadata:
-                    if isinstance(m, Col):
-                        col = m
+                    if isinstance(m, Expr):
+                        expr = m
                         break
 
-                composed_list.append(col.get_composed())
+                composed_list.append(expr.get_composed())
 
         else:
             for v in ensure_list(self.value):
@@ -42,5 +42,5 @@ class Select(Component):
         else:
             return Composed([])
 
-    def from_(self, value: FromValueType) -> From:
+    def FROM(self, value: FromValueType) -> From:
         return From(self.components, value)

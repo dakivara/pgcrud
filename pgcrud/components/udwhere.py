@@ -17,5 +17,5 @@ class UDWhere(Component):
     def get_single_composed(self) -> Composed:
         return SQL('WHERE {}').format(self.value.get_composed())
 
-    def returning(self, value: ReturningValueType) -> Returning:
+    def RETURNING(self, value: ReturningValueType) -> Returning:
         return Returning(self.components, value)

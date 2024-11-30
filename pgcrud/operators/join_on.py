@@ -7,8 +7,8 @@ from pgcrud.operators.operator import Operator
 from pgcrud.types import HowValueType
 
 if TYPE_CHECKING:
+    from pgcrud.expr import Expr
     from pgcrud.operators.filter import FilterOperator
-    from pgcrud.tab import Tab
 
 
 __all__ = ['JoinOn']
@@ -16,7 +16,7 @@ __all__ = ['JoinOn']
 
 @dataclass(repr=False)
 class JoinOn(Operator):
-    tab: 'Tab'
+    expr: 'Expr'
     operator: 'FilterOperator'
     how: HowValueType | None = None
 
@@ -28,6 +28,6 @@ class JoinOn(Operator):
 
     def get_composed(self) -> Composed:
         if self.operator:
-            return SQL('{} ON {}').format(self.tab.get_composed(), self.operator.get_composed())
+            return SQL('{} ON {}').format(self.expr.get_composed(), self.operator.get_composed())
         else:
             return Composed([])

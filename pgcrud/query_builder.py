@@ -11,17 +11,17 @@ class QueryBuilder:
         raise TypeError("'QueryBuilder' object is not callable")
 
     @staticmethod
-    def select(value: SelectValueType) -> Select:
+    def SELECT(value: SelectValueType) -> Select:
         return Select([], value)
 
     @staticmethod
-    def insert_into(value: InsertIntoValueType) -> InsertInto:
+    def INSERT_INTO(value: InsertIntoValueType) -> InsertInto:
         return InsertInto([], value)
 
     @staticmethod
-    def update(value: UpdateValueType) -> Update:
+    def UPDATE(value: UpdateValueType) -> Update:
         return Update([], value)
 
     @staticmethod
-    def delete_from(value: DeleteFromValueType) -> DeleteFrom:
+    def DELETE_FROM(value: DeleteFromValueType) -> DeleteFrom:
         return DeleteFrom([], value)

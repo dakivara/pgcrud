@@ -23,38 +23,38 @@ class From(Component):
     def get_single_composed(self) -> Composed:
         return SQL('FROM {}').format(self.value.get_composed())
 
-    def join(self, value: JoinValueType) -> Join:
+    def JOIN(self, value: JoinValueType) -> Join:
         return Join(self.components, value)
 
-    def inner_join(self, value: JoinValueType) -> InnerJoin:
+    def INNER_JOIN(self, value: JoinValueType) -> InnerJoin:
         return InnerJoin(self.components, value)
 
-    def left_join(self, value: JoinValueType) -> LeftJoin:
+    def LEFT_JOIN(self, value: JoinValueType) -> LeftJoin:
         return LeftJoin(self.components, value)
 
-    def right_join(self, value: JoinValueType) -> RightJoin:
+    def RIGHT_JOIN(self, value: JoinValueType) -> RightJoin:
         return RightJoin(self.components, value)
 
-    def full_join(self, value: JoinValueType) -> FullJoin:
+    def FULL_JOIN(self, value: JoinValueType) -> FullJoin:
         return FullJoin(self.components, value)
 
-    def cross_join(self, value: JoinValueType) -> CrossJoin:
+    def CROSS_JOIN(self, value: JoinValueType) -> CrossJoin:
         return CrossJoin(self.components, value)
 
-    def where(self, value: WhereValueType) -> Where:
+    def WHERE(self, value: WhereValueType) -> Where:
         return Where(self.components, value)
 
-    def group_by(self, value: GroupByValueType) -> GroupBy:
+    def GROUP_BY(self, value: GroupByValueType) -> GroupBy:
         return GroupBy(self.components, value)
 
-    def having(self, value: HavingValueType) -> Having:
+    def HAVING(self, value: HavingValueType) -> Having:
         return Having(self.components, value)
 
-    def order_by(self, value: OrderByValueType) -> OrderBy:
+    def ORDER_BY(self, value: OrderByValueType) -> OrderBy:
         return OrderBy(self.components, value)
 
-    def limit(self, value: int | None = None) -> Limit:
+    def LIMIT(self, value: int | None = None) -> Limit:
         return Limit(self.components, value)
 
-    def offset(self, value: int | None = None) -> Offset:
+    def OFFSET(self, value: int | None = None) -> Offset:
         return Offset(self.components, value)

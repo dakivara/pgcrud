@@ -5,9 +5,8 @@ from pydantic import BaseModel
 
 
 if TYPE_CHECKING:
-    from pgcrud.col import Col, SingleCol
+    from pgcrud.expr import Expr, ReferenceExpr, TableReferenceExpr
     from pgcrud.operators import FilterOperator, SortOperator, JoinOn
-    from pgcrud.tab import Tab, SimpleTab
 
 
 __all__ = [
@@ -36,23 +35,23 @@ __all__ = [
 
 
 PydanticModel = TypeVar('PydanticModel', bound=BaseModel)
-SelectValueType = Union['Col', Sequence['Col'], type[BaseModel]]
-FromValueType = Union['Tab']
+SelectValueType = Union['Expr', Sequence['Expr'], type[BaseModel]]
+FromValueType = Union['Expr']
 JoinValueType = Union['JoinOn', Sequence['JoinOn']]
 WhereValueType = Union['FilterOperator']
-GroupByValueType = Union['Col', Sequence['Col']]
-OrderByValueType = Union['Col', 'SortOperator', Sequence[Union['Col', 'SortOperator']]]
-InsertIntoValueType = Union['SimpleTab']
+GroupByValueType = Union['Expr', Sequence['Expr']]
+OrderByValueType = Union['Expr', 'SortOperator', Sequence[Union['Expr', 'SortOperator']]]
+InsertIntoValueType = Union['TableReferenceExpr']
 ValuesValueItemType = Sequence[Any] | dict[str, Any] | BaseModel
 ValuesValueType = Sequence[ValuesValueItemType]
 AdditionalValuesType = dict[str, Any]
-ReturningValueType = Union['Col', Sequence['Col'], type[BaseModel]]
-UpdateValueType = Union['Tab']
-SetColsType = Sequence['SingleCol']
+ReturningValueType = Union['Expr', Sequence['Expr'], type[BaseModel]]
+UpdateValueType = Union['ReferenceExpr']
+SetColsType = Sequence['ReferenceExpr']
 SetValueType = Sequence[Any] | dict[str, Any] | BaseModel
-DeleteFromValueType = Union['Tab']
+DeleteFromValueType = Union['ReferenceExpr']
 HavingValueType = Union['FilterOperator']
-UsingValueType = Union['Tab']
+UsingValueType = Union['ReferenceExpr']
 ResultOneValueType = Any | tuple[Any, ...] | BaseModel
 ResultManyValueType = list[Any] | list[tuple[Any, ...]] | list[BaseModel]
 HowValueType = Literal['INNER', 'LEFT', 'RIGHT', 'FULL', 'CROSS']

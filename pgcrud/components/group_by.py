@@ -19,21 +19,21 @@ class GroupBy(Component):
     value: GroupByValueType
 
     def get_single_composed(self) -> Composed:
-        composed_list = [col.get_composed() for col in ensure_list(self.value) if col]
+        composed_list = [expr.get_composed() for expr in ensure_list(self.value) if expr]
 
         if composed_list:
             return SQL('GROUP BY {}').format(SQL(', ').join(composed_list))
         else:
             return Composed([])
 
-    def having(self, value: HavingValueType) -> Having:
+    def HAVING(self, value: HavingValueType) -> Having:
         return Having(self.components, value)
 
-    def order_by(self, value: OrderByValueType) -> OrderBy:
+    def ORDER_BY(self, value: OrderByValueType) -> OrderBy:
         return OrderBy(self.components, value)
 
-    def limit(self, value: int) -> Limit:
+    def LIMIT(self, value: int) -> Limit:
         return Limit(self.components, value)
 
-    def offset(self, value: int) -> Offset:
+    def OFFSET(self, value: int) -> Offset:
         return Offset(self.components, value)

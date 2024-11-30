@@ -5,10 +5,9 @@ from pgcrud.operations.insert_many import insert_many
 from pgcrud.operations.update_many import update_many
 from pgcrud.operations.delete_many import delete_many
 from pgcrud import a
-from pgcrud.col_generator import ColGenerator as c
+from pgcrud.expr_generator import ExprGenerator as e
 from pgcrud.function_bearer import FunctionBearer as f
 from pgcrud.query_builder import QueryBuilder as q
-from pgcrud.tab_generator import TabGenerator as t
 from pgcrud.undefined import Undefined
 
 
@@ -20,9 +19,8 @@ __all__ = [
     'update_many',
     'delete_many',
     'a',
-    'c',
+    'e',
     'f',
     'q',
-    't',
     'Undefined',
 ]

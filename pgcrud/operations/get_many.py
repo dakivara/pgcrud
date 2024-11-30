@@ -3,7 +3,7 @@ from typing import Any, Literal, overload
 
 from psycopg import Cursor
 
-from pgcrud.col import Col
+from pgcrud.expr import Expr
 from pgcrud.operations.shared import get_row_factory, construct_composed_get_query
 from pgcrud.types import GroupByValueType, HavingValueType, PydanticModel, SelectValueType, FromValueType, JoinValueType, WhereValueType, OrderByValueType, ResultManyValueType
 
@@ -11,7 +11,7 @@ from pgcrud.types import GroupByValueType, HavingValueType, PydanticModel, Selec
 @overload
 def get_many(
         cursor: Cursor,
-        select: Col,
+        select: Expr,
         from_: FromValueType,
         *,
         join: JoinValueType | None = None,
@@ -28,7 +28,7 @@ def get_many(
 @overload
 def get_many(
         cursor: Cursor,
-        select: Sequence[Col],
+        select: Sequence[Expr],
         from_: FromValueType,
         *,
         join: JoinValueType | None = None,

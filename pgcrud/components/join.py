@@ -47,31 +47,40 @@ class JoinComponent(Component):
         else:
             return Composed([])
 
-    def join(self, value: JoinValueType) -> 'Join':
+    def JOIN(self, value: JoinValueType) -> 'Join':
         return Join(self.components, value)
 
-    def inner_join(self, value: JoinValueType) -> 'InnerJoin':
+    def INNER_JOIN(self, value: JoinValueType) -> 'InnerJoin':
         return InnerJoin(self.components, value)
 
-    def left_join(self, value: JoinValueType) -> 'LeftJoin':
+    def LEFT_JOIN(self, value: JoinValueType) -> 'LeftJoin':
         return LeftJoin(self.components, value)
 
-    def where(self, value: WhereValueType) -> Where:
+    def RIGHT_JOIN(self, value: JoinValueType) -> 'RightJoin':
+        return RightJoin(self.components, value)
+
+    def FULL_JOIN(self, value: JoinValueType) -> 'FullJoin':
+        return FullJoin(self.components, value)
+
+    def CROSS_JOIN(self, value: JoinValueType) -> 'CrossJoin':
+        return CrossJoin(self.components, value)
+
+    def WHERE(self, value: WhereValueType) -> Where:
         return Where(self.components, value)
 
-    def group_by(self, value: GroupByValueType) -> GroupBy:
+    def GROUP_BY(self, value: GroupByValueType) -> GroupBy:
         return GroupBy(self.components, value)
 
-    def having(self, value: HavingValueType) -> Having:
+    def HAVING(self, value: HavingValueType) -> Having:
         return Having(self.components, value)
 
-    def order_by(self, value: OrderByValueType) -> OrderBy:
+    def ORDER_BY(self, value: OrderByValueType) -> OrderBy:
         return OrderBy(self.components, value)
 
-    def limit(self, value: int | None = None) -> Limit:
+    def LIMIT(self, value: int | None = None) -> Limit:
         return Limit(self.components, value)
 
-    def offset(self, value: int | None = None) -> Offset:
+    def OFFSET(self, value: int | None = None) -> Offset:
         return Offset(self.components, value)
 
 

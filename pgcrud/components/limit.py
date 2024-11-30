@@ -19,5 +19,5 @@ class Limit(Component):
         else:
             return Composed([])
 
-    def offset(self, value: int | None = None) -> Offset:
+    def OFFSET(self, value: int | None = None) -> Offset:
         return Offset(self.components, value)

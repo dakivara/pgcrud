@@ -19,11 +19,11 @@ class Having(Component):
     def get_single_composed(self) -> Composed:
         return SQL('HAVING {}').format(self.get_composed())
 
-    def order_by(self, value: OrderByValueType) -> OrderBy:
+    def ORDER_BY(self, value: OrderByValueType) -> OrderBy:
         return OrderBy(self.components, value)
 
-    def limit(self, value: int) -> Limit:
+    def LIMIT(self, value: int) -> Limit:
         return Limit(self.components, value)
 
-    def offset(self, value: int) -> Offset:
+    def OFFSET(self, value: int) -> Offset:
         return Offset(self.components, value)

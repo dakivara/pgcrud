@@ -19,11 +19,11 @@ class DeleteFrom(Component):
     def get_single_composed(self) -> Composed:
         return SQL('DELETE FROM {}').format(self.value.get_composed())
 
-    def using(self, value: UsingValueType) -> Using:
+    def USING(self, value: UsingValueType) -> Using:
         return Using(self.components, value)
 
-    def where(self, value: WhereValueType) -> UDWhere:
+    def WHERE(self, value: WhereValueType) -> UDWhere:
         return UDWhere(self.components, value)
 
-    def returning(self, value: ReturningValueType) -> Returning:
+    def RETURNING(self, value: ReturningValueType) -> Returning:
         return Returning(self.components, value)

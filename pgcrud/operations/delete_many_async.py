@@ -3,7 +3,7 @@ from typing import Any, Literal, overload
 
 from psycopg import AsyncCursor
 
-from pgcrud.col import Col
+from pgcrud.expr import Expr
 from pgcrud.operations.shared import get_async_row_factory, construct_composed_delete_query
 from pgcrud.types import PydanticModel, DeleteFromValueType, ResultManyValueType, ReturningValueType, UsingValueType, WhereValueType
 
@@ -27,7 +27,7 @@ async def delete_many(
         *,
         using: UsingValueType | None = None,
         where: WhereValueType | None = None,
-        returning: Col,
+        returning: Expr,
         no_fetch: Literal[False] = False,
 ) -> list[Any]: ...
 
@@ -39,7 +39,7 @@ async def delete_many(
         *,
         using: UsingValueType | None = None,
         where: WhereValueType | None = None,
-        returning: Sequence[Col],
+        returning: Sequence[Expr],
         no_fetch: Literal[False] = False,
 ) -> list[tuple[Any, ...]]: ...
 

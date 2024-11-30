@@ -3,7 +3,7 @@ from typing import Any, Literal, overload
 
 from psycopg import AsyncCursor
 
-from pgcrud.col import Col
+from pgcrud.expr import Expr
 from pgcrud.operations.shared import get_async_row_factory, construct_composed_update_query
 from pgcrud.types import FromValueType, PydanticModel, UpdateValueType, SetColsType, SetValueType, WhereValueType, ReturningValueType, AdditionalValuesType, ResultManyValueType
 
@@ -30,7 +30,7 @@ async def update_many(
         *,
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
-        returning: Col,
+        returning: Expr,
         additional_values: AdditionalValuesType | None = None,
         no_fetch: Literal[False] = False,
 ) -> list[Any]: ...
@@ -44,7 +44,7 @@ async def update_many(
         *,
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
-        returning: Sequence[Col],
+        returning: Sequence[Expr],
         additional_values: AdditionalValuesType | None = None,
         no_fetch: Literal[False] = False,
 ) -> list[tuple[Any, ...]]: ...
