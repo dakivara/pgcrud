@@ -66,7 +66,7 @@ with psycopg.connect(conn_str) as conn:
             from_=e.author,  # Specifies the main table to query from
             join=(
                 # Joins the publisher table on the author's publisher_id
-                e.publisher.on(e.author.publisher_id == e.publisher.id, how='INNER'),
+                e.publisher.ON(e.author.publisher_id == e.publisher.id, how='INNER'),
 
                 # Joins a subquery to fetch books grouped by author_id
                 q.SELECT((e.author_id, f.json_agg(e.book).AS('books'))).   # Selects author_id and JSON aggregated books
@@ -100,7 +100,7 @@ from pgcrud import e
 e.user.name
 # "user"."name"
 
-e.publisher.AS('p').on(e.author.id == e.p.author_id)
+e.publisher.AS('p').ON(e.author.id == e.p.author_id)
 # "publisher" AS "p" ON "author"."id" = "p"."author_id"
 ```
 
@@ -129,7 +129,7 @@ from pgcrud import e, f, q
 
 q.SELECT((e.department.id, e.department.name, f.avg(e.employee.salary).AS('avg_salary'))).\
 FROM(e.employee).\
-JOIN(e.deparment.on(e.employee.department_id == e.departement.id)).\
+JOIN(e.deparment.ON(e.employee.department_id == e.departement.id)).\
 GROUP_BY(e.employee.department_id)
 # SELECT "department"."id", "department"."name", avg("employee"."salary") AS "avg_salary" FROM "employee" JOIN "deparment" ON "employee"."department_id" = "departement"."id" GROUP BY "employee"."department_id"
 
