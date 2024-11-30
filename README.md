@@ -49,11 +49,11 @@ class Book(BaseModel):
 
 # Define the select statement using annotations
 class Author(BaseModel):
-    id: Annotated[int, e.author.id]  # Selects the 'id' column from the 'author' table
-    name: Annotated[str, e.author.name]  # Selects the 'name' column from the 'author' table
-    email: str  # No annotation needed; the field is uniquely identified by its name (annotation still recommended)
+    id: Annotated[int, e.author.id]                                          # Selects the 'id' column from the 'author' table
+    name: Annotated[str, e.author.name]                                      # Selects the 'name' column from the 'author' table
+    email: str                                                               # No annotation needed; the field is uniquely identified by its name (annotation still recommended)
     publisher: Annotated[Publisher, f.to_json(e.publisher).AS('publisher')]  # Defines the 'to_json' transformation on the joined 'publisher' table 
-    books: Annotated[list[Book], e.author_books.books]  # Selects 'books' from a 'author_books' subquery
+    books: Annotated[list[Book], e.author_books.books]                       # Selects 'books' from a 'author_books' subquery
 
 
 conn_str = 'YOUR-CONNECTION-STRING'
@@ -133,18 +133,15 @@ JOIN(e.deparment.on(e.employee.department_id == e.departement.id)).\
 GROUP_BY(e.employee.department_id)
 # SELECT "department"."id", "department"."name", avg("employee"."salary") AS "avg_salary" FROM "employee" JOIN "deparment" ON "employee"."department_id" = "departement"."id" GROUP BY "employee"."department_id"
 
-
 q.INSERT_INTO(e.employee[e.name, e.salary, e.department_id]).\
 VALUES(('John Doe', 1000, 1), {'name': 'Jane Doe', 'salary': 2000, 'department_id': 2}).\
 RETURNING(e.id)
 # INSERT INTO "employee" ("name", "salary", "department_id") VALUES ('John Doe', 1000, 1), ('Jane Doe', 2000, 2) RETURNING "id"
 
-
 q.UPDATE(e.employee).\
 SET((e.salary, e.department_id), (3000, 3)).\
 WHERE(e.id == 1)
 # UPDATE "employee" SET ("salary", "department_id") = (3000, 3) WHERE "id" = 1
-
 
 q.DELETE_FROM(e.employee).\
 WHERE(e.salary > 10000).\
