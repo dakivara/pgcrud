@@ -32,7 +32,7 @@ import psycopg
 from pydantic import BaseModel
 
 import pgcrud as pg
-from pgcrud import t, c, q, f
+from pgcrud import e, q, f
 
 
 class Publisher(BaseModel):
@@ -49,11 +49,11 @@ class Book(BaseModel):
 
 # Define the select statement using annotations
 class Author(BaseModel):
-    id: Annotated[int, t.author.c.id]                                           # Selects the 'id' column from the 'author' table
-    name: Annotated[str, t.author.c.name]                                       # Selects the 'name' column from the 'author' table
-    email: str                                                                  # No annotation needed; the field is uniquely identified by its name (annotation still recommended)
-    publisher: Annotated[Publisher, f.to_json(t.publisher).as_('publisher')]    # Defines the 'to_json' transformation on the joined 'publisher' table 
-    books: Annotated[list[Book], t.author_books.c.books]                        # Selects 'books' from a 'author_books' subquery
+    id: Annotated[int, e.author.id]  # Selects the 'id' column from the 'author' table
+    name: Annotated[str, e.author.name]  # Selects the 'name' column from the 'author' table
+    email: str  # No annotation needed; the field is uniquely identified by its name (annotation still recommended)
+    publisher: Annotated[Publisher, f.to_json(e.publisher).AS('publisher')]  # Defines the 'to_json' transformation on the joined 'publisher' table 
+    books: Annotated[list[Book], e.author_books.books]  # Selects 'books' from a 'author_books' subquery
 
 
 conn_str = 'YOUR-CONNECTION-STRING'
@@ -62,57 +62,48 @@ with psycopg.connect(conn_str) as conn:
     with conn.cursor() as cursor:
         authors = pg.get_many(
             cursor=cursor,
-            select=Author,                                                                  # Maps the result to the Author Pydantic model
-            from_=t.author,                                                                 # Specifies the main table to query from
+            select=Author,   # Maps the result to the Author Pydantic model
+            from_=e.author,  # Specifies the main table to query from
             join=(
                 # Joins the publisher table on the author's publisher_id
-                t.publisher.on(t.author.c.publisher_id == t.publisher.c.id, how='INNER'),
-                
+                e.publisher.on(e.author.publisher_id == e.publisher.id, how='INNER'),
+
                 # Joins a subquery to fetch books grouped by author_id
-                q.select((c.author_id, f.json_agg(t.book).as_('books'))).                   # Selects author_id and JSON aggregated books
-                    from_(t.book).                                                          # Specifies the book table for the subquery
-                    group_by(c.author_id).                                                  # Groups books by author_id
-                    as_('author_books').                                                    # Defines the 'author_books' alias
-                    on(t.author.c.id == t.author_books.c.author_id, how='INNER'),           # Joins subquery on author_id
+                q.SELECT((e.author_id, f.json_agg(e.book).AS('books'))).   # Selects author_id and JSON aggregated books
+                FROM(e.book).                                              # Specifies the book table for the subquery
+                GROUP_BY(e.author_id).                                     # Groups books by author_id
+                AS('author_books').                                        # Defines the 'author_books' alias
+                ON(e.author.id == e.author_books.author_id, how='INNER'),  # Joins subquery on author_id
             ),
-            where=t.publisher.c.id == 1,                                                    # Filters authors by publisher_id = 1
-            order_by=t.author.c.id,                                                         # Orders results by author ID
+            where=e.publisher.id == 1,  # Filters authors by publisher_id = 1
+            order_by=e.author.id,       # Orders results by author ID
         )
 ```
 
 ## Main Components
 
-### Column Generator
+### Expression Generator
 
-You can import the column generator with `from pgcrud import c`. The column generator allows you to define generic references to columns 
-in a table, view, or subquery. These references fully support arithmetic and comparison operations, allow you to define aliases, and offer much more flexibility.
+You can import the expression generator with `from pgcrud import e`. The expression generator enables you to define generic references to database objects 
+such as columns, tables, views, or subqueries. These references support arithmetic and comparison operations, allow you to define aliases and join 
+expressions, and provide additional capabilities for handling complex database operations.
 
 ```python
-from pgcrud import c
+from pgcrud import e
 
-(c.age > 18) & (c.age < 60) & (c.id.is_in([1, 2, 3])) 
+(e.age > 18) & (e.age < 60) & (e.id.IN([1, 2, 3]))
 # "age" > 18 AND "age" < 60 AND "id" IN '{1,2,3}::int2[]'
 
-(c.weight / c.height ** 2).as_('bmi')
+(e.weight / e.height ** 2).AS('bmi')
 # weight" / ("height" ^ 2) AS "bmi"
-```
 
-
-### Table Generator
-
-You can import the table generator with `from pgcrud import t`. The table generator allows you to define generic 
-references to a table (or view). Each table reference has access to the column generator for defining table/column 
-references, and offers the ability to define aliases, create join expressions, and much more.
-
-```python
-from pgcrud import t
-
-t.user.c.name
+e.user.name
 # "user"."name"
 
-t.publisher.as_('p').on(t.author.c.id == t.p.c.author_id)
+e.publisher.AS('p').on(e.author.id == e.p.author_id)
 # "publisher" AS "p" ON "author"."id" = "p"."author_id"
 ```
+
 
 ### Function Bearer
 
@@ -120,12 +111,12 @@ You can import the function bearer with `from pgcrud import f`. The function bea
 correspond to PostgreSQL functions. You can use it to declare transformations, aggregations, and more.
 
 ```python
-from pgcrud import c, f, t
+from pgcrud import e, f
 
-f.avg(c.salary + c.bonus).as_('average_compensation')
+f.avg(e.salary + e.bonus).AS('average_compensation')
 # avg("salary" + "bonus") AS "average_compensation"
 
-f.to_json(t.publisher).as_('publisher')
+f.to_json(e.publisher).AS('publisher')
 # to_json("publisher") AS "publisher"
 ```
 
@@ -134,31 +125,30 @@ f.to_json(t.publisher).as_('publisher')
 You can import the query builder with `from pgcrud import q`. The query builder is used to construct queries and subqueries for performing any CRUD operation.
 
 ```python
-from pgcrud import c, f, q, t
+from pgcrud import e, f, q
 
-
-q.select((t.department.c.id, t.department.c.name, f.avg(t.employee.c.salary).as_('avg_salary'))).\
-    from_(t.employee).\
-    join(t.deparment.on(t.employee.c.department_id == t.departement.c.id)).\
-    group_by(t.employee.c.department_id)
+q.SELECT((e.department.id, e.department.name, f.avg(e.employee.salary).AS('avg_salary'))).\
+FROM(e.employee).\
+JOIN(e.deparment.on(e.employee.department_id == e.departement.id)).\
+GROUP_BY(e.employee.department_id)
 # SELECT "department"."id", "department"."name", avg("employee"."salary") AS "avg_salary" FROM "employee" JOIN "deparment" ON "employee"."department_id" = "departement"."id" GROUP BY "employee"."department_id"
 
 
-q.insert_into(t.employee[c.name, c.salary, c.department_id]).\
-    values(('John Doe', 1000, 1), {'name': 'Jane Doe', 'salary': 2000, 'department_id': 2}).\
-    returning(c.id)
+q.INSERT_INTO(e.employee[e.name, e.salary, e.department_id]).\
+VALUES(('John Doe', 1000, 1), {'name': 'Jane Doe', 'salary': 2000, 'department_id': 2}).\
+RETURNING(e.id)
 # INSERT INTO "employee" ("name", "salary", "department_id") VALUES ('John Doe', 1000, 1), ('Jane Doe', 2000, 2) RETURNING "id"
 
 
-q.update(t.employee).\
-    set((c.salary, c.deparment_id), (3000, 3)).\
-    where(c.id == 1)
-# UPDATE "employee" SET ("salary", "deparment_id") = (3000, 3) WHERE "id" = 1
+q.UPDATE(e.employee).\
+SET((e.salary, e.department_id), (3000, 3)).\
+WHERE(e.id == 1)
+# UPDATE "employee" SET ("salary", "department_id") = (3000, 3) WHERE "id" = 1
 
 
-q.delete_from(t.employee).\
-    where(c.salary > 10000).\
-    returning(c.id)
+q.DELETE_FROM(e.employee).\
+WHERE(e.salary > 10000).\
+RETURNING(e.id)
 # DELETE FROM "employee" WHERE "salary" > 10000 RETURNING "id"
 ```
 
