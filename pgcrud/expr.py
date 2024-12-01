@@ -273,7 +273,7 @@ class ReferenceExpr(ScalarExpr):
 @dataclass(repr=False, eq=False)
 class TableReferenceExpr(Expr):
     expr: ReferenceExpr
-    children: tuple[ReferenceExpr]
+    children: tuple[ReferenceExpr, ...]
 
     def get_composed(self) -> Composed:
         return SQL('{} ({})').format(self.expr.get_composed(), SQL(', ').join([expr.get_composed() for expr in self.children]))
