@@ -7,6 +7,7 @@ from psycopg.sql import SQL, Identifier, Composed, Literal
 
 from pgcrud.operators import FilterOperator, JoinOn
 from pgcrud.operators.filter import UndefinedFilter, Equal, NotEqual, GreaterThan, GreaterThanEqual, LessThan, LessThanEqual, IsNull, IsNotNull, IsIn, IsNotIn
+from pgcrud.operators.join import CrossJoin, InnerJoin, JoinOperator, Join, RightJoin, LeftJoin, FullJoin
 from pgcrud.operators.sort import Ascending, Descending, UndefinedSort
 from pgcrud.query import Query
 from pgcrud.types import HowValueType
@@ -69,6 +70,42 @@ class Expr:
 
     def __bool__(self):
         return not isinstance(self, UndefinedExpr)
+
+    def JOIN(self, expr: 'Expr', on: FilterOperator) -> 'JoinExpr | UndefinedExpr':
+        if isinstance(self, UndefinedExpr):
+            return UndefinedExpr()
+        else:
+            return JoinExpr(self, Join(expr, on))
+
+    def INNER_JOIN(self, expr: 'Expr', on: FilterOperator) -> 'JoinExpr | UndefinedExpr':
+        if isinstance(self, UndefinedExpr):
+            return UndefinedExpr()
+        else:
+            return JoinExpr(self, InnerJoin(expr, on))
+
+    def FULL_JOIN(self, expr: 'Expr', on: FilterOperator) -> 'JoinExpr | UndefinedExpr':
+        if isinstance(self, UndefinedExpr):
+            return UndefinedExpr()
+        else:
+            return JoinExpr(self, FullJoin(expr, on))
+
+    def LEFT_JOIN(self, expr: 'Expr', on: FilterOperator) -> 'JoinExpr | UndefinedExpr':
+        if isinstance(self, UndefinedExpr):
+            return UndefinedExpr()
+        else:
+            return JoinExpr(self, LeftJoin(expr, on))
+
+    def RIGHT_JOIN(self, expr: 'Expr', on: FilterOperator) -> 'JoinExpr | UndefinedExpr':
+        if isinstance(self, UndefinedExpr):
+            return UndefinedExpr()
+        else:
+            return JoinExpr(self, RightJoin(expr, on))
+
+    def CROSS_JOIN(self, expr: 'Expr') -> 'JoinExpr | UndefinedExpr':
+        if isinstance(self, UndefinedExpr):
+            return UndefinedExpr()
+        else:
+            return JoinExpr(self, CrossJoin(expr))
 
 
 @dataclass(repr=False, eq=False)
@@ -164,9 +201,6 @@ class ArithmeticExpr(Expr):
     @abstractmethod
     def DESC(self, flag: bool | type[Undefined] = True) -> Descending | UndefinedSort:
         pass
-
-    def ON(self, operator: FilterOperator, how: HowValueType | None = None) -> JoinOn | UndefinedFilter:
-        return JoinOn(self, operator, how)
 
     def OVER(self):
         pass
@@ -657,11 +691,25 @@ class PowExpr(CompositeExpr):
 
 
 @dataclass(repr=False, eq=False)
+class JoinExpr(Expr):
+    expr: Expr
+    operator: JoinOperator
+
+    def get_composed(self) -> Composed:
+        if self.operator:
+            return SQL('{} {}').format(self.expr.get_composed(), self.operator.get_composed())
+        else:
+            return self.expr.get_composed()
+
+    def get_inner_composed(self) -> Composed:
+        return self.get_composed()
+
+
+@dataclass(repr=False, eq=False)
 class AliasExpr(Expr):
     expr: Expr
     alias: str
 
-    @abstractmethod
     def get_composed(self) -> Composed:
         return SQL('{} AS {}').format(self.expr.get_composed(), Identifier(self.alias))
 
