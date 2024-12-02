@@ -10,3 +10,8 @@ dependencies = [
     "psycopg[binary]>=3.2.3",
     "pydantic>=2.9.2",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.4",
+]
