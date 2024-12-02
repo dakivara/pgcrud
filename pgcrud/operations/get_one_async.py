@@ -5,7 +5,7 @@ from psycopg import AsyncCursor
 
 from pgcrud.expr import Expr
 from pgcrud.operations.shared import get_async_row_factory, construct_composed_get_query
-from pgcrud.types import GroupByValueType, HavingValueType, PydanticModel, SelectValueType, FromValueType, WhereValueType, JoinValueType, OrderByValueType, ResultOneValueType
+from pgcrud.types import GroupByValueType, HavingValueType, PydanticModel, SelectValueType, FromValueType, WhereValueType, OrderByValueType, ResultOneValueType
 
 
 @overload
@@ -14,7 +14,6 @@ async def get_one(
         select: Expr,
         from_: FromValueType,
         *,
-        join: JoinValueType | None = None,
         where: WhereValueType | None = None,
         group_by: GroupByValueType | None = None,
         having: HavingValueType | None = None,
@@ -29,7 +28,6 @@ async def get_one(
         select: Sequence[Expr],
         from_: FromValueType,
         *,
-        join: JoinValueType | None = None,
         where: WhereValueType | None = None,
         group_by: GroupByValueType | None = None,
         having: HavingValueType | None = None,
@@ -44,7 +42,6 @@ async def get_one(
         select: type[PydanticModel],
         from_: FromValueType,
         *,
-        join: JoinValueType | None = None,
         where: WhereValueType | None = None,
         group_by: GroupByValueType | None = None,
         having: HavingValueType | None = None,
@@ -58,7 +55,6 @@ async def get_one(
         select: SelectValueType,
         from_: FromValueType,
         *,
-        join: JoinValueType | None = None,
         where: WhereValueType | None = None,
         group_by: GroupByValueType | None = None,
         having: HavingValueType | None = None,
@@ -67,7 +63,7 @@ async def get_one(
 ) -> ResultOneValueType | None:
 
     cursor.row_factory = get_async_row_factory(select)
-    query = construct_composed_get_query(select, from_, join, where, group_by, having, order_by, 1, offset)
+    query = construct_composed_get_query(select, from_, where, group_by, having, order_by, 1, offset)
     await cursor.execute(query)
 
     return await cursor.fetchone()

@@ -1,6 +1,5 @@
 from pgcrud.components.component import Component
 from pgcrud.components.from_ import From
-from pgcrud.components.join import Join, InnerJoin, LeftJoin
 from pgcrud.components.limit import Limit
 from pgcrud.components.offset import Offset
 from pgcrud.components.order_by import OrderBy
@@ -22,9 +21,6 @@ from pgcrud.components.udwhere import UDWhere
 __all__ = [
     'Component',
     'From',
-    'Join',
-    'InnerJoin',
-    'LeftJoin',
     'Limit',
     'Offset',
     'OrderBy',

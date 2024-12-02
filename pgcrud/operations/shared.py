@@ -5,7 +5,7 @@ from psycopg.rows import scalar_row, tuple_row, class_row, RowFactory, AsyncRowF
 
 from pgcrud.expr import Expr
 from pgcrud.query_builder import QueryBuilder as q
-from pgcrud.types import DeleteFromValueType, GroupByValueType, HavingValueType, SelectValueType, FromValueType, JoinValueType, SetColsType, SetValueType, UpdateValueType, UsingValueType, WhereValueType, OrderByValueType, InsertIntoValueType, ValuesValueType, ReturningValueType, AdditionalValuesType
+from pgcrud.types import DeleteFromValueType, GroupByValueType, HavingValueType, SelectValueType, FromValueType, SetColsType, SetValueType, UpdateValueType, UsingValueType, WhereValueType, OrderByValueType, InsertIntoValueType, ValuesValueType, ReturningValueType, AdditionalValuesType
 
 
 __all__ = [
@@ -39,7 +39,6 @@ def get_async_row_factory(select: SelectValueType) -> AsyncRowFactory:
 def construct_composed_get_query(
         select: SelectValueType,
         from_: FromValueType,
-        join: JoinValueType | None,
         where: WhereValueType | None,
         group_by: GroupByValueType | None,
         having: HavingValueType | None,
@@ -50,8 +49,6 @@ def construct_composed_get_query(
 
     query = q.SELECT(select).FROM(from_)
 
-    if join:
-        query = query.JOIN(join)
     if where:
         query = query.WHERE(where)
     if group_by:

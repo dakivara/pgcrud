@@ -5,12 +5,11 @@ from typing import Any
 
 from psycopg.sql import SQL, Identifier, Composed, Literal
 
-from pgcrud.operators import FilterOperator, JoinOn
+from pgcrud.operators import FilterOperator
 from pgcrud.operators.filter import UndefinedFilter, Equal, NotEqual, GreaterThan, GreaterThanEqual, LessThan, LessThanEqual, IsNull, IsNotNull, IsIn, IsNotIn
 from pgcrud.operators.join import CrossJoin, InnerJoin, JoinOperator, Join, RightJoin, LeftJoin, FullJoin
 from pgcrud.operators.sort import Ascending, Descending, UndefinedSort
 from pgcrud.query import Query
-from pgcrud.types import HowValueType
 from pgcrud.undefined import Undefined
 
 
