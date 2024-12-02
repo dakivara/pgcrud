@@ -4,7 +4,10 @@ from dataclasses import dataclass
 from psycopg.sql import Composed
 
 
-__all__ = ['Operator']
+__all__ = [
+    'Operator',
+    'UndefinedOperator',
+]
 
 
 @dataclass
@@ -17,8 +20,15 @@ class Operator:
         return self.__str__()
 
     def __bool__(self):
-        return len(self.get_composed()._obj) > 0
+        return not isinstance(self, UndefinedOperator)
 
     @abstractmethod
     def get_composed(self) -> Composed:
         pass
+
+
+@dataclass(repr=False)
+class UndefinedOperator(Operator):
+
+    def get_composed(self) -> Composed:
+        return Composed([])
