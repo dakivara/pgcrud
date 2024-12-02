@@ -6,7 +6,7 @@ from typing import Any
 from psycopg.sql import SQL, Identifier, Composed, Literal
 
 from pgcrud.operators import FilterOperator, JoinOn
-from pgcrud.operators.filter import Equal, NotEqual, GreaterThan, GreaterThanEqual, LessThan, LessThanEqual, IsNull, IsNotNull, IsIn, IsNotIn
+from pgcrud.operators.filter import UndefinedFilter, Equal, NotEqual, GreaterThan, GreaterThanEqual, LessThan, LessThanEqual, IsNull, IsNotNull, IsIn, IsNotIn
 from pgcrud.operators.sort import Ascending, Descending
 from pgcrud.query import Query
 from pgcrud.types import HowValueType
@@ -117,43 +117,55 @@ class ArithmeticExpr(Expr):
     def __rpow__(self, power) -> 'PowExpr | UndefinedExpr':
         return make_expr(power) ** self
 
-    def __eq__(self, other: Any) -> Equal:  # type: ignore
-        return Equal(self, make_expr(other))
+    @abstractmethod
+    def __eq__(self, other: Any) -> Equal | UndefinedFilter:  # type: ignore
+        pass
 
-    def __ne__(self, other: Any) -> NotEqual:   # type: ignore
-        return NotEqual(self, make_expr(other))
+    @abstractmethod
+    def __ne__(self, other: Any) -> NotEqual | UndefinedFilter:   # type: ignore
+        pass
 
-    def __gt__(self, other: Any) -> GreaterThan:
-        return GreaterThan(self, make_expr(other))
+    @abstractmethod
+    def __gt__(self, other: Any) -> GreaterThan | UndefinedFilter:
+        pass
 
-    def __ge__(self, other: Any) -> GreaterThanEqual:
-        return GreaterThanEqual(self, make_expr(other))
+    @abstractmethod
+    def __ge__(self, other: Any) -> GreaterThanEqual | UndefinedFilter:
+        pass
 
-    def __lt__(self, other: Any) -> LessThan:
-        return LessThan(self, make_expr(other))
+    @abstractmethod
+    def __lt__(self, other: Any) -> LessThan | UndefinedFilter:
+        pass
 
-    def __le__(self, other: Any) -> LessThanEqual:
-        return LessThanEqual(self, make_expr(other))
+    @abstractmethod
+    def __le__(self, other: Any) -> LessThanEqual | UndefinedFilter:
+        pass
 
-    def IS_NULL(self, flag: bool | type[Undefined] = True) -> IsNull:
-        return IsNull(self, flag)
+    @abstractmethod
+    def IS_NULL(self, flag: bool | type[Undefined] = True) -> IsNull | UndefinedFilter:
+        pass
 
-    def IS_NOT_NULL(self, flag: bool | type[Undefined] = True) -> IsNotNull:
-        return IsNotNull(self, flag)
+    @abstractmethod
+    def IS_NOT_NULL(self, flag: bool | type[Undefined] = True) -> IsNotNull | UndefinedFilter:
+        pass
 
-    def IN(self, values: Any) -> IsIn:
-        return IsIn(self, make_expr(values))
+    @abstractmethod
+    def IN(self, values: Any) -> IsIn | UndefinedFilter:
+        pass
 
-    def NOT_IN(self, values: Any) -> IsNotIn:
-        return IsNotIn(self, make_expr(values))
+    @abstractmethod
+    def NOT_IN(self, values: Any) -> IsNotIn | UndefinedFilter:
+        pass
 
-    def ASC(self, flag: bool | type[Undefined] = True) -> Ascending:
-        return Ascending(self, flag)
+    @abstractmethod
+    def ASC(self, flag: bool | type[Undefined] = True) -> Ascending | UndefinedFilter:
+        pass
 
-    def DESC(self, flag: bool | type[Undefined] = True) -> Descending:
-        return Descending(self, flag)
+    @abstractmethod
+    def DESC(self, flag: bool | type[Undefined] = True) -> Descending | UndefinedFilter:
+        pass
 
-    def ON(self, operator: FilterOperator, how: HowValueType | None = None) -> JoinOn:
+    def ON(self, operator: FilterOperator, how: HowValueType | None = None) -> JoinOn | UndefinedFilter:
         return JoinOn(self, operator, how)
 
     def OVER(self):
@@ -187,9 +199,105 @@ class UndefinedExpr(ArithmeticExpr):
     def __pow__(self, power) -> 'UndefinedExpr':
         return UndefinedExpr()
 
+    def __eq__(self, other: Any) -> UndefinedFilter:
+        return UndefinedFilter()
+
+    def __ne__(self, other: Any) -> UndefinedFilter:
+        return UndefinedFilter()
+
+    def __gt__(self, other: Any) -> UndefinedFilter:
+        return UndefinedFilter()
+
+    def __ge__(self, other: Any) -> UndefinedFilter:
+        return UndefinedFilter()
+
+    def __lt__(self, other: Any) -> UndefinedFilter:
+        return UndefinedFilter()
+
+    def __le__(self, other: Any) -> UndefinedFilter:
+        return UndefinedFilter()
+
+    def IS_NULL(self, flag: bool | type[Undefined] = True) -> UndefinedFilter:
+        return UndefinedFilter()
+
+    def IS_NOT_NULL(self, flag: bool | type[Undefined] = True) -> UndefinedFilter:
+        return UndefinedFilter()
+
+    def IN(self, values: Any) -> UndefinedFilter:
+        return UndefinedFilter()
+
+    def NOT_IN(self, values: Any) -> UndefinedFilter:
+        return UndefinedFilter()
+
+    def ASC(self, flag: bool | type[Undefined] = True) -> UndefinedFilter:
+        return UndefinedFilter()
+
+    def DESC(self, flag: bool | type[Undefined] = True) -> UndefinedFilter:
+        return UndefinedFilter()
+
 
 @dataclass(repr=False, eq=False)
-class ScalarExpr(ArithmeticExpr):
+class DefinedExpr(ArithmeticExpr):
+
+    @abstractmethod
+    def __add__(self, other: Any) -> 'AddExpr | UndefinedExpr':
+        pass
+
+    @abstractmethod
+    def __sub__(self, other) -> 'SubExpr | UndefinedExpr':
+        pass
+
+    @abstractmethod
+    def __mul__(self, other) -> 'MulExpr | UndefinedExpr':
+        pass
+
+    @abstractmethod
+    def __truediv__(self, other) -> 'TrueDivExpr | UndefinedExpr':
+        pass
+
+    @abstractmethod
+    def __pow__(self, power) -> 'PowExpr | UndefinedExpr':
+        pass
+
+    def __eq__(self, other: Any) -> Equal | UndefinedFilter:  # type: ignore
+        return Equal(self, expr) if (expr := make_expr(other)) else UndefinedFilter()
+
+    def __ne__(self, other: Any) -> NotEqual | UndefinedFilter:   # type: ignore
+        return NotEqual(self, expr) if (expr := make_expr(other)) else UndefinedFilter()
+
+    def __gt__(self, other: Any) -> GreaterThan | UndefinedFilter:
+        return GreaterThan(self, expr) if (expr := make_expr(other)) else UndefinedFilter()
+
+    def __ge__(self, other: Any) -> GreaterThanEqual | UndefinedFilter:
+        return GreaterThanEqual(self, expr) if (expr := make_expr(other)) else UndefinedFilter()
+
+    def __lt__(self, other: Any) -> LessThan | UndefinedFilter:
+        return LessThan(self, expr) if (expr := make_expr(other)) else UndefinedFilter()
+
+    def __le__(self, other: Any) -> LessThanEqual | UndefinedFilter:
+        return LessThanEqual(self, expr) if (expr := make_expr(other)) else UndefinedFilter()
+
+    def IS_NULL(self, flag: bool | type[Undefined] = True) -> IsNull | UndefinedFilter:
+        return IsNull(self, flag) if isinstance(flag, bool) else UndefinedFilter()
+
+    def IS_NOT_NULL(self, flag: bool | type[Undefined] = True) -> IsNotNull | UndefinedFilter:
+        return IsNotNull(self, flag) if isinstance(flag, bool) else UndefinedFilter()
+
+    def IN(self, values: list[Any]) -> IsIn | UndefinedFilter:
+        return IsIn(self, make_expr([value for value in values if value is not Undefined]))
+
+    def NOT_IN(self, values: list[Any]) -> IsNotIn | UndefinedFilter:
+        return IsNotIn(self, make_expr([value for value in values if value is not Undefined]))
+
+    def ASC(self, flag: bool | type[Undefined] = True) -> Ascending | UndefinedFilter:
+        return Ascending(self, flag)
+
+    def DESC(self, flag: bool | type[Undefined] = True) -> Descending | UndefinedFilter:
+        return Descending(self, flag)
+
+
+@dataclass(repr=False, eq=False)
+class ScalarExpr(DefinedExpr):
 
     @abstractmethod
     def get_composed(self) -> Composed:
@@ -295,7 +403,7 @@ class TableReferenceExpr(Expr):
 
 
 @dataclass(repr=False, eq=False)
-class CompositeExpr(ArithmeticExpr):
+class CompositeExpr(DefinedExpr):
     exprs: list[Expr]
 
     @property
