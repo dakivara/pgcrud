@@ -65,10 +65,57 @@ class Expr:
         return self.get_composed().as_string()
 
     def __repr__(self):
-        return self.__str__()
+        return str(self)
 
     def __bool__(self):
         return not isinstance(self, UndefinedExpr)
+
+
+@dataclass(repr=False, eq=False)
+class ArithmeticExpr(Expr):
+
+    @abstractmethod
+    def get_composed(self) -> Composed:
+        pass
+
+    @abstractmethod
+    def get_inner_composed(self) -> Composed:
+        pass
+
+    @abstractmethod
+    def __add__(self, other: Any) -> 'AddExpr | UndefinedExpr':
+        pass
+
+    def __radd__(self, other: Any) -> 'AddExpr | UndefinedExpr':
+        return make_expr(other) + self
+
+    @abstractmethod
+    def __sub__(self, other) -> 'SubExpr | UndefinedExpr':
+        pass
+
+    def __rsub__(self, other) -> 'SubExpr | UndefinedExpr':
+        return make_expr(other) - self
+
+    @abstractmethod
+    def __mul__(self, other) -> 'MulExpr | UndefinedExpr':
+        pass
+
+    def __rmul__(self, other) -> 'MulExpr | UndefinedExpr':
+        return make_expr(other) * self
+
+    @abstractmethod
+    def __truediv__(self, other) -> 'TrueDivExpr | UndefinedExpr':
+        pass
+
+    def __rtruediv__(self, other) -> 'TrueDivExpr | UndefinedExpr':
+        return make_expr(other) / self
+
+    @abstractmethod
+    def __pow__(self, power) -> 'PowExpr | UndefinedExpr':
+        pass
+
+    def __rpow__(self, power) -> 'PowExpr | UndefinedExpr':
+        return make_expr(power) ** self
 
     def __eq__(self, other: Any) -> Equal:  # type: ignore
         return Equal(self, make_expr(other))
@@ -115,44 +162,9 @@ class Expr:
     def AS(self, alias: str) -> 'AliasExpr':
         return AliasExpr(self, alias)
 
-    @abstractmethod
-    def __add__(self, other: Any) -> 'AddExpr | UndefinedExpr':
-        pass
-
-    def __radd__(self, other: Any) -> 'AddExpr | UndefinedExpr':
-        return make_expr(other) + self
-
-    @abstractmethod
-    def __sub__(self, other) -> 'SubExpr | UndefinedExpr':
-        pass
-
-    def __rsub__(self, other) -> 'SubExpr | UndefinedExpr':
-        return make_expr(other) - self
-
-    @abstractmethod
-    def __mul__(self, other) -> 'MulExpr | UndefinedExpr':
-        pass
-
-    def __rmul__(self, other) -> 'MulExpr | UndefinedExpr':
-        return make_expr(other) * self
-
-    @abstractmethod
-    def __truediv__(self, other) -> 'TrueDivExpr | UndefinedExpr':
-        pass
-
-    def __rtruediv__(self, other) -> 'TrueDivExpr | UndefinedExpr':
-        return make_expr(other) / self
-
-    @abstractmethod
-    def __pow__(self, power) -> 'PowExpr | UndefinedExpr':
-        pass
-
-    def __rpow__(self, power) -> 'PowExpr | UndefinedExpr':
-        return make_expr(power) ** self
-
 
 @dataclass(repr=False, eq=False)
-class UndefinedExpr(Expr):
+class UndefinedExpr(ArithmeticExpr):
 
     def get_composed(self) -> Composed:
         return Composed([])
@@ -177,7 +189,7 @@ class UndefinedExpr(Expr):
 
 
 @dataclass(repr=False, eq=False)
-class ScalarExpr(Expr):
+class ScalarExpr(ArithmeticExpr):
 
     @abstractmethod
     def get_composed(self) -> Composed:
@@ -283,7 +295,7 @@ class TableReferenceExpr(Expr):
 
 
 @dataclass(repr=False, eq=False)
-class ArithmeticExpr(Expr):
+class CompositeExpr(ArithmeticExpr):
     exprs: list[Expr]
 
     @property
@@ -302,7 +314,7 @@ class ArithmeticExpr(Expr):
 
 
 @dataclass(repr=False, eq=False)
-class AddExpr(ArithmeticExpr):
+class AddExpr(CompositeExpr):
 
     @property
     def operator(self) -> SQL:
@@ -312,7 +324,7 @@ class AddExpr(ArithmeticExpr):
         other = make_expr(other)
         if isinstance(other, AddExpr):
             return AddExpr(self.exprs + other.exprs)
-        elif isinstance(other, ArithmeticExpr):
+        elif isinstance(other, CompositeExpr):
             return AddExpr([self, other])
         elif isinstance(other, UndefinedExpr):
             return UndefinedExpr()
@@ -349,7 +361,7 @@ class AddExpr(ArithmeticExpr):
 
 
 @dataclass(repr=False, eq=False)
-class SubExpr(ArithmeticExpr):
+class SubExpr(CompositeExpr):
 
     @property
     def operator(self) -> SQL:
@@ -366,7 +378,7 @@ class SubExpr(ArithmeticExpr):
         other = make_expr(other)
         if isinstance(other, SubExpr):
             return SubExpr(self.exprs + other.exprs)
-        elif isinstance(other, ArithmeticExpr):
+        elif isinstance(other, CompositeExpr):
             return SubExpr([self, other])
         elif isinstance(other, UndefinedExpr):
             return UndefinedExpr()
@@ -396,7 +408,7 @@ class SubExpr(ArithmeticExpr):
 
 
 @dataclass(repr=False, eq=False)
-class MulExpr(ArithmeticExpr):
+class MulExpr(CompositeExpr):
 
     @property
     def operator(self) -> SQL:
@@ -420,7 +432,7 @@ class MulExpr(ArithmeticExpr):
         other = make_expr(other)
         if isinstance(other, MulExpr):
             return MulExpr(self.exprs + other.exprs)
-        elif isinstance(other, ArithmeticExpr):
+        elif isinstance(other, CompositeExpr):
             return MulExpr([self, other])
         elif isinstance(other, UndefinedExpr):
             return UndefinedExpr()
@@ -443,7 +455,7 @@ class MulExpr(ArithmeticExpr):
 
 
 @dataclass(repr=False, eq=False)
-class TrueDivExpr(ArithmeticExpr):
+class TrueDivExpr(CompositeExpr):
 
     @property
     def operator(self) -> SQL:
@@ -474,7 +486,7 @@ class TrueDivExpr(ArithmeticExpr):
         other = make_expr(other)
         if isinstance(other, TrueDivExpr):
             return TrueDivExpr(self.exprs + other.exprs)
-        elif isinstance(other, ArithmeticExpr):
+        elif isinstance(other, CompositeExpr):
             return TrueDivExpr([self, other])
         elif isinstance(other, UndefinedExpr):
             return UndefinedExpr()
@@ -490,7 +502,7 @@ class TrueDivExpr(ArithmeticExpr):
 
 
 @dataclass(repr=False, eq=False)
-class PowExpr(ArithmeticExpr):
+class PowExpr(CompositeExpr):
 
     @property
     def operator(self) -> SQL:
@@ -528,7 +540,7 @@ class PowExpr(ArithmeticExpr):
         power = make_expr(power)
         if isinstance(power, PowExpr):
             return PowExpr(self.exprs + power.exprs)
-        elif isinstance(power, ArithmeticExpr):
+        elif isinstance(power, CompositeExpr):
             return PowExpr([self, power])
         elif isinstance(power, UndefinedExpr):
             return UndefinedExpr()
