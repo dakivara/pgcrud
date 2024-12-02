@@ -7,7 +7,7 @@ from psycopg.sql import SQL, Identifier, Composed, Literal
 
 from pgcrud.operators import FilterOperator, JoinOn
 from pgcrud.operators.filter import UndefinedFilter, Equal, NotEqual, GreaterThan, GreaterThanEqual, LessThan, LessThanEqual, IsNull, IsNotNull, IsIn, IsNotIn
-from pgcrud.operators.sort import Ascending, Descending
+from pgcrud.operators.sort import Ascending, Descending, UndefinedSort
 from pgcrud.query import Query
 from pgcrud.types import HowValueType
 from pgcrud.undefined import Undefined
@@ -158,11 +158,11 @@ class ArithmeticExpr(Expr):
         pass
 
     @abstractmethod
-    def ASC(self, flag: bool | type[Undefined] = True) -> Ascending | UndefinedFilter:
+    def ASC(self, flag: bool | type[Undefined] = True) -> Ascending | UndefinedSort:
         pass
 
     @abstractmethod
-    def DESC(self, flag: bool | type[Undefined] = True) -> Descending | UndefinedFilter:
+    def DESC(self, flag: bool | type[Undefined] = True) -> Descending | UndefinedSort:
         pass
 
     def ON(self, operator: FilterOperator, how: HowValueType | None = None) -> JoinOn | UndefinedFilter:
@@ -229,11 +229,11 @@ class UndefinedExpr(ArithmeticExpr):
     def NOT_IN(self, values: Any) -> UndefinedFilter:
         return UndefinedFilter()
 
-    def ASC(self, flag: bool | type[Undefined] = True) -> UndefinedFilter:
-        return UndefinedFilter()
+    def ASC(self, flag: bool | type[Undefined] = True) -> UndefinedSort:
+        return UndefinedSort()
 
-    def DESC(self, flag: bool | type[Undefined] = True) -> UndefinedFilter:
-        return UndefinedFilter()
+    def DESC(self, flag: bool | type[Undefined] = True) -> UndefinedSort:
+        return UndefinedSort()
 
 
 @dataclass(repr=False, eq=False)
@@ -289,11 +289,11 @@ class DefinedExpr(ArithmeticExpr):
     def NOT_IN(self, values: list[Any]) -> IsNotIn | UndefinedFilter:
         return IsNotIn(self, make_expr([value for value in values if value is not Undefined]))
 
-    def ASC(self, flag: bool | type[Undefined] = True) -> Ascending | UndefinedFilter:
-        return Ascending(self, flag)
+    def ASC(self, flag: bool | type[Undefined] = True) -> Ascending | UndefinedSort:
+        return Ascending(self, flag) if isinstance(flag, bool) else UndefinedSort()
 
-    def DESC(self, flag: bool | type[Undefined] = True) -> Descending | UndefinedFilter:
-        return Descending(self, flag)
+    def DESC(self, flag: bool | type[Undefined] = True) -> Descending | UndefinedSort:
+        return Descending(self, flag) if isinstance(flag, bool) else UndefinedSort()
 
 
 @dataclass(repr=False, eq=False)
