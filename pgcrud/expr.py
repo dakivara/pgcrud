@@ -5,10 +5,9 @@ from typing import Any, TYPE_CHECKING
 
 from psycopg.sql import SQL, Identifier, Composed, Literal
 
-from pgcrud.operators import FilterOperator
-from pgcrud.operators.filter import UndefinedFilter, Equal, NotEqual, GreaterThan, GreaterThanEqual, LessThan, LessThanEqual, IsNull, IsNotNull, IsIn, IsNotIn
-from pgcrud.operators.join import CrossJoin, InnerJoin, JoinOperator, Join, RightJoin, LeftJoin, FullJoin
+from pgcrud.operators.filter import FilterOperator, UndefinedFilter, Equal, NotEqual, GreaterThan, GreaterThanEqual, LessThan, LessThanEqual, IsNull, IsNotNull, IsIn, IsNotIn
 from pgcrud.operators.sort import Ascending, Descending, UndefinedSort
+from pgcrud.types import HowValueType
 from pgcrud.undefined import Undefined
 
 
@@ -73,41 +72,23 @@ class Expr:
     def __bool__(self):
         return not isinstance(self, UndefinedExpr)
 
-    def JOIN(self, expr: 'Expr', on: FilterOperator) -> 'JoinExpr | UndefinedExpr':
-        if isinstance(self, UndefinedExpr):
-            return UndefinedExpr()
-        else:
-            return JoinExpr(self, Join(expr, on))
+    def JOIN(self, expr: 'Expr') -> 'JoinExpr':
+        return JoinExpr(self, expr)
 
-    def INNER_JOIN(self, expr: 'Expr', on: FilterOperator) -> 'JoinExpr | UndefinedExpr':
-        if isinstance(self, UndefinedExpr):
-            return UndefinedExpr()
-        else:
-            return JoinExpr(self, InnerJoin(expr, on))
+    def INNER_JOIN(self, expr: 'Expr') -> 'JoinExpr':
+        return JoinExpr(self, expr, 'INNER')
 
-    def FULL_JOIN(self, expr: 'Expr', on: FilterOperator) -> 'JoinExpr | UndefinedExpr':
-        if isinstance(self, UndefinedExpr):
-            return UndefinedExpr()
-        else:
-            return JoinExpr(self, FullJoin(expr, on))
+    def FULL_JOIN(self, expr: 'Expr') -> 'JoinExpr':
+        return JoinExpr(self, expr, 'FULL')
 
-    def LEFT_JOIN(self, expr: 'Expr', on: FilterOperator) -> 'JoinExpr | UndefinedExpr':
-        if isinstance(self, UndefinedExpr):
-            return UndefinedExpr()
-        else:
-            return JoinExpr(self, LeftJoin(expr, on))
+    def LEFT_JOIN(self, expr: 'Expr') -> 'JoinExpr':
+        return JoinExpr(self, expr, 'LEFT')
 
-    def RIGHT_JOIN(self, expr: 'Expr', on: FilterOperator) -> 'JoinExpr | UndefinedExpr':
-        if isinstance(self, UndefinedExpr):
-            return UndefinedExpr()
-        else:
-            return JoinExpr(self, RightJoin(expr, on))
+    def RIGHT_JOIN(self, expr: 'Expr') -> 'JoinExpr':
+        return JoinExpr(self, expr, 'RIGHT')
 
-    def CROSS_JOIN(self, expr: 'Expr') -> 'JoinExpr | UndefinedExpr':
-        if isinstance(self, UndefinedExpr):
-            return UndefinedExpr()
-        else:
-            return JoinExpr(self, CrossJoin(expr))
+    def CROSS_JOIN(self, expr: 'Expr') -> 'JoinExpr':
+        return JoinExpr(self, expr, 'CROSS')
 
 
 @dataclass(repr=False, eq=False)
@@ -695,13 +676,33 @@ class PowExpr(CompositeExpr):
 @dataclass(repr=False, eq=False)
 class JoinExpr(Expr):
     expr: Expr
-    operator: JoinOperator
+    joined_expr: Expr
+    how: HowValueType | None = None
+
+    @property
+    def join_type(self) -> Composed:
+        if self.how:
+            return SQL('{} JOIN').format(SQL(self.how))
+        else:
+            return Composed([SQL('JOIN')])
 
     def get_composed(self) -> Composed:
-        if self.operator:
-            return SQL('{} {}').format(self.expr.get_composed(), self.operator.get_composed())
-        else:
-            return self.expr.get_composed()
+        return SQL('{} {} {}').format(self.expr.get_composed(), self.join_type, self.joined_expr.get_composed())
+
+    def get_inner_composed(self) -> Composed:
+        return self.get_composed()
+
+    def ON(self, on: FilterOperator) -> 'JoinOnExpr':
+        return JoinOnExpr(self, on)
+
+
+@dataclass(repr=False, eq=False)
+class JoinOnExpr(Expr):
+    expr: JoinExpr
+    on: FilterOperator
+
+    def get_composed(self) -> Composed:
+        return SQL('{} ON {}').format(self.expr.get_composed(), self.on.get_composed())
 
     def get_inner_composed(self) -> Composed:
         return self.get_composed()

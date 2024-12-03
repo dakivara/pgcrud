@@ -6,14 +6,13 @@ from pydantic import BaseModel
 
 if TYPE_CHECKING:
     from pgcrud.expr import Expr, ReferenceExpr, TableReferenceExpr
-    from pgcrud.operators import FilterOperator, SortOperator, JoinOn
+    from pgcrud.operators import FilterOperator, SortOperator
 
 
 __all__ = [
     'PydanticModel',
     'SelectValueType',
     'FromValueType',
-    'JoinValueType',
     'WhereValueType',
     'GroupByValueType',
     'OrderByValueType',
@@ -38,7 +37,6 @@ __all__ = [
 PydanticModel = TypeVar('PydanticModel', bound=BaseModel)
 SelectValueType = Union['Expr', Sequence['Expr'], type[BaseModel]]
 FromValueType = Union['Expr']
-JoinValueType = Union['JoinOn', Sequence['JoinOn']]
 WhereValueType = Union['FilterOperator']
 GroupByValueType = Union['Expr', Sequence['Expr']]
 OrderByValueType = Union['Expr', 'SortOperator', Sequence[Union['Expr', 'SortOperator']]]
