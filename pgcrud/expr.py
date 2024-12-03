@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 from psycopg.sql import SQL, Identifier, Composed, Literal
 
@@ -9,8 +9,11 @@ from pgcrud.operators import FilterOperator
 from pgcrud.operators.filter import UndefinedFilter, Equal, NotEqual, GreaterThan, GreaterThanEqual, LessThan, LessThanEqual, IsNull, IsNotNull, IsIn, IsNotIn
 from pgcrud.operators.join import CrossJoin, InnerJoin, JoinOperator, Join, RightJoin, LeftJoin, FullJoin
 from pgcrud.operators.sort import Ascending, Descending, UndefinedSort
-from pgcrud.query import Query
 from pgcrud.undefined import Undefined
+
+
+if TYPE_CHECKING:
+    from pgcrud.query import Query
 
 
 __all__ = [
@@ -715,7 +718,7 @@ class AliasExpr(Expr):
 
 @dataclass(repr=False, eq=False)
 class QueryExpr(Expr):
-    query: Query
+    query: 'Query'
     alias: str
 
     @abstractmethod

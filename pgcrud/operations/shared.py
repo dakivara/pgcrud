@@ -5,7 +5,7 @@ from psycopg.rows import scalar_row, tuple_row, class_row, RowFactory, AsyncRowF
 
 from pgcrud.expr import Expr
 from pgcrud.query_builder import QueryBuilder as q
-from pgcrud.types import DeleteFromValueType, GroupByValueType, HavingValueType, SelectValueType, FromValueType, SetColsType, SetValueType, UpdateValueType, UsingValueType, WhereValueType, OrderByValueType, InsertIntoValueType, ValuesValueType, ReturningValueType, AdditionalValuesType
+from pgcrud.types import DeleteFromValueType, GroupByValueType, HavingValueType, SelectValueType, FromValueType, SetValueType, UpdateValueType, UsingValueType, WhereValueType, OrderByValueType, InsertIntoValueType, ValuesValueType, ReturningValueType, AdditionalValuesType
 
 
 __all__ = [
@@ -84,7 +84,7 @@ def construct_composed_insert_query(
 
 def construct_composed_update_query(
         update: UpdateValueType,
-        set_: tuple[SetColsType, SetValueType],
+        set_: SetValueType,
         from_: FromValueType | None,
         where: WhereValueType | None,
         returning: ReturningValueType | None,

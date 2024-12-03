@@ -24,6 +24,7 @@ __all__ = [
     'ReturningValueType',
     'UpdateValueType',
     'SetColsType',
+    'SetValuesType',
     'SetValueType',
     'DeleteFromValueType',
     'HavingValueType',
@@ -43,12 +44,13 @@ GroupByValueType = Union['Expr', Sequence['Expr']]
 OrderByValueType = Union['Expr', 'SortOperator', Sequence[Union['Expr', 'SortOperator']]]
 InsertIntoValueType = Union['TableReferenceExpr']
 ValuesValueItemType = Sequence[Any] | dict[str, Any] | BaseModel
-ValuesValueType = Sequence[ValuesValueItemType]
+ValuesValueType = Sequence[Any] | dict[str, Any] | BaseModel
 AdditionalValuesType = dict[str, Any]
 ReturningValueType = Union['Expr', Sequence['Expr'], type[BaseModel]]
 UpdateValueType = Union['ReferenceExpr']
 SetColsType = Sequence['ReferenceExpr']
-SetValueType = Sequence[Any] | dict[str, Any] | BaseModel
+SetValuesType = Sequence[Any] | dict[str, Any] | BaseModel
+SetValueType = tuple[SetColsType, SetValuesType]
 DeleteFromValueType = Union['ReferenceExpr']
 HavingValueType = Union['FilterOperator']
 UsingValueType = Union['ReferenceExpr']
