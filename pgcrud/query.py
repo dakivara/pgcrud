@@ -3,8 +3,8 @@ from typing import TYPE_CHECKING, Any
 
 from psycopg.sql import SQL, Composed
 
-from pgcrud.clauses import Clause, DeleteFrom, From, Select, Values, Where, GroupBy, Having, OrderBy, Offset, Limit, InsertInto, Returning, Set, Update, Using, PartitionBy, RowsBetween
-from pgcrud.expr import QueryExpr
+from pgcrud.clauses import Clause, DeleteFrom, From, Select, Values, Where, GroupBy, Having, OrderBy, Offset, Limit, InsertInto, Returning, Set, Update, Using, PartitionBy, RowsBetween, With
+from pgcrud.expr import QueryExpr, AliasExpr
 from pgcrud.frame_boundaries import FrameBoundary
 from pgcrud.types import DeleteFromValueType, FromValueType, GroupByValueType, HavingValueType, InsertIntoValueType, OrderByValueType, PartitionByValueType, ReturningValueType, SelectValueType, SetColsType, SetValuesType, UpdateValueType, UsingValueType, ValuesValueType, WhereValueType
 
@@ -96,6 +96,10 @@ class Query:
 
     def ROWS_BETWEEN(self, start: FrameBoundary, end: FrameBoundary) -> 'Query':
         self.clauses.append(RowsBetween(start, end))
+        return self
+
+    def WITH(self, *args: AliasExpr) -> 'Query':
+        self.clauses.append(With(args))
         return self
 
     def AS(self, alias: str) -> QueryExpr:

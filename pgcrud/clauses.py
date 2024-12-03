@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from psycopg.sql import SQL, Composed, Literal
 from pydantic import BaseModel
 
-from pgcrud.expr import Expr, ReferenceExpr
+from pgcrud.expr import Expr, ReferenceExpr, AliasExpr
 from pgcrud.frame_boundaries import FrameBoundary
 from pgcrud.operators import SortOperator
 from pgcrud.types import AdditionalValuesType, DeleteFromValueType, FromValueType, GroupByValueType, HavingValueType, InsertIntoValueType, OrderByValueType, PartitionByValueType, ReturningValueType, SelectValueType, SetColsType, SetValuesType, UpdateValueType, UsingValueType, ValuesValueType, WhereValueType
@@ -29,6 +29,9 @@ __all__ = [
     'Set',
     'DeleteFrom',
     'Using',
+    'PartitionBy',
+    'RowsBetween',
+    'With',
 ]
 
 
@@ -356,3 +359,14 @@ class RowsBetween(Clause):
 
     def get_composed(self) -> Composed:
         return SQL('ROWS BETWEEN {} AND {}').format(self.start.get_composed(), self.end.get_composed())
+
+
+@dataclass(repr=False)
+class With(Clause):
+    exprs: tuple[AliasExpr, ...]
+
+    def __bool__(self) -> bool:
+        return True
+
+    def get_composed(self) -> Composed:
+        return SQL('WITH {}').format(SQL(', ').join([expr.get_composed() for expr in self.exprs]))
