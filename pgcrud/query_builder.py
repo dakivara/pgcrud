@@ -1,7 +1,8 @@
 from typing import Any
-from pgcrud.clauses import From, Select, Where, GroupBy, Having, OrderBy, Limit, Offset, InsertInto, Values, Update, Set, DeleteFrom, Using
+from pgcrud.clauses import From, RowsBetween, Select, Where, GroupBy, Having, OrderBy, Limit, Offset, InsertInto, Values, Update, Set, DeleteFrom, Using, PartitionBy
+from pgcrud.frame_boundaries import FrameBoundary
 from pgcrud.query import Query
-from pgcrud.types import DeleteFromValueType, FromValueType, GroupByValueType, HavingValueType, InsertIntoValueType, OrderByValueType, SelectValueType, SetColsType, SetValuesType, UpdateValueType, UsingValueType, ValuesValueType, WhereValueType
+from pgcrud.types import DeleteFromValueType, FromValueType, GroupByValueType, HavingValueType, InsertIntoValueType, OrderByValueType, PartitionByValueType, SelectValueType, SetColsType, SetValuesType, UpdateValueType, UsingValueType, ValuesValueType, WhereValueType
 
 
 __all__ = ['QueryBuilder']
@@ -67,3 +68,11 @@ class QueryBuilder:
     @staticmethod
     def USING(value: UsingValueType) -> 'Query':
         return Query([Using(value)])
+
+    @staticmethod
+    def PARTITION_BY(value: PartitionByValueType) -> 'Query':
+        return Query([PartitionBy(value)])
+
+    @staticmethod
+    def ROWS_BETWEEN(start: FrameBoundary, end: FrameBoundary) -> 'Query':
+        return Query([RowsBetween(start, end)])

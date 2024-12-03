@@ -28,6 +28,7 @@ __all__ = [
     'DeleteFromValueType',
     'HavingValueType',
     'UsingValueType',
+    'PartitionByValueType',
     'ResultOneValueType',
     'ResultManyValueType',
     'HowValueType',
@@ -52,6 +53,7 @@ SetValueType = tuple[SetColsType, SetValuesType]
 DeleteFromValueType = Union['ReferenceExpr']
 HavingValueType = Union['FilterOperator']
 UsingValueType = Union['ReferenceExpr']
+PartitionByValueType = Union['Expr', Sequence['Expr']]
 ResultOneValueType = Any | tuple[Any, ...] | BaseModel
 ResultManyValueType = list[Any] | list[tuple[Any, ...]] | list[BaseModel]
 HowValueType = Literal['INNER', 'LEFT', 'RIGHT', 'FULL', 'CROSS']

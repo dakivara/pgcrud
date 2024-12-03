@@ -92,6 +92,12 @@ class Expr:
     def CROSS_JOIN(self, expr: 'Expr') -> 'JoinExpr':
         return JoinExpr(self, expr, 'CROSS')
 
+    def OVER(self, query: 'Query') -> 'OverExpr':
+        return OverExpr(self, query)
+
+    def AS(self, alias: str) -> 'AliasExpr':
+        return AliasExpr(self, alias)
+
 
 @dataclass(repr=False, eq=False)
 class ArithmeticExpr(Expr):
@@ -182,12 +188,6 @@ class ArithmeticExpr(Expr):
     @abstractmethod
     def DESC(self, flag: bool | type[Undefined] = True) -> Descending | UndefinedSort:
         pass
-
-    def OVER(self):
-        pass
-
-    def AS(self, alias: str) -> 'AliasExpr':
-        return AliasExpr(self, alias)
 
 
 @dataclass(repr=False, eq=False)

@@ -6,8 +6,9 @@ from psycopg.sql import SQL, Composed, Literal
 from pydantic import BaseModel
 
 from pgcrud.expr import Expr, ReferenceExpr
+from pgcrud.frame_boundaries import FrameBoundary
 from pgcrud.operators import SortOperator
-from pgcrud.types import AdditionalValuesType, DeleteFromValueType, FromValueType, GroupByValueType, HavingValueType, InsertIntoValueType, OrderByValueType, ReturningValueType, SelectValueType, SetColsType, SetValuesType, UpdateValueType, UsingValueType, ValuesValueType, WhereValueType
+from pgcrud.types import AdditionalValuesType, DeleteFromValueType, FromValueType, GroupByValueType, HavingValueType, InsertIntoValueType, OrderByValueType, PartitionByValueType, ReturningValueType, SelectValueType, SetColsType, SetValuesType, UpdateValueType, UsingValueType, ValuesValueType, WhereValueType
 from pgcrud.utils import ensure_seq
 
 
@@ -332,3 +333,26 @@ class Using(Clause):
 
     def get_composed(self) -> Composed:
         return SQL('USING {}').format(self.value.get_composed())
+
+
+@dataclass(repr=False)
+class PartitionBy(Clause):
+    value: PartitionByValueType
+
+    def __bool__(self) -> bool:
+        return True
+
+    def get_composed(self) -> Composed:
+        return SQL('PARTITION BY {}').format(SQL(', ').join([expr.get_composed() for expr in ensure_seq(self.value)]))
+
+
+@dataclass(repr=False)
+class RowsBetween(Clause):
+    start: FrameBoundary
+    end: FrameBoundary
+
+    def __bool__(self) -> bool:
+        return True
+
+    def get_composed(self) -> Composed:
+        return SQL('ROWS BETWEEN {} AND {}').format(self.start.get_composed(), self.end.get_composed())
