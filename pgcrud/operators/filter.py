@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 
 __all__ = [
     'FilterOperator',
+    'UndefinedFilter',
     'Equal',
     'NotEqual',
     'GreaterThan',
@@ -37,12 +38,15 @@ __all__ = [
 @dataclass(repr=False)
 class FilterOperator(Operator):
 
+    def __bool__(self) -> bool:
+        return not isinstance(self, UndefinedFilter)
+
     @abstractmethod
-    def __and__(self, other: 'FilterOperator') -> 'Intersection':
+    def __and__(self, other: 'FilterOperator') -> 'Intersection | UndefinedFilter':
         pass
 
     @abstractmethod
-    def __or__(self, other: 'FilterOperator') -> 'Union':
+    def __or__(self, other: 'FilterOperator') -> 'Union | UndefinedFilter':
         pass
 
     @abstractmethod
@@ -55,13 +59,39 @@ class FilterOperator(Operator):
 
 
 @dataclass(repr=False)
-class SingleFilterOperator(FilterOperator):
+class UndefinedFilter(FilterOperator):
 
-    def __and__(self, other: 'FilterOperator') -> 'Intersection':
-        return Intersection([self] + other.operators) if isinstance(other, Intersection) else Intersection([self, other])
+    def __and__(self, other: 'FilterOperator') -> 'UndefinedFilter':
+        return UndefinedFilter()
 
-    def __or__(self, other: 'FilterOperator') -> 'Union':
-        return Union([self] + other.operators) if isinstance(other, Union) else Union([self, other])
+    def __or__(self, other: 'FilterOperator') -> 'UndefinedFilter':
+        return UndefinedFilter()
+
+    def get_composed(self) -> Composed:
+        return Composed([])
+
+    def get_inner_composed(self) -> Composed:
+        return self.get_composed()
+
+
+@dataclass(repr=False)
+class ScalarFilterOperator(FilterOperator):
+
+    def __and__(self, other: 'FilterOperator') -> 'Intersection | UndefinedFilter':
+        if isinstance(other, UndefinedFilter):
+            return UndefinedFilter()
+        elif isinstance(other, Intersection):
+            return Intersection([self] + other.operators)
+        else:
+            return Intersection([self, other])
+
+    def __or__(self, other: 'FilterOperator') -> 'Union | UndefinedFilter':
+        if isinstance(other, UndefinedFilter):
+            return UndefinedFilter()
+        elif isinstance(other, Union):
+            return Union([self] + other.operators)
+        else:
+            return Union([self, other])
 
     @abstractmethod
     def get_composed(self) -> Composed:
@@ -72,7 +102,7 @@ class SingleFilterOperator(FilterOperator):
 
 
 @dataclass(repr=False)
-class ComparisonOperator(SingleFilterOperator):
+class ComparisonOperator(ScalarFilterOperator):
     left: 'Expr'
     right: 'Expr'
 
@@ -82,10 +112,7 @@ class ComparisonOperator(SingleFilterOperator):
         pass
 
     def get_composed(self) -> Composed:
-        if self.left and self.right:
-            return SQL("{} {} {}").format(self.left.get_composed(), self.operator, self.right.get_composed())
-        else:
-            return Composed([])
+        return SQL("{} {} {}").format(self.left.get_composed(), self.operator, self.right.get_composed())
 
 
 @dataclass(repr=False)
@@ -153,50 +180,48 @@ class IsNotIn(ComparisonOperator):
 
 
 @dataclass(repr=False)
-class IsNull(SingleFilterOperator):
+class IsNull(ScalarFilterOperator):
     expr: 'Expr'
-    flag: bool | type[Undefined] = True
+    flag: bool
 
     def get_composed(self) -> Composed:
-        if not self.expr or self.flag is Undefined:
-            return Composed([])
-        elif self.flag:
+        if self.flag:
             return SQL("{} IS NULL").format(self.expr.get_composed())
         else:
             return SQL("{} IS NOT NULL").format(self.expr.get_composed())
 
 
 @dataclass(repr=False)
-class IsNotNull(SingleFilterOperator):
+class IsNotNull(ScalarFilterOperator):
     expr: 'Expr'
     flag: bool | type[Undefined] = True
 
     def get_composed(self) -> Composed:
-        if not self.expr or self.flag is Undefined:
-            return Composed([])
-        elif self.flag:
+        if self.flag:
             return SQL("{} IS NOT NULL").format(self.expr.get_composed())
         else:
             return SQL("{} IS NULL").format(self.expr.get_composed())
 
 
 @dataclass(repr=False)
-class Intersection(FilterOperator):
+class CompositeFilterOperator(FilterOperator):
     operators: list[FilterOperator]
 
-    def __and__(self, other: 'FilterOperator') -> 'Intersection':
-        if isinstance(other, Intersection):
-            return Intersection(self.operators + other.operators)
-        elif isinstance(other, Union):
-            return Intersection([self, other])
-        else:
-            return Intersection(self.operators + [other])
+    @abstractmethod
+    def __and__(self, other: 'FilterOperator') -> 'Intersection | UndefinedFilter':
+        pass
 
-    def __or__(self, other: 'FilterOperator') -> 'Union':
-        return Union([self, other])
+    @abstractmethod
+    def __or__(self, other: 'FilterOperator') -> 'Union | UndefinedFilter':
+        pass
+
+    @property
+    @abstractmethod
+    def operator(self) -> SQL:
+        pass
 
     def get_composed(self) -> Composed:
-        return SQL(' AND ').join([operator.get_inner_composed() for operator in self.operators if operator])
+        return self.operator.join([operator.get_inner_composed() for operator in self.operators])
 
     def get_inner_composed(self) -> Composed:
         composed = self.get_composed()
@@ -207,11 +232,38 @@ class Intersection(FilterOperator):
 
 
 @dataclass(repr=False)
+class Intersection(CompositeFilterOperator):
+
+    def __and__(self, other: 'FilterOperator') -> 'Intersection | UndefinedFilter':
+        if isinstance(other, UndefinedFilter):
+            return UndefinedFilter()
+        elif isinstance(other, Intersection):
+            return Intersection(self.operators + other.operators)
+        elif isinstance(other, Union):
+            return Intersection([self, other])
+        else:
+            return Intersection(self.operators + [other])
+
+    def __or__(self, other: 'FilterOperator') -> 'Union | UndefinedFilter':
+        if isinstance(other, UndefinedFilter):
+            return UndefinedFilter()
+        else:
+            return Union([self, other])
+
+    @property
+    def operator(self) -> SQL:
+        return SQL(' AND ')
+
+
+@dataclass(repr=False)
 class Union(FilterOperator):
     operators: list[FilterOperator]
 
-    def __and__(self, other: 'FilterOperator') -> 'Intersection':
-        return Intersection([self, other])
+    def __and__(self, other: 'FilterOperator') -> 'Intersection | UndefinedFilter':
+        if isinstance(other, UndefinedFilter):
+            return UndefinedFilter()
+        else:
+            return Intersection([self, other])
 
     def __or__(self, other: 'FilterOperator') -> 'Union':
         if isinstance(other, Union):

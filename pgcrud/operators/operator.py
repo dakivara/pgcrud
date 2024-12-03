@@ -16,8 +16,9 @@ class Operator:
     def __repr__(self):
         return self.__str__()
 
-    def __bool__(self):
-        return len(self.get_composed()._obj) > 0
+    @abstractmethod
+    def __bool__(self) -> bool:
+        pass
 
     @abstractmethod
     def get_composed(self) -> Composed:

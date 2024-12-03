@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 
 __all__ = [
     'SortOperator',
+    'UndefinedSort',
     'Ascending',
     'Descending',
 ]
@@ -22,20 +23,28 @@ __all__ = [
 @dataclass(repr=False)
 class SortOperator(Operator):
 
+    def __bool__(self) -> bool:
+        return not isinstance(self, UndefinedSort)
+
     @abstractmethod
     def get_composed(self) -> Composed:
         pass
 
 
+@dataclass
+class UndefinedSort(SortOperator):
+
+    def get_composed(self) -> Composed:
+        return Composed([])
+
+
 @dataclass(repr=False)
 class Ascending(SortOperator):
     expr: 'Expr'
-    flag: bool | type[Undefined] = True
+    flag: bool = True
 
     def get_composed(self) -> Composed:
-        if not self.expr or self.flag is Undefined:
-            return Composed([])
-        elif self.flag:
+        if self.flag:
             return SQL("{} ASC").format(self.expr.get_composed())
         else:
             return SQL("{} DESC").format(self.expr.get_composed())
@@ -47,9 +56,7 @@ class Descending(SortOperator):
     flag: bool | type[Undefined] = True
 
     def get_composed(self) -> Composed:
-        if not self.expr or self.flag is Undefined:
-            return Composed([])
-        elif self.flag:
+        if self.flag:
             return SQL("{} DESC").format(self.expr.get_composed())
         else:
             return SQL("{} ASC").format(self.expr.get_composed())

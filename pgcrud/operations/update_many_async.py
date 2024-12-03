@@ -5,14 +5,14 @@ from psycopg import AsyncCursor
 
 from pgcrud.expr import Expr
 from pgcrud.operations.shared import get_async_row_factory, construct_composed_update_query
-from pgcrud.types import FromValueType, PydanticModel, UpdateValueType, SetColsType, SetValueType, WhereValueType, ReturningValueType, AdditionalValuesType, ResultManyValueType
+from pgcrud.types import FromValueType, PydanticModel, UpdateValueType, SetColsType, SetValuesType, WhereValueType, ReturningValueType, AdditionalValuesType, ResultManyValueType
 
 
 @overload
 async def update_many(
         cursor: AsyncCursor,
         update: UpdateValueType,
-        set_: tuple[SetColsType, SetValueType],
+        set_: tuple[SetColsType, SetValuesType],
         *,
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
@@ -26,7 +26,7 @@ async def update_many(
 async def update_many(
         cursor: AsyncCursor,
         update: UpdateValueType,
-        set_: tuple[SetColsType, SetValueType],
+        set_: tuple[SetColsType, SetValuesType],
         *,
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
@@ -40,7 +40,7 @@ async def update_many(
 async def update_many(
         cursor: AsyncCursor,
         update: UpdateValueType,
-        set_: tuple[SetColsType, SetValueType],
+        set_: tuple[SetColsType, SetValuesType],
         *,
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
@@ -54,7 +54,7 @@ async def update_many(
 async def update_many(
         cursor: AsyncCursor,
         update: UpdateValueType,
-        set_: tuple[SetColsType, SetValueType],
+        set_: tuple[SetColsType, SetValuesType],
         *,
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
@@ -68,7 +68,7 @@ async def update_many(
 async def update_many(
         cursor: AsyncCursor,
         update: UpdateValueType,
-        set_: tuple[SetColsType, SetValueType],
+        set_: tuple[SetColsType, SetValuesType],
         *,
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
@@ -81,7 +81,7 @@ async def update_many(
 async def update_many(
         cursor: AsyncCursor,
         update: UpdateValueType,
-        set_: tuple[SetColsType, SetValueType],
+        set_: tuple[SetColsType, SetValuesType],
         *,
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,

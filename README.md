@@ -63,18 +63,18 @@ with psycopg.connect(conn_str) as conn:
         authors = pg.get_many(
             cursor=cursor,
             select=Author,   # Maps the result to the Author Pydantic model
-            from_=e.author,  # Specifies the main table to query from
-            join=(
+            from_=e.author.  # Select from the author table
+
                 # Joins the publisher table on the author's publisher_id
-                e.publisher.ON(e.author.publisher_id == e.publisher.id, how='INNER'),
+                JOIN(e.publisher).ON(e.author.publisher_id == e.publisher.id).
 
                 # Joins a subquery to fetch books grouped by author_id
-                q.SELECT((e.author_id, f.json_agg(e.book).AS('books'))).   # Selects author_id and JSON aggregated books
-                FROM(e.book).                                              # Specifies the book table for the subquery
-                GROUP_BY(e.author_id).                                     # Groups books by author_id
-                AS('author_books').                                        # Defines the 'author_books' alias
-                ON(e.author.id == e.author_books.author_id, how='INNER'),  # Joins subquery on author_id
-            ),
+                JOIN(
+                    q.SELECT((e.author_id, f.json_agg(e.book).AS('books'))).  # Selects author_id and JSON aggregated books
+                    FROM(e.book).                                             # Specifies the book table for the subquery
+                    GROUP_BY(e.author_id).                                    # Groups books by author_id
+                    AS('author_books')                                        # Defines the 'author_books' alias
+                ).ON(e.author.id == e.author_books.author_id),                # Joins subquery on author_id
             where=e.publisher.id == 1,  # Filters authors by publisher_id = 1
             order_by=e.author.id,       # Orders results by author ID
         )
@@ -100,8 +100,8 @@ from pgcrud import e
 e.user.name
 # "user"."name"
 
-e.publisher.AS('p').ON(e.author.id == e.p.author_id)
-# "publisher" AS "p" ON "author"."id" = "p"."author_id"
+e.author.AS('a').LEFT_JOIN(e.publisher.AS('p')).ON(e.a.publisher_id == e.p.id)
+# "author" AS "a" LEFT JOIN "publisher" AS "p" ON "a"."publisher_id" = "p"."id"
 ```
 
 
@@ -128,8 +128,7 @@ You can import the query builder with `from pgcrud import q`. The query builder 
 from pgcrud import e, f, q
 
 q.SELECT((e.department.id, e.department.name, f.avg(e.employee.salary).AS('avg_salary'))).\
-FROM(e.employee).\
-JOIN(e.deparment.ON(e.employee.department_id == e.departement.id)).\
+FROM(e.employee.JOIN(e.deparment).ON(e.employee.department_id == e.departement.id)).\
 GROUP_BY(e.employee.department_id)
 # SELECT "department"."id", "department"."name", avg("employee"."salary") AS "avg_salary" FROM "employee" JOIN "deparment" ON "employee"."department_id" = "departement"."id" GROUP BY "employee"."department_id"
 

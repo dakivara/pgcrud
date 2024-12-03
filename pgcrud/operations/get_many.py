@@ -5,7 +5,7 @@ from psycopg import Cursor
 
 from pgcrud.expr import Expr
 from pgcrud.operations.shared import get_row_factory, construct_composed_get_query
-from pgcrud.types import GroupByValueType, HavingValueType, PydanticModel, SelectValueType, FromValueType, JoinValueType, WhereValueType, OrderByValueType, ResultManyValueType
+from pgcrud.types import GroupByValueType, HavingValueType, PydanticModel, SelectValueType, FromValueType, WhereValueType, OrderByValueType, ResultManyValueType
 
 
 @overload
@@ -14,7 +14,6 @@ def get_many(
         select: Expr,
         from_: FromValueType,
         *,
-        join: JoinValueType | None = None,
         where: WhereValueType | None = None,
         group_by: GroupByValueType | None = None,
         having: HavingValueType | None = None,
@@ -31,7 +30,6 @@ def get_many(
         select: Sequence[Expr],
         from_: FromValueType,
         *,
-        join: JoinValueType | None = None,
         where: WhereValueType | None = None,
         group_by: GroupByValueType | None = None,
         having: HavingValueType | None = None,
@@ -48,7 +46,6 @@ def get_many(
         select: type[PydanticModel],
         from_: FromValueType,
         *,
-        join: JoinValueType | None = None,
         where: WhereValueType | None = None,
         group_by: GroupByValueType | None = None,
         having: HavingValueType | None = None,
@@ -65,7 +62,6 @@ def get_many(
         select: SelectValueType,
         from_: FromValueType,
         *,
-        join: JoinValueType | None = None,
         where: WhereValueType | None = None,
         group_by: GroupByValueType | None = None,
         having: HavingValueType | None = None,
@@ -81,7 +77,6 @@ def get_many(
         select: SelectValueType,
         from_: FromValueType,
         *,
-        join: JoinValueType | None = None,
         where: WhereValueType | None = None,
         group_by: GroupByValueType | None = None,
         having: HavingValueType | None = None,
@@ -92,7 +87,7 @@ def get_many(
 ) -> ResultManyValueType | None:
 
     cursor.row_factory = get_row_factory(select)
-    query = construct_composed_get_query(select, from_, join, where, group_by, having, order_by, limit, offset)
+    query = construct_composed_get_query(select, from_, where, group_by, having, order_by, limit, offset)
     cursor.execute(query)
 
     if not no_fetch:

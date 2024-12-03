@@ -1,16 +1,18 @@
 from abc import abstractmethod
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 from psycopg.sql import SQL, Identifier, Composed, Literal
 
-from pgcrud.operators import FilterOperator, JoinOn
-from pgcrud.operators.filter import Equal, NotEqual, GreaterThan, GreaterThanEqual, LessThan, LessThanEqual, IsNull, IsNotNull, IsIn, IsNotIn
-from pgcrud.operators.sort import Ascending, Descending
-from pgcrud.query import Query
+from pgcrud.operators.filter import FilterOperator, UndefinedFilter, Equal, NotEqual, GreaterThan, GreaterThanEqual, LessThan, LessThanEqual, IsNull, IsNotNull, IsIn, IsNotIn
+from pgcrud.operators.sort import Ascending, Descending, UndefinedSort
 from pgcrud.types import HowValueType
 from pgcrud.undefined import Undefined
+
+
+if TYPE_CHECKING:
+    from pgcrud.query import Query
 
 
 __all__ = [
@@ -28,6 +30,9 @@ __all__ = [
     'MulExpr',
     'TrueDivExpr',
     'PowExpr',
+    'JoinExpr',
+    'JoinOnExpr',
+    'OverExpr',
     'AliasExpr',
     'QueryExpr',
     'FunExpr',
@@ -57,63 +62,49 @@ class Expr:
     def get_composed(self) -> Composed:
         pass
 
-    @abstractmethod
     def get_inner_composed(self) -> Composed:
-        pass
+        return self.get_composed()
 
     def __str__(self):
         return self.get_composed().as_string()
 
     def __repr__(self):
-        return self.__str__()
+        return str(self)
 
     def __bool__(self):
         return not isinstance(self, UndefinedExpr)
 
-    def __eq__(self, other: Any) -> Equal:  # type: ignore
-        return Equal(self, make_expr(other))
+    def JOIN(self, expr: 'Expr') -> 'JoinExpr':
+        return JoinExpr(self, expr)
 
-    def __ne__(self, other: Any) -> NotEqual:   # type: ignore
-        return NotEqual(self, make_expr(other))
+    def INNER_JOIN(self, expr: 'Expr') -> 'JoinExpr':
+        return JoinExpr(self, expr, 'INNER')
 
-    def __gt__(self, other: Any) -> GreaterThan:
-        return GreaterThan(self, make_expr(other))
+    def FULL_JOIN(self, expr: 'Expr') -> 'JoinExpr':
+        return JoinExpr(self, expr, 'FULL')
 
-    def __ge__(self, other: Any) -> GreaterThanEqual:
-        return GreaterThanEqual(self, make_expr(other))
+    def LEFT_JOIN(self, expr: 'Expr') -> 'JoinExpr':
+        return JoinExpr(self, expr, 'LEFT')
 
-    def __lt__(self, other: Any) -> LessThan:
-        return LessThan(self, make_expr(other))
+    def RIGHT_JOIN(self, expr: 'Expr') -> 'JoinExpr':
+        return JoinExpr(self, expr, 'RIGHT')
 
-    def __le__(self, other: Any) -> LessThanEqual:
-        return LessThanEqual(self, make_expr(other))
+    def CROSS_JOIN(self, expr: 'Expr') -> 'JoinExpr':
+        return JoinExpr(self, expr, 'CROSS')
 
-    def IS_NULL(self, flag: bool | type[Undefined] = True) -> IsNull:
-        return IsNull(self, flag)
+    def OVER(self, query: 'Query') -> 'OverExpr':
+        return OverExpr(self, query)
 
-    def IS_NOT_NULL(self, flag: bool | type[Undefined] = True) -> IsNotNull:
-        return IsNotNull(self, flag)
-
-    def IN(self, values: Any) -> IsIn:
-        return IsIn(self, make_expr(values))
-
-    def NOT_IN(self, values: Any) -> IsNotIn:
-        return IsNotIn(self, make_expr(values))
-
-    def ASC(self, flag: bool | type[Undefined] = True) -> Ascending:
-        return Ascending(self, flag)
-
-    def DESC(self, flag: bool | type[Undefined] = True) -> Descending:
-        return Descending(self, flag)
-
-    def ON(self, operator: FilterOperator, how: HowValueType | None = None) -> JoinOn:
-        return JoinOn(self, operator, how)
-
-    def OVER(self):
-        pass
-
-    def AS(self, alias: str) -> 'AliasExpr':
+    def AS(self, alias: 'str | Query') -> 'AliasExpr':
         return AliasExpr(self, alias)
+
+
+@dataclass(repr=False, eq=False)
+class ArithmeticExpr(Expr):
+
+    @abstractmethod
+    def get_composed(self) -> Composed:
+        pass
 
     @abstractmethod
     def __add__(self, other: Any) -> 'AddExpr | UndefinedExpr':
@@ -150,15 +141,60 @@ class Expr:
     def __rpow__(self, power) -> 'PowExpr | UndefinedExpr':
         return make_expr(power) ** self
 
+    @abstractmethod
+    def __eq__(self, other: Any) -> Equal | UndefinedFilter:  # type: ignore
+        pass
+
+    @abstractmethod
+    def __ne__(self, other: Any) -> NotEqual | UndefinedFilter:   # type: ignore
+        pass
+
+    @abstractmethod
+    def __gt__(self, other: Any) -> GreaterThan | UndefinedFilter:
+        pass
+
+    @abstractmethod
+    def __ge__(self, other: Any) -> GreaterThanEqual | UndefinedFilter:
+        pass
+
+    @abstractmethod
+    def __lt__(self, other: Any) -> LessThan | UndefinedFilter:
+        pass
+
+    @abstractmethod
+    def __le__(self, other: Any) -> LessThanEqual | UndefinedFilter:
+        pass
+
+    @abstractmethod
+    def IS_NULL(self, flag: bool | type[Undefined] = True) -> IsNull | UndefinedFilter:
+        pass
+
+    @abstractmethod
+    def IS_NOT_NULL(self, flag: bool | type[Undefined] = True) -> IsNotNull | UndefinedFilter:
+        pass
+
+    @abstractmethod
+    def IN(self, values: Any) -> IsIn | UndefinedFilter:
+        pass
+
+    @abstractmethod
+    def NOT_IN(self, values: Any) -> IsNotIn | UndefinedFilter:
+        pass
+
+    @abstractmethod
+    def ASC(self, flag: bool | type[Undefined] = True) -> Ascending | UndefinedSort:
+        pass
+
+    @abstractmethod
+    def DESC(self, flag: bool | type[Undefined] = True) -> Descending | UndefinedSort:
+        pass
+
 
 @dataclass(repr=False, eq=False)
-class UndefinedExpr(Expr):
+class UndefinedExpr(ArithmeticExpr):
 
     def get_composed(self) -> Composed:
         return Composed([])
-
-    def get_inner_composed(self) -> Composed:
-        return self.get_composed()
 
     def __add__(self, other: Any) -> 'UndefinedExpr':
         return UndefinedExpr()
@@ -175,16 +211,109 @@ class UndefinedExpr(Expr):
     def __pow__(self, power) -> 'UndefinedExpr':
         return UndefinedExpr()
 
+    def __eq__(self, other: Any) -> UndefinedFilter:
+        return UndefinedFilter()
+
+    def __ne__(self, other: Any) -> UndefinedFilter:
+        return UndefinedFilter()
+
+    def __gt__(self, other: Any) -> UndefinedFilter:
+        return UndefinedFilter()
+
+    def __ge__(self, other: Any) -> UndefinedFilter:
+        return UndefinedFilter()
+
+    def __lt__(self, other: Any) -> UndefinedFilter:
+        return UndefinedFilter()
+
+    def __le__(self, other: Any) -> UndefinedFilter:
+        return UndefinedFilter()
+
+    def IS_NULL(self, flag: bool | type[Undefined] = True) -> UndefinedFilter:
+        return UndefinedFilter()
+
+    def IS_NOT_NULL(self, flag: bool | type[Undefined] = True) -> UndefinedFilter:
+        return UndefinedFilter()
+
+    def IN(self, values: Any) -> UndefinedFilter:
+        return UndefinedFilter()
+
+    def NOT_IN(self, values: Any) -> UndefinedFilter:
+        return UndefinedFilter()
+
+    def ASC(self, flag: bool | type[Undefined] = True) -> UndefinedSort:
+        return UndefinedSort()
+
+    def DESC(self, flag: bool | type[Undefined] = True) -> UndefinedSort:
+        return UndefinedSort()
+
 
 @dataclass(repr=False, eq=False)
-class ScalarExpr(Expr):
+class DefinedExpr(ArithmeticExpr):
+
+    @abstractmethod
+    def __add__(self, other: Any) -> 'AddExpr | UndefinedExpr':
+        pass
+
+    @abstractmethod
+    def __sub__(self, other) -> 'SubExpr | UndefinedExpr':
+        pass
+
+    @abstractmethod
+    def __mul__(self, other) -> 'MulExpr | UndefinedExpr':
+        pass
+
+    @abstractmethod
+    def __truediv__(self, other) -> 'TrueDivExpr | UndefinedExpr':
+        pass
+
+    @abstractmethod
+    def __pow__(self, power) -> 'PowExpr | UndefinedExpr':
+        pass
+
+    def __eq__(self, other: Any) -> Equal | UndefinedFilter:  # type: ignore
+        return Equal(self, expr) if (expr := make_expr(other)) else UndefinedFilter()
+
+    def __ne__(self, other: Any) -> NotEqual | UndefinedFilter:   # type: ignore
+        return NotEqual(self, expr) if (expr := make_expr(other)) else UndefinedFilter()
+
+    def __gt__(self, other: Any) -> GreaterThan | UndefinedFilter:
+        return GreaterThan(self, expr) if (expr := make_expr(other)) else UndefinedFilter()
+
+    def __ge__(self, other: Any) -> GreaterThanEqual | UndefinedFilter:
+        return GreaterThanEqual(self, expr) if (expr := make_expr(other)) else UndefinedFilter()
+
+    def __lt__(self, other: Any) -> LessThan | UndefinedFilter:
+        return LessThan(self, expr) if (expr := make_expr(other)) else UndefinedFilter()
+
+    def __le__(self, other: Any) -> LessThanEqual | UndefinedFilter:
+        return LessThanEqual(self, expr) if (expr := make_expr(other)) else UndefinedFilter()
+
+    def IS_NULL(self, flag: bool | type[Undefined] = True) -> IsNull | UndefinedFilter:
+        return IsNull(self, flag) if isinstance(flag, bool) else UndefinedFilter()
+
+    def IS_NOT_NULL(self, flag: bool | type[Undefined] = True) -> IsNotNull | UndefinedFilter:
+        return IsNotNull(self, flag) if isinstance(flag, bool) else UndefinedFilter()
+
+    def IN(self, values: list[Any]) -> IsIn | UndefinedFilter:
+        return IsIn(self, make_expr([value for value in values if value is not Undefined]))
+
+    def NOT_IN(self, values: list[Any]) -> IsNotIn | UndefinedFilter:
+        return IsNotIn(self, make_expr([value for value in values if value is not Undefined]))
+
+    def ASC(self, flag: bool | type[Undefined] = True) -> Ascending | UndefinedSort:
+        return Ascending(self, flag) if isinstance(flag, bool) else UndefinedSort()
+
+    def DESC(self, flag: bool | type[Undefined] = True) -> Descending | UndefinedSort:
+        return Descending(self, flag) if isinstance(flag, bool) else UndefinedSort()
+
+
+@dataclass(repr=False, eq=False)
+class ScalarExpr(DefinedExpr):
 
     @abstractmethod
     def get_composed(self) -> Composed:
         pass
-
-    def get_inner_composed(self) -> Composed:
-        return self.get_composed()
         
     def __add__(self, other: Any) -> 'AddExpr | UndefinedExpr':
         other = make_expr(other)
@@ -278,12 +407,9 @@ class TableReferenceExpr(Expr):
     def get_composed(self) -> Composed:
         return SQL('{} ({})').format(self.expr.get_composed(), SQL(', ').join([expr.get_composed() for expr in self.children]))
 
-    def get_inner_composed(self) -> Composed:
-        return self.get_composed()
-
 
 @dataclass(repr=False, eq=False)
-class ArithmeticExpr(Expr):
+class CompositeExpr(DefinedExpr):
     exprs: list[Expr]
 
     @property
@@ -302,7 +428,7 @@ class ArithmeticExpr(Expr):
 
 
 @dataclass(repr=False, eq=False)
-class AddExpr(ArithmeticExpr):
+class AddExpr(CompositeExpr):
 
     @property
     def operator(self) -> SQL:
@@ -312,7 +438,7 @@ class AddExpr(ArithmeticExpr):
         other = make_expr(other)
         if isinstance(other, AddExpr):
             return AddExpr(self.exprs + other.exprs)
-        elif isinstance(other, ArithmeticExpr):
+        elif isinstance(other, CompositeExpr):
             return AddExpr([self, other])
         elif isinstance(other, UndefinedExpr):
             return UndefinedExpr()
@@ -349,7 +475,7 @@ class AddExpr(ArithmeticExpr):
 
 
 @dataclass(repr=False, eq=False)
-class SubExpr(ArithmeticExpr):
+class SubExpr(CompositeExpr):
 
     @property
     def operator(self) -> SQL:
@@ -366,7 +492,7 @@ class SubExpr(ArithmeticExpr):
         other = make_expr(other)
         if isinstance(other, SubExpr):
             return SubExpr(self.exprs + other.exprs)
-        elif isinstance(other, ArithmeticExpr):
+        elif isinstance(other, CompositeExpr):
             return SubExpr([self, other])
         elif isinstance(other, UndefinedExpr):
             return UndefinedExpr()
@@ -396,7 +522,7 @@ class SubExpr(ArithmeticExpr):
 
 
 @dataclass(repr=False, eq=False)
-class MulExpr(ArithmeticExpr):
+class MulExpr(CompositeExpr):
 
     @property
     def operator(self) -> SQL:
@@ -420,7 +546,7 @@ class MulExpr(ArithmeticExpr):
         other = make_expr(other)
         if isinstance(other, MulExpr):
             return MulExpr(self.exprs + other.exprs)
-        elif isinstance(other, ArithmeticExpr):
+        elif isinstance(other, CompositeExpr):
             return MulExpr([self, other])
         elif isinstance(other, UndefinedExpr):
             return UndefinedExpr()
@@ -443,7 +569,7 @@ class MulExpr(ArithmeticExpr):
 
 
 @dataclass(repr=False, eq=False)
-class TrueDivExpr(ArithmeticExpr):
+class TrueDivExpr(CompositeExpr):
 
     @property
     def operator(self) -> SQL:
@@ -474,7 +600,7 @@ class TrueDivExpr(ArithmeticExpr):
         other = make_expr(other)
         if isinstance(other, TrueDivExpr):
             return TrueDivExpr(self.exprs + other.exprs)
-        elif isinstance(other, ArithmeticExpr):
+        elif isinstance(other, CompositeExpr):
             return TrueDivExpr([self, other])
         elif isinstance(other, UndefinedExpr):
             return UndefinedExpr()
@@ -490,7 +616,7 @@ class TrueDivExpr(ArithmeticExpr):
 
 
 @dataclass(repr=False, eq=False)
-class PowExpr(ArithmeticExpr):
+class PowExpr(CompositeExpr):
 
     @property
     def operator(self) -> SQL:
@@ -528,7 +654,7 @@ class PowExpr(ArithmeticExpr):
         power = make_expr(power)
         if isinstance(power, PowExpr):
             return PowExpr(self.exprs + power.exprs)
-        elif isinstance(power, ArithmeticExpr):
+        elif isinstance(power, CompositeExpr):
             return PowExpr([self, power])
         elif isinstance(power, UndefinedExpr):
             return UndefinedExpr()
@@ -537,18 +663,58 @@ class PowExpr(ArithmeticExpr):
 
 
 @dataclass(repr=False, eq=False)
+class JoinExpr(Expr):
+    expr: Expr
+    joined_expr: Expr
+    how: HowValueType | None = None
+
+    @property
+    def join_type(self) -> Composed:
+        if self.how:
+            return SQL('{} JOIN').format(SQL(self.how))
+        else:
+            return Composed([SQL('JOIN')])
+
+    def get_composed(self) -> Composed:
+        return SQL('{} {} {}').format(self.expr.get_composed(), self.join_type, self.joined_expr.get_composed())
+
+    def ON(self, on: FilterOperator) -> 'JoinOnExpr':
+        return JoinOnExpr(self, on)
+
+
+@dataclass(repr=False, eq=False)
+class JoinOnExpr(Expr):
+    expr: JoinExpr
+    on: FilterOperator
+
+    def get_composed(self) -> Composed:
+        return SQL('{} ON {}').format(self.expr.get_composed(), self.on.get_composed())
+
+
+@dataclass(repr=False, eq=False)
+class OverExpr(Expr):
+    expr: Expr
+    query: 'Query'
+
+    def get_composed(self) -> Composed:
+        return SQL('{} OVER ({})').format(self.expr.get_composed(), self.query.get_composed())
+
+
+@dataclass(repr=False, eq=False)
 class AliasExpr(Expr):
     expr: Expr
-    alias: str
+    alias: 'str | Query'
 
-    @abstractmethod
     def get_composed(self) -> Composed:
-        return SQL('{} AS {}').format(self.expr.get_composed(), Identifier(self.alias))
+        if isinstance(self.alias, str):
+            return SQL('{} AS {}').format(self.expr.get_composed(), Identifier(self.alias))
+        else:
+            return SQL('{} AS ({})').format(self.expr.get_composed(), self.alias.get_composed())
 
 
 @dataclass(repr=False, eq=False)
 class QueryExpr(Expr):
-    query: Query
+    query: 'Query'
     alias: str
 
     @abstractmethod
