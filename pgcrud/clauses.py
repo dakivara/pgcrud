@@ -362,6 +362,18 @@ class RowsBetween(Clause):
 
 
 @dataclass(repr=False)
+class RangeBetween(Clause):
+    start: FrameBoundary
+    end: FrameBoundary
+
+    def __bool__(self) -> bool:
+        return True
+
+    def get_composed(self) -> Composed:
+        return SQL('RANGE BETWEEN {} AND {}').format(self.start.get_composed(), self.end.get_composed())
+
+
+@dataclass(repr=False)
 class With(Clause):
     exprs: tuple[AliasExpr, ...]
 

@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import Callable
+from typing import Any
 
 from psycopg.sql import SQL, Composed
 
@@ -11,10 +11,10 @@ __all__ = [
     'UnboundedFollowing',
     'CurrentRow',
     'UNBOUNDED_PRECEDING',
-    'PRECEDING',
     'UNBOUNDED_FOLLOWING',
-    'FOLLOWING',
     'CURRENT_ROW',
+    'PRECEDING',
+    'FOLLOWING',
 ]
 
 
@@ -39,7 +39,7 @@ class UnboundedPreceding(FrameBoundary):
 
 @dataclass(repr=False)
 class Preceding(FrameBoundary):
-    value: int
+    value: Any
 
     def get_composed(self) -> Composed:
         return SQL('{} PRECEDING').format(self.value)
@@ -53,7 +53,7 @@ class UnboundedFollowing(FrameBoundary):
 
 @dataclass(repr=False)
 class Following(FrameBoundary):
-    value: int
+    value: Any
 
     def get_composed(self) -> Composed:
         return SQL('{} FOLLOWING').format(self.value)
@@ -66,7 +66,13 @@ class CurrentRow(FrameBoundary):
 
 
 UNBOUNDED_PRECEDING = UnboundedPreceding()
-PRECEDING: Callable[[int], Preceding] = lambda x: Preceding(x)
 UNBOUNDED_FOLLOWING = UnboundedFollowing()
-FOLLOWING: Callable[[int], Following] = lambda x: Following(x)
 CURRENT_ROW = CurrentRow()
+
+
+def PRECEDING(value: Any) -> Preceding:
+    return Preceding(value)
+
+
+def FOLLOWING(value: Any) -> Following:
+    return Following(value)

@@ -1,5 +1,5 @@
 from typing import Any, TYPE_CHECKING
-from pgcrud.clauses import From, RowsBetween, Select, Where, GroupBy, Having, OrderBy, Limit, Offset, InsertInto, Values, Update, Set, DeleteFrom, Using, PartitionBy, With
+from pgcrud.clauses import From, RowsBetween, Select, Where, GroupBy, Having, OrderBy, Limit, Offset, InsertInto, Values, Update, Set, DeleteFrom, Using, PartitionBy, With, RangeBetween
 from pgcrud.frame_boundaries import FrameBoundary
 from pgcrud.query import Query
 from pgcrud.types import DeleteFromValueType, FromValueType, GroupByValueType, HavingValueType, InsertIntoValueType, OrderByValueType, PartitionByValueType, SelectValueType, SetColsType, SetValuesType, UpdateValueType, UsingValueType, ValuesValueType, WhereValueType
@@ -80,6 +80,10 @@ class QueryBuilder:
     @staticmethod
     def ROWS_BETWEEN(start: FrameBoundary, end: FrameBoundary) -> Query:
         return Query([RowsBetween(start, end)])
+
+    @staticmethod
+    def RANGE_BETWEEN(start: FrameBoundary, end: FrameBoundary) -> Query:
+        return Query([RangeBetween(start, end)])
 
     @staticmethod
     def WITH(*args: 'AliasExpr') -> 'Query':
