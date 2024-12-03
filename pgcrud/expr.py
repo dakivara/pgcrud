@@ -95,7 +95,7 @@ class Expr:
     def OVER(self, query: 'Query') -> 'OverExpr':
         return OverExpr(self, query)
 
-    def AS(self, alias: str) -> 'AliasExpr':
+    def AS(self, alias: 'str | Query') -> 'AliasExpr':
         return AliasExpr(self, alias)
 
 
@@ -703,10 +703,13 @@ class OverExpr(Expr):
 @dataclass(repr=False, eq=False)
 class AliasExpr(Expr):
     expr: Expr
-    alias: str
+    alias: 'str | Query'
 
     def get_composed(self) -> Composed:
-        return SQL('{} AS {}').format(self.expr.get_composed(), Identifier(self.alias))
+        if isinstance(self.alias, str):
+            return SQL('{} AS {}').format(self.expr.get_composed(), Identifier(self.alias))
+        else:
+            return SQL('{} AS ({})').format(self.expr.get_composed(), self.alias.get_composed())
 
 
 @dataclass(repr=False, eq=False)
