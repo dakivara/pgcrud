@@ -30,6 +30,9 @@ __all__ = [
     'MulExpr',
     'TrueDivExpr',
     'PowExpr',
+    'JoinExpr',
+    'JoinOnExpr',
+    'OverExpr',
     'AliasExpr',
     'QueryExpr',
     'FunExpr',
@@ -59,9 +62,8 @@ class Expr:
     def get_composed(self) -> Composed:
         pass
 
-    @abstractmethod
     def get_inner_composed(self) -> Composed:
-        pass
+        return self.get_composed()
 
     def __str__(self):
         return self.get_composed().as_string()
@@ -96,10 +98,6 @@ class ArithmeticExpr(Expr):
 
     @abstractmethod
     def get_composed(self) -> Composed:
-        pass
-
-    @abstractmethod
-    def get_inner_composed(self) -> Composed:
         pass
 
     @abstractmethod
@@ -197,9 +195,6 @@ class UndefinedExpr(ArithmeticExpr):
 
     def get_composed(self) -> Composed:
         return Composed([])
-
-    def get_inner_composed(self) -> Composed:
-        return self.get_composed()
 
     def __add__(self, other: Any) -> 'UndefinedExpr':
         return UndefinedExpr()
@@ -319,9 +314,6 @@ class ScalarExpr(DefinedExpr):
     @abstractmethod
     def get_composed(self) -> Composed:
         pass
-
-    def get_inner_composed(self) -> Composed:
-        return self.get_composed()
         
     def __add__(self, other: Any) -> 'AddExpr | UndefinedExpr':
         other = make_expr(other)
@@ -414,9 +406,6 @@ class TableReferenceExpr(Expr):
 
     def get_composed(self) -> Composed:
         return SQL('{} ({})').format(self.expr.get_composed(), SQL(', ').join([expr.get_composed() for expr in self.children]))
-
-    def get_inner_composed(self) -> Composed:
-        return self.get_composed()
 
 
 @dataclass(repr=False, eq=False)
@@ -689,9 +678,6 @@ class JoinExpr(Expr):
     def get_composed(self) -> Composed:
         return SQL('{} {} {}').format(self.expr.get_composed(), self.join_type, self.joined_expr.get_composed())
 
-    def get_inner_composed(self) -> Composed:
-        return self.get_composed()
-
     def ON(self, on: FilterOperator) -> 'JoinOnExpr':
         return JoinOnExpr(self, on)
 
@@ -704,8 +690,14 @@ class JoinOnExpr(Expr):
     def get_composed(self) -> Composed:
         return SQL('{} ON {}').format(self.expr.get_composed(), self.on.get_composed())
 
-    def get_inner_composed(self) -> Composed:
-        return self.get_composed()
+
+@dataclass(repr=False, eq=False)
+class OverExpr(Expr):
+    expr: Expr
+    query: 'Query'
+
+    def get_composed(self) -> Composed:
+        return SQL('{} OVER ({})').format(self.expr.get_composed(), self.query.get_composed())
 
 
 @dataclass(repr=False, eq=False)
