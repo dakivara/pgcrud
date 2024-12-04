@@ -21,4 +21,8 @@ jobs:
         run: uv sync --all-extras --dev
 
       - name: Run tests
-        run: uv run pytest tests
+        run: |
+          cd tests
+          uv run pytest
+        env:
+          CONN_STR: ${{ secrets.CONN_STR }}
