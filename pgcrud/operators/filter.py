@@ -42,11 +42,11 @@ class FilterOperator(Operator):
         return not isinstance(self, UndefinedFilter)
 
     @abstractmethod
-    def __and__(self, other: 'FilterOperator') -> 'Intersection | UndefinedFilter':
+    def __and__(self, other: 'FilterOperator') -> 'FilterOperator':
         pass
 
     @abstractmethod
-    def __or__(self, other: 'FilterOperator') -> 'Union | UndefinedFilter':
+    def __or__(self, other: 'FilterOperator') -> 'FilterOperator':
         pass
 
     @abstractmethod
@@ -61,11 +61,11 @@ class FilterOperator(Operator):
 @dataclass(repr=False)
 class UndefinedFilter(FilterOperator):
 
-    def __and__(self, other: 'FilterOperator') -> 'UndefinedFilter':
-        return UndefinedFilter()
+    def __and__(self, other: 'FilterOperator') -> 'FilterOperator':
+        return other
 
-    def __or__(self, other: 'FilterOperator') -> 'UndefinedFilter':
-        return UndefinedFilter()
+    def __or__(self, other: 'FilterOperator') -> 'FilterOperator':
+        return other
 
     def get_composed(self) -> Composed:
         return Composed([])
@@ -77,17 +77,17 @@ class UndefinedFilter(FilterOperator):
 @dataclass(repr=False)
 class ScalarFilterOperator(FilterOperator):
 
-    def __and__(self, other: 'FilterOperator') -> 'Intersection | UndefinedFilter':
+    def __and__(self, other: 'FilterOperator') -> 'FilterOperator':
         if isinstance(other, UndefinedFilter):
-            return UndefinedFilter()
+            return self
         elif isinstance(other, Intersection):
             return Intersection([self] + other.operators)
         else:
             return Intersection([self, other])
 
-    def __or__(self, other: 'FilterOperator') -> 'Union | UndefinedFilter':
+    def __or__(self, other: 'FilterOperator') -> 'FilterOperator':
         if isinstance(other, UndefinedFilter):
-            return UndefinedFilter()
+            return self
         elif isinstance(other, Union):
             return Union([self] + other.operators)
         else:
@@ -208,11 +208,11 @@ class CompositeFilterOperator(FilterOperator):
     operators: list[FilterOperator]
 
     @abstractmethod
-    def __and__(self, other: 'FilterOperator') -> 'Intersection | UndefinedFilter':
+    def __and__(self, other: 'FilterOperator') -> 'FilterOperator':
         pass
 
     @abstractmethod
-    def __or__(self, other: 'FilterOperator') -> 'Union | UndefinedFilter':
+    def __or__(self, other: 'FilterOperator') -> 'FilterOperator':
         pass
 
     @property
@@ -234,9 +234,9 @@ class CompositeFilterOperator(FilterOperator):
 @dataclass(repr=False)
 class Intersection(CompositeFilterOperator):
 
-    def __and__(self, other: 'FilterOperator') -> 'Intersection | UndefinedFilter':
+    def __and__(self, other: 'FilterOperator') -> 'FilterOperator':
         if isinstance(other, UndefinedFilter):
-            return UndefinedFilter()
+            return self
         elif isinstance(other, Intersection):
             return Intersection(self.operators + other.operators)
         elif isinstance(other, Union):
@@ -244,7 +244,7 @@ class Intersection(CompositeFilterOperator):
         else:
             return Intersection(self.operators + [other])
 
-    def __or__(self, other: 'FilterOperator') -> 'Union | UndefinedFilter':
+    def __or__(self, other: 'FilterOperator') -> 'FilterOperator':
         if isinstance(other, UndefinedFilter):
             return UndefinedFilter()
         else:
@@ -259,14 +259,16 @@ class Intersection(CompositeFilterOperator):
 class Union(FilterOperator):
     operators: list[FilterOperator]
 
-    def __and__(self, other: 'FilterOperator') -> 'Intersection | UndefinedFilter':
+    def __and__(self, other: 'FilterOperator') -> 'FilterOperator':
         if isinstance(other, UndefinedFilter):
-            return UndefinedFilter()
+            return self
         else:
             return Intersection([self, other])
 
-    def __or__(self, other: 'FilterOperator') -> 'Union':
-        if isinstance(other, Union):
+    def __or__(self, other: 'FilterOperator') -> 'FilterOperator':
+        if isinstance(other, UndefinedFilter):
+            return self
+        elif isinstance(other, Union):
             return Union(self.operators + other.operators)
         elif isinstance(other, Intersection):
             return Union([self, other])

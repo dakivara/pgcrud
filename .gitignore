@@ -15,3 +15,6 @@ venv
 
 # pyright
 pyrightconfig.json
+
+# other
+github_secrets
