@@ -38,6 +38,8 @@ __all__ = [
     'FunExpr',
     'SumExpr',
     'AvgExpr',
+    'MinExpr',
+    'MaxExpr',
     'JsonAggExpr',
     'CoalesceExpr',
     'ToJsonExpr',
@@ -744,6 +746,22 @@ class AvgExpr(FunExpr):
 
     def get_composed(self) -> Composed:
         return SQL('avg({})').format(self.expr.get_composed())
+
+
+@dataclass(repr=False, eq=False)
+class MinExpr(FunExpr):
+    expr: Expr
+
+    def get_composed(self) -> Composed:
+        return SQL('min({})').format(self.expr.get_composed())
+
+
+@dataclass(repr=False, eq=False)
+class MaxExpr(FunExpr):
+    expr: Expr
+
+    def get_composed(self) -> Composed:
+        return SQL('max({})').format(self.expr.get_composed())
 
 
 @dataclass(repr=False, eq=False)
