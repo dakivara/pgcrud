@@ -26,5 +26,5 @@ jobs:
       - name: Build and deploy
         run: |
           mkdocs build
-          echo pgcrud.com > CNAME 
+          echo pgcrud.com > site/CNAME 
           mkdocs gh-deploy --force
