@@ -1,25 +1,23 @@
-site_name: pgCRUD
+site_name: pgcrud
 
 theme:
   name: material
   features:
     - content.code.copy
+    - navigation.tabs
+    - navigation.footer
+
   palette:
 
-    # Palette toggle for light mode
     - scheme: default
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
 
-    # Palette toggle for dark mode
     - scheme: slate
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
-
-nav:
-  - Overview: index.md
 
 markdown_extensions:
   - pymdownx.highlight:
@@ -29,3 +27,7 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.superfences
+
+nav:
+  - pgcrud: index.md
+  - Getting Started: getting-started/index.md

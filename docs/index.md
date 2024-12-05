@@ -1,4 +1,4 @@
-# Welcome to pgCRUD
+# Welcome to pgcrud
 
 pgcrud is a Python package that makes **Create**, **Read**, **Update**, and **Delete** (**CRUD**) operations for PostgreSQL simple and fast. 
 
@@ -66,3 +66,7 @@ with psycopg.connect('YOUR-CONN-STR') as conn:
                 ).ON(e.author.id == e.author_books.author_id),
         )
 ```
+
+## License
+
+pgcrud is released under the MIT Licence.
