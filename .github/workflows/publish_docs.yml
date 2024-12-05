@@ -27,4 +27,4 @@ jobs:
         run: |
           mkdocs build
           echo pgcrud.com > site/CNAME 
-          mkdocs gh-deploy --force
+          mkdocs gh-deploy --force --dirty
