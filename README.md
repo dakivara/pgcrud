@@ -16,14 +16,12 @@ Do not download the pgcrud package from PyPi. This is an abandoned package and i
 
 ## Documentation
 
-The **pgcrud** documentation is currently under development. We are working on providing comprehensive guides, examples, and 
-API references. Please be a little more patient.
+The link to the comprehensive documentation is [here](https://pgcrud.com/). Please note that it is still work in progress.
 
 ## Example
 
-Here we demonstrate how to manage relationships (parent and children) using **pgcrud**. Imagine you have an Author 
-model that belongs to a Publisher (the parent) and has authored several Books (the children). With **pgcrud**, you can 
-efficiently fetch a list of authors as Pydantic models, including their associated publisher and books, all in a single request.
+Imagine you have an Author and Book table in your database schema. Each author (the parent) has authored several books (the children). 
+With pgcrud, you can efficiently fetch a list of authors as Pydantic models in a single request.
 
 ```python
 from typing import Annotated
@@ -35,48 +33,29 @@ import pgcrud as pg
 from pgcrud import e, q, f
 
 
-class Publisher(BaseModel):
-    id: int
-    name: str
-    address: str
-
-
 class Book(BaseModel):
     id: int
     title: str
-    pages: int
 
 
-# Define the select statement using annotations
 class Author(BaseModel):
-    id: Annotated[int, e.author.id]                                          # Selects the 'id' column from the 'author' table
-    name: Annotated[str, e.author.name]                                      # Selects the 'name' column from the 'author' table
-    email: str                                                               # No annotation needed; the field is uniquely identified by its name (annotation still recommended)
-    publisher: Annotated[Publisher, f.to_json(e.publisher).AS('publisher')]  # Defines the 'to_json' transformation on the joined 'publisher' table 
-    books: Annotated[list[Book], e.author_books.books]                       # Selects 'books' from a 'author_books' subquery
+    id: Annotated[int, e.author.id]                     
+    name: Annotated[str, e.author.name]                 
+    books: Annotated[list[Book], e.author_books.books]
 
 
-conn_str = 'YOUR-CONNECTION-STRING'
-
-with psycopg.connect(conn_str) as conn:
+with psycopg.connect('YOUR-CONN-STR') as conn:
     with conn.cursor() as cursor:
         authors = pg.get_many(
             cursor=cursor,
-            select=Author,   # Maps the result to the Author Pydantic model
-            from_=e.author.  # Select from the author table
-
-                # Joins the publisher table on the author's publisher_id
-                JOIN(e.publisher).ON(e.author.publisher_id == e.publisher.id).
-
-                # Joins a subquery to fetch books grouped by author_id
+            select=Author,   
+            from_=e.author.
                 JOIN(
-                    q.SELECT((e.author_id, f.json_agg(e.book).AS('books'))).  # Selects author_id and JSON aggregated books
-                    FROM(e.book).                                             # Specifies the book table for the subquery
-                    GROUP_BY(e.author_id).                                    # Groups books by author_id
-                    AS('author_books')                                        # Defines the 'author_books' alias
-                ).ON(e.author.id == e.author_books.author_id),                # Joins subquery on author_id
-            where=e.publisher.id == 1,  # Filters authors by publisher_id = 1
-            order_by=e.author.id,       # Orders results by author ID
+                    q.SELECT((e.author_id, f.json_agg(e.book).AS('books'))).
+                    FROM(e.book).
+                    GROUP_BY(e.author_id).
+                    AS('author_books')
+                ).ON(e.author.id == e.author_books.author_id),
         )
 ```
 
