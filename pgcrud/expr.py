@@ -40,6 +40,7 @@ __all__ = [
     'AvgExpr',
     'MinExpr',
     'MaxExpr',
+    'ArrayAggExpr',
     'JsonAggExpr',
     'CoalesceExpr',
     'ToJsonExpr',
@@ -762,6 +763,14 @@ class MaxExpr(FunExpr):
 
     def get_composed(self) -> Composed:
         return SQL('max({})').format(self.expr.get_composed())
+
+
+@dataclass(repr=False, eq=False)
+class ArrayAggExpr(FunExpr):
+    expr: Expr
+
+    def get_composed(self) -> Composed:
+        return SQL('array_agg({})').format(self.expr.get_composed())
 
 
 @dataclass(repr=False, eq=False)

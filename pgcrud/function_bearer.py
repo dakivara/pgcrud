@@ -1,6 +1,6 @@
 from typing import Any
 
-from pgcrud.expr import make_expr, Expr, UndefinedExpr, AvgExpr, SumExpr, ToJsonExpr, JsonAggExpr, CoalesceExpr, MinExpr, MaxExpr
+from pgcrud.expr import ArrayAggExpr, make_expr, Expr, UndefinedExpr, AvgExpr, SumExpr, ToJsonExpr, JsonAggExpr, CoalesceExpr, MinExpr, MaxExpr
 
 __all__ = ['FunctionBearer']
 
@@ -25,6 +25,10 @@ class FunctionBearer:
     @staticmethod
     def max(expr: Expr) -> MaxExpr:
         return MaxExpr(expr)
+
+    @staticmethod
+    def array_agg(expr: Expr) -> ArrayAggExpr:
+        return ArrayAggExpr(expr)
 
     @staticmethod
     def json_agg(expr: Expr) -> JsonAggExpr:
