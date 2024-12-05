@@ -19,6 +19,7 @@ jobs:
       - name: Install mkdocs-material
         run: |
           uv venv
+          uv\Scripts\activate
           uv pip install mkdocs-material
 
       - name: Build and deploy
