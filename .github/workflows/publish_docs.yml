@@ -24,4 +24,6 @@ jobs:
         run: pip install mkdocs-material
 
       - name: Build and deploy
-        run: mkdocs gh-deploy --force
+        run: |
+          echo pgcrud.com > CNAME 
+          mkdocs gh-deploy --force
