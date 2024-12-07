@@ -2,11 +2,12 @@
 
 pgcrud is a Python package that makes **Create**, **Read**, **Update**, and **Delete** (**CRUD**) operations for PostgreSQL simple and fast. 
 
-- **Lightweight**: You can easily integrate pgcrud in your existing projects.
-- **Relations**: With pgcrud you can handle complex parent-child relationships.
-- **Declarative**: pgcrud uses generic data annotations to map database objects to Python models.
-- **Pydantic**: Directly load query result sets into Pydantic models.
-- **PostgreSQL**: pgcrud is dedicated solely to PostgreSQL and offers support for a wide range of extensions.
+- **Pydantic**: Native Pydantic model integration.
+- **PostgreSQL**: Tailored to PostgreSQL with wide extensions support.
+- **Relations**: Handle complex parent-child relationships.
+- **Lightweight**: Easy integration into existing projects.
+- **Type Hints**: Full type hint support, making it easier to write and maintain your code
+- **Declarative**: Generic data annotations to map database objects to Python models.
 
 ## Dependencies
 
