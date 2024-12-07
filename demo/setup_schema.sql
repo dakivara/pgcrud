@@ -1,4 +1,4 @@
-DROP SCHEMA IF EXISTS demo_schema;
+DROP SCHEMA IF EXISTS demo_schema CASCADE;
 CREATE SCHEMA demo_schema;
 SET search_path = demo_schema;
 
