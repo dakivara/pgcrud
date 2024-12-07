@@ -69,4 +69,4 @@ with psycopg.connect('YOUR-CONN-STR') as conn:
 
 ## License
 
-pgcrud is released under the MIT Licence.
+pgcrud is released under the MIT License.
