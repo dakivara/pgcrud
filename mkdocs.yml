@@ -1,4 +1,6 @@
 site_name: pgcrud
+site_url: https://pgcrud.com
+repo_url: https://github.com/dakivara/pgcrud
 
 theme:
   name: material
