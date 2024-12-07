@@ -5,7 +5,9 @@ theme:
   features:
     - content.code.copy
     - navigation.tabs
+    - navigation.tabs.sticky
     - navigation.footer
+    - navigation.indexes
 
   palette:
 
@@ -30,4 +32,6 @@ markdown_extensions:
 
 nav:
   - pgcrud: index.md
-  - Getting Started: getting-started/index.md
+  - Getting Started:
+    - Getting Started: getting-started/index.md
+    - Get One Method: getting-started/get-one-method.md

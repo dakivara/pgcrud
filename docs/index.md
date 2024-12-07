@@ -6,7 +6,7 @@ pgcrud is a Python package that makes **Create**, **Read**, **Update**, and **De
 - **PostgreSQL**: Tailored to PostgreSQL with wide extensions support.
 - **Relations**: Handle complex parent-child relationships.
 - **Lightweight**: Easy integration into existing projects.
-- **Type Hints**: Full type hint support, making it easier to write and maintain your code
+- **Type Hints**: Full type hint support, making it easier to write and maintain your code.
 - **Declarative**: Generic data annotations to map database objects to Python models.
 
 ## Dependencies
