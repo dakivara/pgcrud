@@ -20,8 +20,8 @@ The link to the comprehensive documentation is [here](https://pgcrud.com/). Plea
 
 ## Example
 
-Imagine you have an Author and Book table in your database schema. Each author (the parent) has authored several books (the children). 
-With pgcrud, you can efficiently fetch a list of authors as Pydantic models in a single request.
+Imagine you have an Author and Book table in your schema. Each author (the parent) has authored several books (the children). 
+With pgcrud you can easily fetch the authors including their books in a single request and return the result as a list of Pydantic models.
 
 ```python
 from typing import Annotated
