@@ -6,10 +6,10 @@ theme:
   name: material
   features:
     - content.code.copy
-    - navigation.tabs
-    - navigation.tabs.sticky
     - navigation.footer
     - navigation.indexes
+    - navigation.tabs
+    - navigation.tabs.sticky
 
   palette:
 
@@ -24,6 +24,7 @@ theme:
         name: Switch to light mode
 
 markdown_extensions:
+  - footnotes
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
