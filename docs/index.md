@@ -5,9 +5,9 @@ pgcrud is a Python package that makes **C**reate, **R**ead, **U**pdate, and **D*
 - **Pydantic**: Native Pydantic integration.
 - **PostgreSQL**: Tailored to PostgreSQL with wide extensions support.
 - **Flexible**: Handle complex parent-child relationships.
-- **Asynchronous**: ...
+- **Asynchronous**: Perform operations asynchronously (or synchronously).
 - **Lightweight**: Easy to integrate into existing projects.
-- **Type Hints**: Full type hint support, making it easier to write and maintain your code.
+- **Type Hints**: Full type hint support.
 
 ## Dependencies
 
