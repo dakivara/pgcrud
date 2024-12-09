@@ -5,7 +5,8 @@ SET search_path = demo_schema;
 
 CREATE TABLE author (
     id serial PRIMARY KEY,
-    name varchar(255) NOT NULL
+    name varchar(255) NOT NULL,
+    date_of_birth date NOT NULL
 );
 
 
@@ -17,9 +18,9 @@ CREATE TABLE book (
 );
 
 
-INSERT INTO author (id, name) VALUES (1, 'J.K. Rowling');
-INSERT INTO author (id, name) VALUES (2, 'George R.R. Martin');
-INSERT INTO author (id, name) VALUES (3, 'Dan Brown');
+INSERT INTO author (id, name, date_of_birth) VALUES (1, 'J.K. Rowling', '1965-07-31');
+INSERT INTO author (id, name, date_of_birth) VALUES (2, 'George R.R. Martin', '1948-09-20');
+INSERT INTO author (id, name, date_of_birth) VALUES (3, 'Dan Brown', '1964-06-22');
 
 INSERT INTO book (id, title, author_id) VALUES (1, 'Harry Potter and the Sorcerer''s Stone', 1);
 INSERT INTO book (id, title, author_id) VALUES (2, 'Harry Potter and the Chamber of Secrets', 1);
