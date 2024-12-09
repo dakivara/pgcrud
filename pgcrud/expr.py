@@ -402,7 +402,10 @@ class LiteralExpr(ScalarExpr):
     value: Any
 
     def get_composed(self) -> Composed:
-        return SQL('{}').format(Literal(self.value))
+        if hasattr(self.value, 'get_composed'):
+            return self.value.get_composed()
+        else:
+            return SQL('{}').format(Literal(self.value))
 
 
 @dataclass(repr=False, eq=False)
