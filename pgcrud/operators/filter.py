@@ -25,6 +25,7 @@ __all__ = [
     'IsNotNull',
     'IsIn',
     'IsNotIn',
+    'Between',
     'Intersection',
     'Union',
     # 'NotIn',
@@ -201,6 +202,16 @@ class IsNotNull(ScalarFilterOperator):
             return SQL("{} IS NOT NULL").format(self.expr.get_composed())
         else:
             return SQL("{} IS NULL").format(self.expr.get_composed())
+
+
+@dataclass(repr=False)
+class Between(ScalarFilterOperator):
+    expr: 'Expr'
+    start: 'Expr'
+    end: 'Expr'
+
+    def get_composed(self) -> Composed:
+        return SQL('{} BETWEEN {} AND {}').format(self.expr.get_composed(), self.start.get_composed(), self.end.get_composed())
 
 
 @dataclass(repr=False)

@@ -5,7 +5,7 @@ from typing import Any, TYPE_CHECKING
 
 from psycopg.sql import SQL, Identifier, Composed, Literal
 
-from pgcrud.operators.filter import FilterOperator, UndefinedFilter, Equal, NotEqual, GreaterThan, GreaterThanEqual, LessThan, LessThanEqual, IsNull, IsNotNull, IsIn, IsNotIn
+from pgcrud.operators.filter import Between, FilterOperator, UndefinedFilter, Equal, NotEqual, GreaterThan, GreaterThanEqual, LessThan, LessThanEqual, IsNull, IsNotNull, IsIn, IsNotIn
 from pgcrud.operators.sort import Ascending, Descending, UndefinedSort
 from pgcrud.types import HowValueType
 from pgcrud.undefined import Undefined
@@ -185,6 +185,10 @@ class ArithmeticExpr(Expr):
         pass
 
     @abstractmethod
+    def BETWEEN(self, start: Any, end: Any) -> Between | UndefinedFilter:
+        pass
+
+    @abstractmethod
     def ASC(self, flag: bool | type[Undefined] = True) -> Ascending | UndefinedSort:
         pass
 
@@ -242,6 +246,9 @@ class UndefinedExpr(ArithmeticExpr):
         return UndefinedFilter()
 
     def NOT_IN(self, values: Any) -> UndefinedFilter:
+        return UndefinedFilter()
+
+    def BETWEEN(self, start: Any, end: Any) -> UndefinedFilter:
         return UndefinedFilter()
 
     def ASC(self, flag: bool | type[Undefined] = True) -> UndefinedSort:
@@ -303,6 +310,9 @@ class DefinedExpr(ArithmeticExpr):
 
     def NOT_IN(self, values: list[Any]) -> IsNotIn | UndefinedFilter:
         return IsNotIn(self, make_expr([value for value in values if value is not Undefined]))
+
+    def BETWEEN(self, start: Any, end: Any) -> Between | UndefinedFilter:
+        return Between(self, start_expr, end_expr) if (start_expr := make_expr(start)) and (end_expr := make_expr(end)) else UndefinedFilter()
 
     def ASC(self, flag: bool | type[Undefined] = True) -> Ascending | UndefinedSort:
         return Ascending(self, flag) if isinstance(flag, bool) else UndefinedSort()
