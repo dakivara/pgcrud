@@ -128,7 +128,7 @@ class NotEqual(ComparisonOperator):
 
     @property
     def operator(self) -> SQL:
-        return SQL('!=')
+        return SQL('<>')
 
 
 @dataclass(repr=False)
