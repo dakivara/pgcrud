@@ -8,13 +8,12 @@
 -----
 
 The `get_one` method is designed to retrieve a single record from the database. Based on your requirements, 
-it can return a single value, a tuple of values, or a Pydantic model. If no record is found, the method returns `None`.
+it can return a single value, a tuple of values, or a Pydantic object. If no record is found, the method returns `None`.
 
 
 ## Get Pydantic object
 
-Typically, you want to load your fetched record directly into a Pydantic model. You can 
-achieve this by passing the Pydantic model to the select parameter of the `get_one` method.
+You directly load your fetched record directly into a Pydantic model by passing the Pydantic model to the select parameter of the `get_one` method.
 
 Here is how you can fetch an author by ID.
 

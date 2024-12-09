@@ -37,4 +37,4 @@ nav:
   - pgcrud: index.md
   - Getting Started:
     - Getting Started: getting-started/index.md
-    - Get One Method: getting-started/get-one-method.md
+#    - Read: getting-started/read.md
