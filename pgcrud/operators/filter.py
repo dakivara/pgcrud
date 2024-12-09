@@ -165,19 +165,21 @@ class LessThanEqual(ComparisonOperator):
 
 
 @dataclass(repr=False)
-class IsIn(ComparisonOperator):
+class IsIn(ScalarFilterOperator):
+    left: 'Expr'
+    right: list['Expr']
 
-    @property
-    def operator(self) -> SQL:
-        return SQL('IN')
+    def get_composed(self) -> Composed:
+        return SQL('{} IN ({})').format(self.left.get_composed(), SQL(', ').join([expr.get_composed() for expr in self.right]))
 
 
 @dataclass(repr=False)
-class IsNotIn(ComparisonOperator):
+class IsNotIn(ScalarFilterOperator):
+    left: 'Expr'
+    right: list['Expr']
 
-    @property
-    def operator(self) -> SQL:
-        return SQL('NOT IN')
+    def get_composed(self) -> Composed:
+        return SQL('{} NOT IN ({})').format(self.left.get_composed(), SQL(', ').join([expr.get_composed() for expr in self.right]))
 
 
 @dataclass(repr=False)

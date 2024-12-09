@@ -9,7 +9,7 @@ from pgcrud.operators.filter import Between, FilterOperator, UndefinedFilter, Eq
 from pgcrud.operators.sort import Ascending, Descending, UndefinedSort
 from pgcrud.types import HowValueType
 from pgcrud.undefined import Undefined
-
+from pgcrud.utils import ensure_seq
 
 if TYPE_CHECKING:
     from pgcrud.query import Query
@@ -177,11 +177,11 @@ class ArithmeticExpr(Expr):
         pass
 
     @abstractmethod
-    def IN(self, values: Any) -> IsIn | UndefinedFilter:
+    def IN(self, value: Any) -> IsIn | UndefinedFilter:
         pass
 
     @abstractmethod
-    def NOT_IN(self, values: Any) -> IsNotIn | UndefinedFilter:
+    def NOT_IN(self, value: Any) -> IsNotIn | UndefinedFilter:
         pass
 
     @abstractmethod
@@ -242,10 +242,10 @@ class UndefinedExpr(ArithmeticExpr):
     def IS_NOT_NULL(self, flag: bool | type[Undefined] = True) -> UndefinedFilter:
         return UndefinedFilter()
 
-    def IN(self, values: Any) -> UndefinedFilter:
+    def IN(self, value: Any) -> UndefinedFilter:
         return UndefinedFilter()
 
-    def NOT_IN(self, values: Any) -> UndefinedFilter:
+    def NOT_IN(self, value: Any) -> UndefinedFilter:
         return UndefinedFilter()
 
     def BETWEEN(self, start: Any, end: Any) -> UndefinedFilter:
@@ -305,14 +305,30 @@ class DefinedExpr(ArithmeticExpr):
     def IS_NOT_NULL(self, flag: bool | type[Undefined] = True) -> IsNotNull | UndefinedFilter:
         return IsNotNull(self, flag) if isinstance(flag, bool) else UndefinedFilter()
 
-    def IN(self, values: list[Any]) -> IsIn | UndefinedFilter:
-        return IsIn(self, make_expr([value for value in values if value is not Undefined]))
+    def IN(self, value: Any) -> IsIn | UndefinedFilter:
+        if value is Undefined:
+            return UndefinedFilter()
+        else:
+            exprs = []
+            for v in ensure_seq(value):
+                if expr := make_expr(v):
+                    exprs.append(expr)
+            return IsIn(self, exprs)
 
-    def NOT_IN(self, values: list[Any]) -> IsNotIn | UndefinedFilter:
-        return IsNotIn(self, make_expr([value for value in values if value is not Undefined]))
+    def NOT_IN(self, value: Any) -> IsNotIn | UndefinedFilter:
+        if value is Undefined:
+            return UndefinedFilter()
+        else:
+            exprs = []
+            for v in ensure_seq(value):
+                if expr := make_expr(v):
+                    exprs.append(expr)
+            return IsNotIn(self, exprs)
 
     def BETWEEN(self, start: Any, end: Any) -> Between | UndefinedFilter:
-        return Between(self, start_expr, end_expr) if (start_expr := make_expr(start)) and (end_expr := make_expr(end)) else UndefinedFilter()
+        start_expr = make_expr(start)
+        end_expr = make_expr(end)
+        return Between(self, start_expr, end_expr) if start_expr and end_expr else UndefinedFilter()
 
     def ASC(self, flag: bool | type[Undefined] = True) -> Ascending | UndefinedSort:
         return Ascending(self, flag) if isinstance(flag, bool) else UndefinedSort()
