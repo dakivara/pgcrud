@@ -1,16 +1,17 @@
-from collections.abc import Sequence
-from typing import Any, Literal, overload
+from typing import Literal, TypeVar, overload
 
 from psycopg import Cursor
 
-from pgcrud.expr import Expr
 from pgcrud.operations.shared import get_row_factory, construct_composed_delete_query
-from pgcrud.types import PydanticModel, DeleteFromValueType, ResultManyValueType, ReturningValueType, UsingValueType, WhereValueType
+from pgcrud.types import DeleteFromValueType, ReturningValueType, UsingValueType, WhereValueType
+
+
+T = TypeVar('T')
 
 
 @overload
 def delete_many(
-        cursor: Cursor,
+        cursor: Cursor[T],
         delete_from: DeleteFromValueType,
         *,
         using: UsingValueType | None = None,
@@ -22,61 +23,37 @@ def delete_many(
 
 @overload
 def delete_many(
-        cursor: Cursor,
+        cursor: Cursor[T],
         delete_from: DeleteFromValueType,
         *,
         using: UsingValueType | None = None,
         where: WhereValueType | None = None,
-        returning: Expr,
+        returning: ReturningValueType,
         no_fetch: Literal[False] = False,
-) -> list[Any]: ...
+) -> list[T]: ...
 
 
 @overload
 def delete_many(
-        cursor: Cursor,
+        cursor: Cursor[T],
         delete_from: DeleteFromValueType,
         *,
         using: UsingValueType | None = None,
         where: WhereValueType | None = None,
-        returning: Sequence[Expr],
-        no_fetch: Literal[False] = False,
-) -> list[tuple[Any, ...]]: ...
-
-
-@overload
-def delete_many(
-        cursor: Cursor,
-        delete_from: DeleteFromValueType,
-        *,
-        using: UsingValueType | None = None,
-        where: WhereValueType | None = None,
-        returning: type[PydanticModel],
-        no_fetch: Literal[False] = False,
-) -> list[PydanticModel]: ...
-
-
-@overload
-def delete_many(
-        cursor: Cursor,
-        delete_from: DeleteFromValueType,
-        *,
-        using: UsingValueType | None = None,
-        where: WhereValueType | None = None,
-        returning: ReturningValueType | None = None,
+        returning: ReturningValueType,
         no_fetch: Literal[True],
-) -> Cursor: ...
+) -> Cursor[T]: ...
 
 
 def delete_many(
-        cursor: Cursor,
+        cursor: Cursor[T],
         delete_from: DeleteFromValueType,
         *,
         using: UsingValueType | None = None,
         where: WhereValueType | None = None,
         returning: ReturningValueType | None = None,
         no_fetch: bool = False,
-) -> ResultManyValueType | Cursor | None:
+) -> list[T] | Cursor[T] | None:
 
     if returning:
         cursor.row_factory = get_row_factory(returning)
@@ -84,8 +61,8 @@ def delete_many(
     query = construct_composed_delete_query(delete_from, using, where, returning)
     cursor.execute(query)
 
-    if no_fetch:
-        return cursor
-    else:
-        if returning:
+    if returning:
+        if no_fetch:
+            return cursor
+        else:
             return cursor.fetchall()
