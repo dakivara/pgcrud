@@ -40,8 +40,8 @@ def test_comparison_operations():
     assert (a <= b).get_composed().as_string() == '"a" <= "b"'
     assert (a > b).get_composed().as_string() == '"a" > "b"'
     assert (a >= b).get_composed().as_string() == '"a" >= "b"'
-    assert a.IN([1, 2]).get_composed().as_string() == '"a" IN \'{1,2}\'::int2[]'
-    assert a.NOT_IN([1, 2]).get_composed().as_string() == '"a" NOT IN \'{1,2}\'::int2[]'
+    assert a.IN([1, 2]).get_composed().as_string() == '"a" IN (1, 2)'
+    assert a.NOT_IN([1, 2]).get_composed().as_string() == '"a" NOT IN (1, 2)'
     assert a.IS_NULL().get_composed().as_string() == '"a" IS NULL'
     assert a.IS_NOT_NULL().get_composed().as_string() == '"a" IS NOT NULL'
 
