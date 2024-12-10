@@ -1,24 +1,144 @@
-
+from typing import Annotated
 -----
 
 <span style="font-size: 0.9em;">
-    **Note**: Make sure to read the [Getting Started](index.md) page first, as it introduces the expression generator and provides an overview of the schema and data used in this tutorial.
+    **Note**: Make sure to read the [Getting Started](index.md) and [Demo Schema](demo-schema.md) first, as it is essential for better understanding of this tutorial.
 </span>
 
 -----
 
-The `get_one` method is designed to retrieve a single record from the database. Based on your requirements, 
-it can return a single value, a tuple of values, or a Pydantic object. If no record is found, the method returns `None`.
+pgcrud provides two functions to perform read operations:
+
+- `get_one`: Returns a single record. If no record is found, the method returns `None`. If more than one records are found, the method returns the first one.
+- `get_many`: Returns either a list of records or an iterable cursor.
+
+The following parameters are available:
+
+- `cursor`: Cursor from `psycopg` for execution
+- `select`: To specify the selected columns.
+- `from_`: To define the target source.[^1]
+- `where`: To filter records.
+- `group_by`: To group by columns.
+- `having`: To filter by aggregated columns.
+- `window`: To define windows.
+- `order_by`: To sort by columns.
+- `limit`: To limit the number of records.[^2]
+- `offset`: To skip the first n records.
+- `no_fetch`: To execute only.[^2]
 
 
-## Get Pydantic object
+[^1]: The only reason why this parameter has a trailing underscore is that `from` is a reserved keyword.
 
-You directly load your fetched record directly into a Pydantic model by passing the Pydantic model to the select parameter of the `get_one` method.
+[^2]: Only available for the `get_many` method. 
 
-Here is how you can fetch an author by ID.
+
+We go through each of the parameters and show you how to use them.
+
+
+## Cursor
+
+The `cursor` parameter is explained in detail [here](cursor.md).
+
+
+## Select
+
+The `select` parameter is required and expects either
+
+- an expression to return a scalar.
+- a sequence of expressions to return a tuple.
+- a Pydantic model to return an instance of the model.
+
+
+### Scalar
+
+Pass a single expression to the `select` parameter when you want to retrieve only one column.
 
 ```python
-import psycopg
+from psycopg import Cursor
+
+import pgcrud as pg
+from pgcrud import e
+
+
+def get_author_name(
+        cursor: Cursor[str], 
+        id_: int,
+) -> str | None:
+    
+    return pg.get_one(
+        cursor=cursor,
+        select=e.name,
+        from_=e.author,
+        where=e.id == id_,
+    )
+    
+
+def get_book_titles(
+        cursor: Cursor[str], 
+        author_id: int,
+) -> list[str]:
+    
+    return pg.get_many(
+        cursor=cursor,
+        select=e.title,
+        from_=e.book,
+        where=e.author_id == author_id,
+    )
+```
+
+
+### Tuple
+
+Pass a sequence of expressions to the `select` parameter when you want to retrieve multiple columns as a tuple.
+
+
+```python
+from datetime import date
+
+from psycopg import Cursor
+
+import pgcrud as pg
+from pgcrud import e
+
+
+def get_author_name_and_day_of_birth(
+        cursor: Cursor[tuple[str, date]], 
+        id_: int,
+) -> tuple[str, date] | None:
+    
+    return pg.get_one(
+        cursor=cursor,
+        select=(e.name, e.day_of_birth),
+        from_=e.author,
+        where=e.id == id_,
+    )
+
+
+def get_book_ids_and_titles(
+        cursor: Cursor[tuple[int, str]],
+        author_id: int,
+) -> list[tuple[int, str]]:
+    
+    return pg.get_many(
+        cursor=cursor,
+        select=(e.id, e.title),
+        from_=e.book,
+        where=e.author_id == author_id,
+    )
+```
+
+
+### Pydantic Instance
+
+Pass a Pydantic model to the `select` parameter when you want to directly load the retrieved records into the Pydantic model. By default, pgcrud 
+maps the Pydantic model field names to the corresponding columns in the target table. However, you can customize this mapping by 
+adding expression annotations to each field.
+
+```python
+from datetime import date
+from typing import Annotated
+
+from psycopg import Cursor
 from pydantic import BaseModel
 
 import pgcrud as pg
@@ -28,123 +148,81 @@ from pgcrud import e
 class Author(BaseModel):
     id: int
     name: str
+    dob: Annotated[date, e.date_of_birth]
 
-
-with psycopg.connect('YOUR-CONN-STR') as conn:
-    with conn.cursor() as cursor:
-        author = pg.get_one(
-            cursor=cursor, 
-            select=Author,
-            from_=e.author,
-            where=e.id == 1,
-        )
-
-print(author)
-# id=1 name='J.K. Rowling'
-```
-
-
-## Get nested Pydantic object
-
-Consider the case where you want to fetch an author along with their books. To achieve this, you can define a
-nested Pydantic model that represents the relationship between the author and their books. 
-
-You can annotate expressions to Pydantic model fields to refer to corresponding database columns. In the 
-code below, the Author model contains a books field, which is a list of Book objects, and the 
-relationship is established by joining the author and book tables.
-
-```python
-from typing import Annotated
-
-import psycopg
-from pydantic import BaseModel
-
-import pgcrud as pg
-from pgcrud import e, q, f
-
-
+    
 class Book(BaseModel):
     id: int
     title: str
 
 
-class Author(BaseModel):
-    id: Annotated[int, e.author.id]                     
-    name: Annotated[str, e.author.name]                 
-    books: Annotated[list[Book], e.author_books.books]
+def get_author(
+        cursor: Cursor[Author], 
+        id_: int,
+) -> Author | None:
+    
+    return pg.get_one(
+        cursor=cursor,
+        select=Author,
+        from_=e.author,
+        where=e.id == id_,
+    )
 
 
-with psycopg.connect('YOUR-CONN-STR') as conn:
-    with conn.cursor() as cursor:
-        author = pg.get_one(
-            cursor=cursor,
-            select=Author,   
-            from_=e.author.
-                JOIN(
-                    q.SELECT((e.author_id, f.json_agg(e.book).AS('books'))).
-                    FROM(e.book).
-                    GROUP_BY(e.author_id).
-                    AS('author_books')
-                ).ON(e.author.id == e.author_books.author_id),
-            where=e.author.id == 1,
-        )
-
-print(author)
-# id=1 name='J.K. Rowling' books=[Book(id=1, title="Harry Potter and the Sorcerer's Stone"), Book(id=2, title='Harry Potter and the Chamber of Secrets'), Book(id=3, title='Harry Potter and the Prisoner of Azkaban')]
+def get_books(
+        cursor: Cursor[Book],
+        author_id: int,
+) -> list[Book]:
+    
+    return pg.get_many(
+        cursor=cursor,
+        select=Book,
+        from_=e.book,
+        where=e.author_id == author_id,
+    )
 ```
 
+## From
 
-## Get single value
-
-If you only need a specific field from a record, you can achieve this by passing a single expression to 
-the select parameter of the `get_one` method.
-
-Here is how you fetch the author's name by ID.
-
-```python
-import psycopg
-
-import pgcrud as pg
-from pgcrud import e
+The `from_` parameter is required and specifies the target source. The target is typically a table or view but it can also 
+be a joined table, or a subquery.
 
 
-with psycopg.connect('YOUR-CONN-STR') as conn:
-    with conn.cursor() as cursor:
-        author_name = pg.get_one(
-            cursor=cursor, 
-            select=e.name,
-            from_=e.author,
-            where=e.id == 1,
-        )
+### Table (or View)
 
-print(author_name)
-# J.K. Rowling
-```
+Pass an expression to the `from_` parameter to directly select from a table or view. 
 
 
-## Get tuple
-
-If you only need some fields as tuple from a record, you can achieve this by passing a tuple of expressions to 
-the select parameter of the `get_one` method.
-
-Here is how you fetch the author's ID and name by ID.
-
-```python
-import psycopg
-
-import pgcrud as pg
-from pgcrud import e
 
 
-with psycopg.connect('YOUR-CONN-STR') as conn:
-    with conn.cursor() as cursor:
-        author_tuple = pg.get_one(
-            cursor=cursor, 
-            select=(e.id, e.name),
-            from_=e.author,
-            where=e.id == 1,
-        )
 
-print(author_tuple)
-# (1, 'J.K. Rowling')
-```
+### Joined Table
+
+
+### Subquery
+
+
+
+## Where
+
+
+## Group By
+
+
+## Having
+
+
+## Window
+
+
+## Order By
+
+
+## Limit
+
+
+## Offset
+
+
+## No Fetch
+

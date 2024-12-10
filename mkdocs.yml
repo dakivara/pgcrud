@@ -37,4 +37,6 @@ nav:
   - pgcrud: index.md
   - Getting Started:
     - Getting Started: getting-started/index.md
-#    - Read: getting-started/read.md
+    - Demo Schema: getting-started/demo-schema.md
+    - Cursor: getting-started/cursor.md
+    - Read: getting-started/read.md
