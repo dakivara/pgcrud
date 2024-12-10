@@ -35,7 +35,7 @@ def test_comparison_operations():
     b = ReferenceExpr('b')
 
     assert (a == b).get_composed().as_string() == '"a" = "b"'
-    assert (a != b).get_composed().as_string() == '"a" != "b"'
+    assert (a != b).get_composed().as_string() == '"a" <> "b"'
     assert (a < b).get_composed().as_string() == '"a" < "b"'
     assert (a <= b).get_composed().as_string() == '"a" <= "b"'
     assert (a > b).get_composed().as_string() == '"a" > "b"'
