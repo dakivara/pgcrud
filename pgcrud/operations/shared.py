@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+from typing import Any
 
 from psycopg.sql import Composed
 from psycopg.rows import scalar_row, tuple_row, class_row, RowFactory, AsyncRowFactory
@@ -18,7 +19,7 @@ __all__ = [
 ]
 
 
-def get_row_factory(select: SelectValueType) -> RowFactory:
+def get_row_factory(select: SelectValueType) -> RowFactory[Any]:
     if isinstance(select, Expr):
         return scalar_row
     elif isinstance(select, Sequence):
@@ -27,7 +28,7 @@ def get_row_factory(select: SelectValueType) -> RowFactory:
         return class_row(select)  # type: ignore
 
 
-def get_async_row_factory(select: SelectValueType) -> AsyncRowFactory:
+def get_async_row_factory(select: SelectValueType) -> AsyncRowFactory[Any]:
     if isinstance(select, Expr):
         return scalar_row
     elif isinstance(select, Sequence):

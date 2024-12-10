@@ -1,16 +1,17 @@
-from collections.abc import Sequence
-from typing import Any, Literal, overload
+from typing import Literal, TypeVar, overload
 
 from psycopg import Cursor
 
-from pgcrud.expr import Expr
 from pgcrud.operations.shared import get_row_factory, construct_composed_update_query
-from pgcrud.types import FromValueType, PydanticModel, UpdateValueType, SetColsType, SetValuesType, WhereValueType, ReturningValueType, AdditionalValuesType, ResultManyValueType
+from pgcrud.types import FromValueType, UpdateValueType, SetColsType, SetValuesType, WhereValueType, ReturningValueType, AdditionalValuesType
+
+
+T = TypeVar('T')
 
 
 @overload
 def update_many(
-        cursor: Cursor,
+        cursor: Cursor[T],
         update: UpdateValueType,
         set_: tuple[SetColsType, SetValuesType],
         *,
@@ -24,62 +25,34 @@ def update_many(
 
 @overload
 def update_many(
-        cursor: Cursor,
+        cursor: Cursor[T],
         update: UpdateValueType,
         set_: tuple[SetColsType, SetValuesType],
         *,
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
-        returning: Expr,
+        returning: ReturningValueType,
         additional_values: AdditionalValuesType | None = None,
         no_fetch: Literal[False] = False,
-) -> list[Any]: ...
+) -> list[T]: ...
 
 
 @overload
 def update_many(
-        cursor: Cursor,
+        cursor: Cursor[T],
         update: UpdateValueType,
         set_: tuple[SetColsType, SetValuesType],
         *,
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
-        returning: Sequence[Expr],
-        additional_values: AdditionalValuesType | None = None,
-        no_fetch: Literal[False] = False,
-) -> list[tuple[Any, ...]]: ...
-
-
-@overload
-def update_many(
-        cursor: Cursor,
-        update: UpdateValueType,
-        set_: tuple[SetColsType, SetValuesType],
-        *,
-        from_: FromValueType | None = None,
-        where: WhereValueType | None = None,
-        returning: type[PydanticModel],
-        additional_values: AdditionalValuesType | None = None,
-        no_fetch: Literal[False] = False,
-) -> list[PydanticModel]: ...
-
-
-@overload
-def update_many(
-        cursor: Cursor,
-        update: UpdateValueType,
-        set_: tuple[SetColsType, SetValuesType],
-        *,
-        from_: FromValueType | None = None,
-        where: WhereValueType | None = None,
-        returning: ReturningValueType | None = None,
+        returning: ReturningValueType,
         additional_values: AdditionalValuesType | None = None,
         no_fetch: Literal[True],
-) -> Cursor: ...
+) -> Cursor[T]: ...
 
 
 def update_many(
-        cursor: Cursor,
+        cursor: Cursor[T],
         update: UpdateValueType,
         set_: tuple[SetColsType, SetValuesType],
         *,
@@ -88,7 +61,7 @@ def update_many(
         returning: ReturningValueType | None = None,
         additional_values: AdditionalValuesType | None = None,
         no_fetch: bool = False,
-) -> ResultManyValueType | Cursor | None:
+) -> list[T] | Cursor[T] | None:
 
     if returning:
         cursor.row_factory = get_row_factory(returning)
@@ -96,8 +69,8 @@ def update_many(
     query = construct_composed_update_query(update, set_, from_, where, returning, additional_values)
     cursor.execute(query)
 
-    if no_fetch:
-        return cursor
-    else:
-        if returning:
+    if returning:
+        if no_fetch:
+            return cursor
+        else:
             return cursor.fetchall()
