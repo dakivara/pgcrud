@@ -57,7 +57,7 @@ class AuthorInput(BaseModel):
     date_of_birth: date
 
     
-def insert_author(cursor: Cursor, input: AuthorInput) -> int:
+def insert_author(cursor: Cursor[int], input: AuthorInput) -> int | None:
     return pg.insert_one(
         cursor=cursor,
         insert_into=e.author[e.name, e.date_of_birth],
@@ -88,7 +88,7 @@ class Author(BaseModel):
     date_of_birth: date
 
     
-def get_author(cursor: Cursor, id: int) -> Author | None:
+def get_author(cursor: Cursor[Author], id: int) -> Author | None:
     return pg.get_one(
         cursor=cursor,
         select=Author,
@@ -121,7 +121,7 @@ class AuthorUpdate(BaseModel):
 
     
 def update_author(cursor: Cursor, update: AuthorUpdate, id: int) -> None:
-    return pg.update_many(
+    pg.update_many(
         cursor=cursor,
         update=e.author,
         set_=((e.name, e.date_of_birth), update),
@@ -145,7 +145,7 @@ from pgcrud import e
 
     
 def delete_author(cursor: Cursor, id: int) -> None:
-    return pg.delete_many(
+    pg.delete_many(
         cursor=cursor,
         delete_from=e.author,
         where=e.id == id,
