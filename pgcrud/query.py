@@ -3,10 +3,10 @@ from typing import TYPE_CHECKING, Any
 
 from psycopg.sql import SQL, Composed
 
-from pgcrud.clauses import Clause, DeleteFrom, From, Select, Values, Where, GroupBy, Having, OrderBy, Offset, Limit, InsertInto, Returning, Set, Update, Using, PartitionBy, RowsBetween, With, RangeBetween
+from pgcrud.clauses import Clause, DeleteFrom, From, Select, Values, Where, GroupBy, Having, OrderBy, Offset, Limit, InsertInto, Returning, Set, Update, Using, PartitionBy, RowsBetween, With, RangeBetween, Window
 from pgcrud.expr import QueryExpr, AliasExpr
 from pgcrud.frame_boundaries import FrameBoundary
-from pgcrud.types import DeleteFromValueType, FromValueType, GroupByValueType, HavingValueType, InsertIntoValueType, OrderByValueType, PartitionByValueType, ReturningValueType, SelectValueType, SetColsType, SetValuesType, UpdateValueType, UsingValueType, ValuesValueType, WhereValueType
+from pgcrud.types import DeleteFromValueType, FromValueType, GroupByValueType, HavingValueType, InsertIntoValueType, OrderByValueType, PartitionByValueType, ReturningValueType, SelectValueType, SetColsType, SetValuesType, UpdateValueType, UsingValueType, ValuesValueType, WhereValueType, WindowValueType
 
 
 if TYPE_CHECKING:
@@ -47,6 +47,10 @@ class Query:
 
     def HAVING(self, value: HavingValueType) -> 'Query':
         self.clauses.append(Having(value))
+        return self
+
+    def WINDOW(self, value: WindowValueType) -> 'Query':
+        self.clauses.append(Window(value))
         return self
 
     def ORDER_BY(self, value: OrderByValueType) -> 'Query':

@@ -1,8 +1,8 @@
 from typing import Any, TYPE_CHECKING
-from pgcrud.clauses import From, RowsBetween, Select, Where, GroupBy, Having, OrderBy, Limit, Offset, InsertInto, Values, Update, Set, DeleteFrom, Using, PartitionBy, With, RangeBetween
+from pgcrud.clauses import From, RowsBetween, Select, Where, GroupBy, Having, OrderBy, Limit, Offset, InsertInto, Values, Update, Set, DeleteFrom, Using, PartitionBy, With, RangeBetween, Window
 from pgcrud.frame_boundaries import FrameBoundary
 from pgcrud.query import Query
-from pgcrud.types import DeleteFromValueType, FromValueType, GroupByValueType, HavingValueType, InsertIntoValueType, OrderByValueType, PartitionByValueType, SelectValueType, SetColsType, SetValuesType, UpdateValueType, UsingValueType, ValuesValueType, WhereValueType
+from pgcrud.types import DeleteFromValueType, FromValueType, GroupByValueType, HavingValueType, InsertIntoValueType, OrderByValueType, PartitionByValueType, SelectValueType, SetColsType, SetValuesType, UpdateValueType, UsingValueType, ValuesValueType, WhereValueType, WindowValueType
 
 
 if TYPE_CHECKING:
@@ -36,6 +36,10 @@ class QueryBuilder:
     @staticmethod
     def HAVING(value: HavingValueType) -> Query:
         return Query([Having(value)])
+
+    @staticmethod
+    def WINDOW(value: WindowValueType) -> Query:
+        return Query([Window(value)])
 
     @staticmethod
     def ORDER_BY(value: OrderByValueType) -> Query:
