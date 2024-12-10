@@ -69,7 +69,7 @@ def get_many(
         limit: int | None = None,
         offset: int | None = None,
         no_fetch: Literal[True],
-) -> None: ...
+) -> Cursor: ...
 
 
 def get_many(
@@ -84,11 +84,13 @@ def get_many(
         limit: int | None = None,
         offset: int | None = None,
         no_fetch: bool | None = False,
-) -> ResultManyValueType | None:
+) -> ResultManyValueType | Cursor:
 
     cursor.row_factory = get_row_factory(select)
     query = construct_composed_get_query(select, from_, where, group_by, having, order_by, limit, offset)
     cursor.execute(query)
 
-    if not no_fetch:
+    if no_fetch:
+        return cursor
+    else:
         return cursor.fetchall()

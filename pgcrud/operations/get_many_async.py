@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from typing import Any, Literal, overload
 
-from psycopg import AsyncCursor
+from psycopg import AsyncCursor, Cursor
 
 from pgcrud.expr import Expr
 from pgcrud.operations.shared import get_async_row_factory, construct_composed_get_query
@@ -69,7 +69,7 @@ async def get_many(
         limit: int | None = None,
         offset: int | None = None,
         no_fetch: Literal[True],
-) -> None: ...
+) -> AsyncCursor: ...
 
 
 async def get_many(
@@ -84,11 +84,13 @@ async def get_many(
         limit: int | None = None,
         offset: int | None = None,
         no_fetch: bool | None = False,
-) -> ResultManyValueType | None:
+) -> ResultManyValueType | AsyncCursor:
 
     cursor.row_factory = get_async_row_factory(select)
     query = construct_composed_get_query(select, from_, where, group_by, having, order_by, limit, offset)
     await cursor.execute(query)
 
-    if not no_fetch:
+    if no_fetch:
+        return cursor
+    else:
         return await cursor.fetchall()
