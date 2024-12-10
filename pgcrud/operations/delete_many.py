@@ -65,7 +65,7 @@ def delete_many(
         where: WhereValueType | None = None,
         returning: ReturningValueType | None = None,
         no_fetch: Literal[True],
-) -> None: ...
+) -> Cursor: ...
 
 
 def delete_many(
@@ -76,7 +76,7 @@ def delete_many(
         where: WhereValueType | None = None,
         returning: ReturningValueType | None = None,
         no_fetch: bool = False,
-) -> ResultManyValueType | None:
+) -> ResultManyValueType | Cursor | None:
 
     if returning:
         cursor.row_factory = get_row_factory(returning)
@@ -84,6 +84,8 @@ def delete_many(
     query = construct_composed_delete_query(delete_from, using, where, returning)
     cursor.execute(query)
 
-    if not no_fetch:
+    if no_fetch:
+        return cursor
+    else:
         if returning:
             return cursor.fetchall()

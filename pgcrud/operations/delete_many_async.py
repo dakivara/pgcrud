@@ -65,7 +65,7 @@ async def delete_many(
         where: WhereValueType | None = None,
         returning: ReturningValueType | None = None,
         no_fetch: Literal[True],
-) -> None: ...
+) -> AsyncCursor: ...
 
 
 async def delete_many(
@@ -76,7 +76,7 @@ async def delete_many(
         where: WhereValueType | None = None,
         returning: ReturningValueType | None = None,
         no_fetch: bool = False,
-) -> ResultManyValueType | None:
+) -> ResultManyValueType | AsyncCursor | None:
 
     if returning:
         cursor.row_factory = get_async_row_factory(returning)
@@ -84,6 +84,8 @@ async def delete_many(
     query = construct_composed_delete_query(delete_from, using, where, returning)
     await cursor.execute(query)
 
-    if not no_fetch:
+    if no_fetch:
+        return cursor
+    else:
         if returning:
             return await cursor.fetchall()
