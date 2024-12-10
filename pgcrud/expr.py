@@ -36,6 +36,7 @@ __all__ = [
     'AliasExpr',
     'QueryExpr',
     'FunExpr',
+    'CountExpr',
     'SumExpr',
     'AvgExpr',
     'MinExpr',
@@ -760,6 +761,14 @@ class FunExpr(ScalarExpr):
     @abstractmethod
     def get_composed(self) -> Composed:
         pass
+
+
+@dataclass(repr=False, eq=False)
+class CountExpr(FunExpr):
+    expr: Expr
+
+    def get_composed(self) -> Composed:
+        return SQL('count({})').format(self.expr.get_composed())
 
 
 @dataclass(repr=False, eq=False)

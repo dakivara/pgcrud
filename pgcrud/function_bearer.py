@@ -1,6 +1,6 @@
 from typing import Any
 
-from pgcrud.expr import ArrayAggExpr, make_expr, Expr, UndefinedExpr, AvgExpr, SumExpr, ToJsonExpr, JsonAggExpr, CoalesceExpr, MinExpr, MaxExpr
+from pgcrud.expr import ArrayAggExpr, CountExpr, make_expr, Expr, AvgExpr, SumExpr, ToJsonExpr, JsonAggExpr, CoalesceExpr, MinExpr, MaxExpr
 
 __all__ = ['FunctionBearer']
 
@@ -9,6 +9,10 @@ class FunctionBearer:
 
     def __new__(cls):
         raise TypeError("'FunctionBearer' object is not callable")
+
+    @staticmethod
+    def count(expr: Expr) -> CountExpr:
+        return CountExpr(expr)
 
     @staticmethod
     def sum(expr: Expr) -> SumExpr:
