@@ -39,7 +39,7 @@ async def insert_many(
         insert_into: InsertIntoValueType,
         values: ValuesValueType,
         *,
-        returning: ReturningValueType | None = None,
+        returning: ReturningValueType,
         additional_values: AdditionalValuesType | None = None,
         no_fetch: Literal[True],
 ) -> AsyncCursor[T]: ...
@@ -61,8 +61,8 @@ async def insert_many(
     query = construct_composed_insert_query(insert_into, values, returning, additional_values)
     await cursor.execute(query)
 
-    if no_fetch:
-        return cursor
-    else:
-        if returning:
+    if returning:
+        if no_fetch:
+            return cursor
+        else:
             return await cursor.fetchall()
