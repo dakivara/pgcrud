@@ -1,16 +1,17 @@
-from collections.abc import Sequence
-from typing import Any, Literal, overload
+from typing import Literal, TypeVar, overload
 
 from psycopg import AsyncCursor
 
-from pgcrud.expr import Expr
 from pgcrud.operations.shared import get_async_row_factory, construct_composed_insert_query
-from pgcrud.types import PydanticModel, InsertIntoValueType, AdditionalValuesType, ResultManyValueType, ReturningValueType, ValuesValueType
+from pgcrud.types import InsertIntoValueType, AdditionalValuesType, ReturningValueType, ValuesValueType
+
+
+T = TypeVar('T')
 
 
 @overload
 async def insert_many(
-        cursor: AsyncCursor,
+        cursor: AsyncCursor[T],
         insert_into: InsertIntoValueType,
         values: ValuesValueType,
         *,
@@ -22,61 +23,37 @@ async def insert_many(
 
 @overload
 async def insert_many(
-        cursor: AsyncCursor,
+        cursor: AsyncCursor[T],
         insert_into: InsertIntoValueType,
         values: ValuesValueType,
         *,
-        returning: Expr,
+        returning: ReturningValueType,
         additional_values: AdditionalValuesType | None = None,
         no_fetch: Literal[False] = False,
-) -> list[Any]: ...
+) -> list[T]: ...
 
 
 @overload
 async def insert_many(
-        cursor: AsyncCursor,
-        insert_into: InsertIntoValueType,
-        values: ValuesValueType,
-        *,
-        returning: Sequence[Expr],
-        additional_values: AdditionalValuesType | None = None,
-        no_fetch: Literal[False] = False,
-) -> list[tuple[Any, ...]]: ...
-
-
-@overload
-async def insert_many(
-        cursor: AsyncCursor,
-        insert_into: InsertIntoValueType,
-        values: ValuesValueType,
-        *,
-        returning: type[PydanticModel],
-        additional_values: AdditionalValuesType | None = None,
-        no_fetch: Literal[False] = False,
-) -> list[PydanticModel]: ...
-
-
-@overload
-async def insert_many(
-        cursor: AsyncCursor,
+        cursor: AsyncCursor[T],
         insert_into: InsertIntoValueType,
         values: ValuesValueType,
         *,
         returning: ReturningValueType | None = None,
         additional_values: AdditionalValuesType | None = None,
         no_fetch: Literal[True],
-) -> AsyncCursor: ...
+) -> AsyncCursor[T]: ...
 
 
 async def insert_many(
-        cursor: AsyncCursor,
+        cursor: AsyncCursor[T],
         insert_into: InsertIntoValueType,
         values: ValuesValueType,
         *,
         returning: ReturningValueType | None = None,
         additional_values: AdditionalValuesType | None = None,
         no_fetch: bool = False,
-) -> ResultManyValueType | AsyncCursor | None:
+) -> list[T] | AsyncCursor[T] | None:
 
     if returning:
         cursor.row_factory = get_async_row_factory(returning)

@@ -1,16 +1,17 @@
-from collections.abc import Sequence
-from typing import Any, Literal, overload
+from typing import Literal, TypeVar, overload
 
 from psycopg import Cursor
 
-from pgcrud.expr import Expr
 from pgcrud.operations.shared import get_row_factory, construct_composed_insert_query
-from pgcrud.types import PydanticModel, InsertIntoValueType, AdditionalValuesType, ResultManyValueType, ReturningValueType, ValuesValueType
+from pgcrud.types import InsertIntoValueType, AdditionalValuesType, ReturningValueType, ValuesValueType
+
+
+T = TypeVar('T')
 
 
 @overload
 def insert_many(
-        cursor: Cursor,
+        cursor: Cursor[T],
         insert_into: InsertIntoValueType,
         values: ValuesValueType,
         *,
@@ -22,61 +23,37 @@ def insert_many(
 
 @overload
 def insert_many(
-        cursor: Cursor,
+        cursor: Cursor[T],
         insert_into: InsertIntoValueType,
         values: ValuesValueType,
         *,
-        returning: Expr,
+        returning: ReturningValueType,
         additional_values: AdditionalValuesType | None = None,
         no_fetch: Literal[False] = False,
-) -> list[Any]: ...
+) -> list[T]: ...
 
 
 @overload
 def insert_many(
-        cursor: Cursor,
-        insert_into: InsertIntoValueType,
-        values: ValuesValueType,
-        *,
-        returning: Sequence[Expr],
-        additional_values: AdditionalValuesType | None = None,
-        no_fetch: Literal[False] = False,
-) -> list[tuple[Any, ...]]: ...
-
-
-@overload
-def insert_many(
-        cursor: Cursor,
-        insert_into: InsertIntoValueType,
-        values: ValuesValueType,
-        *,
-        returning: type[PydanticModel],
-        additional_values: AdditionalValuesType | None = None,
-        no_fetch: Literal[False] = False,
-) -> list[PydanticModel]: ...
-
-
-@overload
-def insert_many(
-        cursor: Cursor,
+        cursor: Cursor[T],
         insert_into: InsertIntoValueType,
         values: ValuesValueType,
         *,
         returning: ReturningValueType | None = None,
         additional_values: AdditionalValuesType | None = None,
         no_fetch: Literal[True],
-) -> Cursor: ...
+) -> Cursor[T]: ...
 
 
 def insert_many(
-        cursor: Cursor,
+        cursor: Cursor[T],
         insert_into: InsertIntoValueType,
         values: ValuesValueType,
         *,
         returning: ReturningValueType | None = None,
         additional_values: AdditionalValuesType | None = None,
         no_fetch: bool = False,
-) -> ResultManyValueType | Cursor | None:
+) -> list[T] | Cursor[T] | None:
 
     if returning:
         cursor.row_factory = get_row_factory(returning)
