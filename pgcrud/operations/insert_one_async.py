@@ -1,16 +1,17 @@
-from collections.abc import Sequence
-from typing import Any, overload
+from typing import TypeVar, overload
 
 from psycopg import AsyncCursor
 
-from pgcrud.expr import Expr
 from pgcrud.operations.shared import get_async_row_factory, construct_composed_insert_query
-from pgcrud.types import PydanticModel, InsertIntoValueType, AdditionalValuesType, ResultOneValueType, ReturningValueType, ValuesValueItemType
+from pgcrud.types import InsertIntoValueType, AdditionalValuesType, ReturningValueType, ValuesValueItemType
+
+
+T = TypeVar('T')
 
 
 @overload
 async def insert_one(
-        cursor: AsyncCursor,
+        cursor: AsyncCursor[T],
         insert_into: InsertIntoValueType,
         values: ValuesValueItemType,
         *,
@@ -21,45 +22,23 @@ async def insert_one(
 
 @overload
 async def insert_one(
-        cursor: AsyncCursor,
+        cursor: AsyncCursor[T],
         insert_into: InsertIntoValueType,
         values: ValuesValueItemType,
         *,
-        returning: Expr,
+        returning: ReturningValueType,
         additional_values: AdditionalValuesType | None = None,
-) -> Any | None: ...
-
-
-@overload
-async def insert_one(
-        cursor: AsyncCursor,
-        insert_into: InsertIntoValueType,
-        values: ValuesValueItemType,
-        *,
-        returning: Sequence[Expr],
-        additional_values: AdditionalValuesType | None = None,
-) -> tuple[Any, ...] | None: ...
-
-
-@overload
-async def insert_one(
-        cursor: AsyncCursor,
-        insert_into: InsertIntoValueType,
-        values: ValuesValueItemType,
-        *,
-        returning: type[PydanticModel],
-        additional_values: AdditionalValuesType | None = None,
-) -> PydanticModel | None: ...
+) -> T | None: ...
 
 
 async def insert_one(
-        cursor: AsyncCursor,
+        cursor: AsyncCursor[T],
         insert_into: InsertIntoValueType,
         values: ValuesValueItemType,
         *,
         returning: ReturningValueType | None = None,
         additional_values: AdditionalValuesType | None = None,
-) -> ResultOneValueType | None:
+) -> T | None:
 
     if returning:
         cursor.row_factory = get_async_row_factory(returning)
