@@ -27,6 +27,7 @@ __all__ = [
     'SetValueType',
     'DeleteFromValueType',
     'HavingValueType',
+    'WindowValueType',
     'UsingValueType',
     'PartitionByValueType',
     'ResultOneValueType',
@@ -52,6 +53,7 @@ SetValuesType = Sequence[Any] | dict[str, Any] | BaseModel
 SetValueType = tuple[SetColsType, SetValuesType]
 DeleteFromValueType = Union['ReferenceExpr']
 HavingValueType = Union['FilterOperator']
+WindowValueType = Union['Expr', Sequence['Expr']]
 UsingValueType = Union['ReferenceExpr']
 PartitionByValueType = Union['Expr', Sequence['Expr']]
 ResultOneValueType = Any | tuple[Any, ...] | BaseModel

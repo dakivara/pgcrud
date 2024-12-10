@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from pgcrud.expr import Expr, ReferenceExpr, AliasExpr
 from pgcrud.frame_boundaries import FrameBoundary
 from pgcrud.operators import SortOperator
-from pgcrud.types import AdditionalValuesType, DeleteFromValueType, FromValueType, GroupByValueType, HavingValueType, InsertIntoValueType, OrderByValueType, PartitionByValueType, ReturningValueType, SelectValueType, SetColsType, SetValuesType, UpdateValueType, UsingValueType, ValuesValueType, WhereValueType
+from pgcrud.types import AdditionalValuesType, DeleteFromValueType, FromValueType, GroupByValueType, HavingValueType, InsertIntoValueType, OrderByValueType, PartitionByValueType, ReturningValueType, SelectValueType, SetColsType, SetValuesType, UpdateValueType, UsingValueType, ValuesValueType, WhereValueType, WindowValueType
 from pgcrud.utils import ensure_seq
 
 
@@ -19,6 +19,7 @@ __all__ = [
     'Where',
     'GroupBy',
     'Having',
+    'Window',
     'OrderBy',
     'Limit',
     'Offset',
@@ -139,6 +140,17 @@ class Having(Clause):
 
     def get_composed(self) -> Composed:
         return SQL('HAVING {}').format(self.value.get_composed())
+
+
+@dataclass(repr=False)
+class Window(Clause):
+    value: WindowValueType
+
+    def __bool__(self) -> bool:
+        return bool(self.value)
+
+    def get_composed(self) -> Composed:
+        return SQL('WINDOW {}').format(SQL(', ').join([v.get_composed() for v in ensure_seq(self.value)]))
 
 
 @dataclass(repr=False)
