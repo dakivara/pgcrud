@@ -88,7 +88,7 @@ async def update_many(
         returning: ReturningValueType | None = None,
         additional_values: AdditionalValuesType | None = None,
         no_fetch: bool = False,
-) -> ResultManyValueType | None:
+) -> ResultManyValueType | AsyncCursor | None:
 
     if returning:
         cursor.row_factory = get_async_row_factory(returning)
@@ -96,6 +96,8 @@ async def update_many(
     query = construct_composed_update_query(update, set_, from_,  where, returning, additional_values)
     await cursor.execute(query)
 
-    if not no_fetch:
+    if no_fetch:
+        return cursor
+    else:
         if returning:
             return await cursor.fetchall()
