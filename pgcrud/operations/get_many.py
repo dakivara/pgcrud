@@ -1,4 +1,4 @@
-from typing import Literal, TypeVar, overload
+from typing import Any, Literal, TypeVar, overload, Generator
 
 from psycopg import Cursor
 
@@ -11,7 +11,8 @@ T = TypeVar('T')
 
 @overload
 def get_many(
-        cursor: Cursor[T],
+        cursor: Cursor[Any],
+        as_: type[T],
         select: SelectValueType,
         from_: FromValueType,
         *,
@@ -28,7 +29,8 @@ def get_many(
 
 @overload
 def get_many(
-        cursor: Cursor[T],
+        cursor: Cursor[Any],
+        as_: type[T],
         select: SelectValueType,
         from_: FromValueType,
         *,
@@ -44,7 +46,8 @@ def get_many(
 
 
 def get_many(
-        cursor: Cursor[T],
+        cursor: Cursor[Any],
+        as_: type[T],
         select: SelectValueType,
         from_: FromValueType,
         *,
@@ -58,7 +61,7 @@ def get_many(
         no_fetch: bool | None = False,
 ) -> list[T] | Cursor[T]:
 
-    cursor.row_factory = get_row_factory(select)
+    cursor.row_factory = get_row_factory(as_)
     query = construct_composed_get_query(select, from_, where, group_by, having, window, order_by, limit, offset)
     cursor.execute(query)
 

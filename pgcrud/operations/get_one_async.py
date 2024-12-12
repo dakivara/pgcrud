@@ -1,4 +1,4 @@
-from typing import TypeVar
+from typing import Any, TypeVar
 
 from psycopg import AsyncCursor
 
@@ -10,7 +10,8 @@ T = TypeVar('T')
 
 
 async def get_one(
-        cursor: AsyncCursor[T],
+        cursor: AsyncCursor[Any],
+        as_: type[T],
         select: SelectValueType,
         from_: FromValueType,
         *,
@@ -22,7 +23,7 @@ async def get_one(
         offset: int | None = None,
 ) -> T | None:
 
-    cursor.row_factory = get_async_row_factory(select)
+    cursor.row_factory = get_async_row_factory(as_)
     query = construct_composed_get_query(select, from_, where, group_by, having, window, order_by, 1, offset)
     await cursor.execute(query)
 

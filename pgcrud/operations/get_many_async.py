@@ -1,4 +1,4 @@
-from typing import Literal, TypeVar, overload
+from typing import Any, AsyncGenerator, Literal, TypeVar, overload
 
 from psycopg import AsyncCursor
 
@@ -11,7 +11,8 @@ T = TypeVar('T')
 
 @overload
 async def get_many(
-        cursor: AsyncCursor[T],
+        cursor: AsyncCursor[Any],
+        as_: type[T],
         select: SelectValueType,
         from_: FromValueType,
         *,
@@ -28,7 +29,8 @@ async def get_many(
 
 @overload
 async def get_many(
-        cursor: AsyncCursor[T],
+        cursor: AsyncCursor[Any],
+        as_: type[T],
         select: SelectValueType,
         from_: FromValueType,
         *,
@@ -44,7 +46,8 @@ async def get_many(
 
 
 async def get_many(
-        cursor: AsyncCursor[T],
+        cursor: AsyncCursor[Any],
+        as_: type[T],
         select: SelectValueType,
         from_: FromValueType,
         *,
@@ -58,7 +61,7 @@ async def get_many(
         no_fetch: bool | None = False,
 ) -> list[T] | AsyncCursor[T]:
 
-    cursor.row_factory = get_async_row_factory(select)
+    cursor.row_factory = get_async_row_factory(as_)
     query = construct_composed_get_query(select, from_, where, group_by, having, window, order_by, limit, offset)
     await cursor.execute(query)
 
