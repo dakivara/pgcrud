@@ -1,4 +1,4 @@
-from typing import Literal, TypeVar, overload
+from typing import Any, Literal, TypeVar, overload
 
 from psycopg import AsyncCursor
 
@@ -11,13 +11,14 @@ T = TypeVar('T')
 
 @overload
 async def update_many(
-        cursor: AsyncCursor[T],
+        cursor: AsyncCursor[Any],
         update: UpdateValueType,
         set_: tuple[SetColsType, SetValuesType],
         *,
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
         returning: None = None,
+        as_: None = None,
         additional_values: AdditionalValuesType | None = None,
         no_fetch: Literal[False] = False,
 ) -> None: ...
@@ -25,13 +26,14 @@ async def update_many(
 
 @overload
 async def update_many(
-        cursor: AsyncCursor[T],
+        cursor: AsyncCursor[Any],
         update: UpdateValueType,
         set_: tuple[SetColsType, SetValuesType],
         *,
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
         returning: ReturningValueType,
+        as_: type[T],
         additional_values: AdditionalValuesType | None = None,
         no_fetch: Literal[False] = False,
 ) -> list[T]: ...
@@ -39,37 +41,39 @@ async def update_many(
 
 @overload
 async def update_many(
-        cursor: AsyncCursor[T],
+        cursor: AsyncCursor[Any],
         update: UpdateValueType,
         set_: tuple[SetColsType, SetValuesType],
         *,
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
         returning: ReturningValueType,
+        as_: type[T],
         additional_values: AdditionalValuesType | None = None,
         no_fetch: Literal[True],
 ) -> AsyncCursor[T]: ...
 
 
 async def update_many(
-        cursor: AsyncCursor[T],
+        cursor: AsyncCursor[Any],
         update: UpdateValueType,
         set_: tuple[SetColsType, SetValuesType],
         *,
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
         returning: ReturningValueType | None = None,
+        as_: type[T] | None = None,
         additional_values: AdditionalValuesType | None = None,
         no_fetch: bool = False,
 ) -> list[T] | AsyncCursor[T] | None:
 
-    if returning:
-        cursor.row_factory = get_async_row_factory(returning)
+    if returning and as_:
+        cursor.row_factory = get_async_row_factory(as_)
 
     query = construct_composed_update_query(update, set_, from_,  where, returning, additional_values)
     await cursor.execute(query)
 
-    if returning:
+    if returning and as_:
         if no_fetch:
             return cursor
         else:

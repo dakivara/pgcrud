@@ -1,4 +1,4 @@
-from typing import Literal, TypeVar, overload
+from typing import Any, Literal, TypeVar, overload
 
 from psycopg import Cursor
 
@@ -11,13 +11,14 @@ T = TypeVar('T')
 
 @overload
 def update_many(
-        cursor: Cursor[T],
+        cursor: Cursor[Any],
         update: UpdateValueType,
         set_: tuple[SetColsType, SetValuesType],
         *,
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
         returning: None = None,
+        as_: None = None,
         additional_values: AdditionalValuesType | None = None,
         no_fetch: Literal[False] = False,
 ) -> None: ...
@@ -25,13 +26,14 @@ def update_many(
 
 @overload
 def update_many(
-        cursor: Cursor[T],
+        cursor: Cursor[Any],
         update: UpdateValueType,
         set_: tuple[SetColsType, SetValuesType],
         *,
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
         returning: ReturningValueType,
+        as_: type[T],
         additional_values: AdditionalValuesType | None = None,
         no_fetch: Literal[False] = False,
 ) -> list[T]: ...
@@ -39,32 +41,34 @@ def update_many(
 
 @overload
 def update_many(
-        cursor: Cursor[T],
+        cursor: Cursor[Any],
         update: UpdateValueType,
         set_: tuple[SetColsType, SetValuesType],
         *,
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
         returning: ReturningValueType,
+        as_: type[T],
         additional_values: AdditionalValuesType | None = None,
         no_fetch: Literal[True],
 ) -> Cursor[T]: ...
 
 
 def update_many(
-        cursor: Cursor[T],
+        cursor: Cursor[Any],
         update: UpdateValueType,
         set_: tuple[SetColsType, SetValuesType],
         *,
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
         returning: ReturningValueType | None = None,
+        as_: type[T] | None = None,
         additional_values: AdditionalValuesType | None = None,
         no_fetch: bool = False,
 ) -> list[T] | Cursor[T] | None:
 
-    if returning:
-        cursor.row_factory = get_row_factory(returning)
+    if returning and as_:
+        cursor.row_factory = get_row_factory(as_)
 
     query = construct_composed_update_query(update, set_, from_, where, returning, additional_values)
     cursor.execute(query)
