@@ -1,4 +1,4 @@
-from typing import Any, Literal, TypeVar, overload, Generator
+from typing import Any, Literal, TypeVar, overload
 
 from psycopg import Cursor
 

@@ -1,4 +1,4 @@
-from typing import Any, AsyncGenerator, Literal, TypeVar, overload
+from typing import Any, Literal, TypeVar, overload
 
 from psycopg import AsyncCursor
 

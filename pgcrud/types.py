@@ -24,20 +24,17 @@ __all__ = [
     'UpdateValueType',
     'SetColsType',
     'SetValuesType',
-    'SetValueType',
     'DeleteFromValueType',
     'HavingValueType',
     'WindowValueType',
     'UsingValueType',
     'PartitionByValueType',
-    'ResultOneValueType',
-    'ResultManyValueType',
     'HowValueType',
 ]
 
 
 PydanticModel = TypeVar('PydanticModel', bound=BaseModel)
-SelectValueType = Union['Expr', Sequence['Expr'], type[BaseModel]]
+SelectValueType = Union['Expr', Sequence['Expr']]
 FromValueType = Union['Expr']
 WhereValueType = Union['FilterOperator']
 GroupByValueType = Union['Expr', Sequence['Expr']]
@@ -46,16 +43,13 @@ InsertIntoValueType = Union['TableReferenceExpr']
 ValuesValueItemType = Sequence[Any] | dict[str, Any] | BaseModel
 ValuesValueType = Sequence[Any] | dict[str, Any] | BaseModel
 AdditionalValuesType = dict[str, Any]
-ReturningValueType = Union['Expr', Sequence['Expr'], type[BaseModel]]
+ReturningValueType = Union['Expr', Sequence['Expr']]
 UpdateValueType = Union['ReferenceExpr']
 SetColsType = Sequence['ReferenceExpr']
 SetValuesType = Sequence[Any] | dict[str, Any] | BaseModel
-SetValueType = tuple[SetColsType, SetValuesType]
 DeleteFromValueType = Union['ReferenceExpr']
 HavingValueType = Union['FilterOperator']
 WindowValueType = Union['Expr', Sequence['Expr']]
 UsingValueType = Union['ReferenceExpr']
 PartitionByValueType = Union['Expr', Sequence['Expr']]
-ResultOneValueType = Any | tuple[Any, ...] | BaseModel
-ResultManyValueType = list[Any] | list[tuple[Any, ...]] | list[BaseModel]
 HowValueType = Literal['INNER', 'LEFT', 'RIGHT', 'FULL', 'CROSS']
