@@ -8,7 +8,8 @@ def test_get_customer_id(cursor):
 
     customer = pg.get_one(
         cursor=cursor,
-        select=Customer,
+        as_=Customer,
+        select=(e.id, e.name),
         from_=e.customer,
         where=e.id == 1,
     )
@@ -21,7 +22,8 @@ def test_get_customer_by_name(cursor):
 
     customer = pg.get_one(
         cursor=cursor,
-        select=Customer,
+        as_=Customer,
+        select=(e.id, e.name),
         from_=e.customer,
         where=e.name == 'Customer B',
     )
@@ -34,7 +36,8 @@ def test_get_customer_by_invalid_id(cursor):
 
     customer = pg.get_one(
         cursor=cursor,
-        select=Customer,
+        as_=Customer,
+        select=(e.id, e.name),
         from_=e.customer,
         where=e.id == 3,
     )
@@ -46,6 +49,7 @@ def test_get_customer_id_by_name(cursor):
 
     customer_id = pg.get_one(
         cursor=cursor,
+        as_=int,
         select=e.id,
         from_=e.customer,
         where=e.name == 'Customer A',
@@ -59,6 +63,7 @@ def test_get_customer_tuple_by_id(cursor):
 
     customer_tuple = pg.get_one(
         cursor=cursor,
+        as_=tuple[int, str],
         select=(e.id, e.name),
         from_=e.customer,
         where=e.id == 1,
