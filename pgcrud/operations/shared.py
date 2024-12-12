@@ -1,10 +1,11 @@
-from collections.abc import Sequence
-from typing import Any
+from typing import Any, get_origin
+from types import GenericAlias
 
 from psycopg.sql import Composed
-from psycopg.rows import scalar_row, tuple_row, class_row, RowFactory, AsyncRowFactory
+from psycopg.rows import class_row, RowFactory, AsyncRowFactory
+from pydantic import BaseModel
 
-from pgcrud.expr import Expr
+from pgcrud.custom_row_factories import scalar_row, tuple_row, dict_row
 from pgcrud.query_builder import QueryBuilder as q
 from pgcrud.types import DeleteFromValueType, GroupByValueType, HavingValueType, SelectValueType, FromValueType, SetValueType, UpdateValueType, UsingValueType, WhereValueType, OrderByValueType, InsertIntoValueType, ValuesValueType, ReturningValueType, AdditionalValuesType, WindowValueType
 
@@ -19,22 +20,32 @@ __all__ = [
 ]
 
 
-def get_row_factory(select: SelectValueType) -> RowFactory[Any]:
-    if isinstance(select, Expr):
-        return scalar_row
-    elif isinstance(select, Sequence):
-        return tuple_row
+def get_row_factory(as_: type) -> RowFactory[Any]:
+
+    base = get_origin(as_) if isinstance(as_, GenericAlias) else as_
+
+    if issubclass(base, BaseModel):
+        return class_row(as_)
+    elif issubclass(base, dict):
+        return dict_row(as_)    # type: ignore
+    elif issubclass(base, tuple):
+        return tuple_row(as_)   # type: ignore
     else:
-        return class_row(select)  # type: ignore
+        return scalar_row(as_)
 
 
-def get_async_row_factory(select: SelectValueType) -> AsyncRowFactory[Any]:
-    if isinstance(select, Expr):
-        return scalar_row
-    elif isinstance(select, Sequence):
-        return tuple_row
+def get_async_row_factory(as_: type) -> AsyncRowFactory[Any]:
+
+    base = get_origin(as_) if isinstance(as_, GenericAlias) else as_
+
+    if issubclass(base, BaseModel):
+        return class_row(as_)
+    elif issubclass(base, dict):
+        return dict_row(as_)    # type: ignore
+    elif issubclass(base, tuple):
+        return tuple_row(as_)   # type: ignore
     else:
-        return class_row(select)  # type: ignore
+        return scalar_row(as_)
 
 
 def construct_composed_get_query(

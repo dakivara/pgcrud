@@ -1,4 +1,4 @@
-from typing import TypeVar, overload
+from typing import Any, TypeVar, overload
 
 from psycopg import AsyncCursor
 
@@ -16,35 +16,38 @@ async def insert_one(
         values: ValuesValueItemType,
         *,
         returning: None = None,
+        as_: None = None,
         additional_values: AdditionalValuesType | None = None,
 ) -> None: ...
 
 
 @overload
 async def insert_one(
-        cursor: AsyncCursor[T],
+        cursor: AsyncCursor[Any],
         insert_into: InsertIntoValueType,
         values: ValuesValueItemType,
         *,
         returning: ReturningValueType,
+        as_: type[T],
         additional_values: AdditionalValuesType | None = None,
 ) -> T | None: ...
 
 
 async def insert_one(
-        cursor: AsyncCursor[T],
+        cursor: AsyncCursor[Any],
         insert_into: InsertIntoValueType,
         values: ValuesValueItemType,
         *,
         returning: ReturningValueType | None = None,
+        as_: type[T] | None = None,
         additional_values: AdditionalValuesType | None = None,
 ) -> T | None:
 
-    if returning:
-        cursor.row_factory = get_async_row_factory(returning)
+    if returning and as_:
+        cursor.row_factory = get_async_row_factory(as_)
 
     query = construct_composed_insert_query(insert_into, (values,), returning, additional_values)
     await cursor.execute(query)
 
-    if returning:
+    if returning and as_:
         return await cursor.fetchone()
