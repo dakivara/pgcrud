@@ -13,7 +13,8 @@ T = TypeVar('T')
 def update_many(
         cursor: Cursor[Any],
         update: UpdateValueType,
-        set_: tuple[SetColsType, SetValuesType],
+        set_columns: SetColsType,
+        set_values: SetValuesType,
         *,
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
@@ -28,7 +29,8 @@ def update_many(
 def update_many(
         cursor: Cursor[Any],
         update: UpdateValueType,
-        set_: tuple[SetColsType, SetValuesType],
+        set_columns: SetColsType,
+        set_values: SetValuesType,
         *,
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
@@ -43,7 +45,8 @@ def update_many(
 def update_many(
         cursor: Cursor[Any],
         update: UpdateValueType,
-        set_: tuple[SetColsType, SetValuesType],
+        set_columns: SetColsType,
+        set_values: SetValuesType,
         *,
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
@@ -57,7 +60,8 @@ def update_many(
 def update_many(
         cursor: Cursor[Any],
         update: UpdateValueType,
-        set_: tuple[SetColsType, SetValuesType],
+        set_columns: SetColsType,
+        set_values: SetValuesType,
         *,
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
@@ -70,7 +74,7 @@ def update_many(
     if returning and as_:
         cursor.row_factory = get_row_factory(as_)
 
-    query = construct_composed_update_query(update, set_, from_, where, returning, additional_values)
+    query = construct_composed_update_query(update, set_columns, set_values, from_, where, returning, additional_values)
     cursor.execute(query)
 
     if returning:
