@@ -1,8 +1,14 @@
 # pgcrud
 
-**pgcrud** makes Create, Read, Update, and Delete (CRUD) operations for PostgreSQL simple and fast. It serves as 
-the bridge between the popular PostgreSQL adapter psycopg and Pydantic, the leading library for data serialization and validation. 
-**pgcrud** redefines ORMs by mapping Python data model annotations to corresponding objects in the database.
+pgcrud is a Python package that makes **C**reate, **R**ead, **U**pdate, and **D**elete (**CRUD**) operations for PostgreSQL simple and fast. 
+
+- **Pydantic**: Native Pydantic integration.
+- **PostgreSQL**: Tailored to PostgreSQL with wide extensions support.
+- **Flexible**: Handle complex parent-child relationships.
+- **Safe**: Protection against SQL-Injection.
+- **Asynchronous**: Perform operations asynchronously (or synchronously).
+- **Lightweight**: Easy to integrate into existing projects.
+- **Type Hints**: Full type hint support.
 
 ## Installation
 
@@ -24,9 +30,7 @@ Imagine you have an Author and Book table in your schema. Each author (the paren
 With pgcrud you can easily fetch the authors including their books in a single request and return the result as a list of Pydantic models.
 
 ```python
-from typing import Annotated
-
-import psycopg
+from psycopg import Cursor
 from pydantic import BaseModel
 
 import pgcrud as pg
@@ -39,24 +43,25 @@ class Book(BaseModel):
 
 
 class Author(BaseModel):
-    id: Annotated[int, e.author.id]                     
-    name: Annotated[str, e.author.name]                 
-    books: Annotated[list[Book], e.author_books.books]
+    id: int                  
+    name: str             
+    books: list[Book]
 
-
-with psycopg.connect('YOUR-CONN-STR') as conn:
-    with conn.cursor() as cursor:
-        authors = pg.get_many(
-            cursor=cursor,
-            select=Author,   
-            from_=e.author.
-                JOIN(
-                    q.SELECT((e.author_id, f.json_agg(e.book).AS('books'))).
-                    FROM(e.book).
-                    GROUP_BY(e.author_id).
-                    AS('author_books')
-                ).ON(e.author.id == e.author_books.author_id),
-        )
+    
+def get_author(cursor: Cursor, id_: int) -> Author | None:
+    return pg.get_one(
+        cursor=cursor,
+        as_=Author,
+        select=(e.author.id, e.author.name, e.author_books.books),   
+        from_=e.author.
+            JOIN(
+                q.SELECT((e.author_id, f.json_agg(e.book).AS('books'))).
+                FROM(e.book).
+                GROUP_BY(e.author_id).
+                AS('author_books')
+            ).ON(e.author.id == e.author_books.author_id),
+        where=e.author.id == id_,
+    )
 ```
 
 ## Main Components
@@ -135,9 +140,9 @@ raw SQL. Both approaches have their upsides and downsides:
 - ORMs: While convenient, ORMs map directly to tables, but real-world applications often require modeling relationships. This leads to additional data models and more database requests, increasing complexity and overhead.
 - Raw SQL: Writing raw SQL avoids the abstraction but comes with its own challenges, such as repetitive code and difficulty handling optional filters or sorting conditions effectively.
 
-Unlike traditional ORMs, **pgcrud** uses powerful data annotations to map database objects to Python models only when needed. This drastically 
+Unlike traditional ORMs, **pgcrud** enables you to define generic, flexible references to any database object. This drastically 
 reduces the code base and enables highly efficient querying. It offers built-in Pydantic integration and is specifically tailored for 
-PostgreSQL, providing a more flexible and streamlined approach than SQLAlchemy.
+PostgreSQL, providing a more efficient approach than SQLAlchemy.
 
 ## Type Hints
 **pgcrud** offers full support for type hints, making it easier to write and maintain your code with better autocompletion and error checking.
