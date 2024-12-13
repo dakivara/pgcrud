@@ -27,7 +27,7 @@ The link to the comprehensive documentation is [here](https://pgcrud.com/). Plea
 ## Example
 
 Imagine you have an Author and Book table in your schema. Each author (the parent) has authored several books (the children). 
-With pgcrud you can easily fetch the authors including their books in a single request and return the result as a list of Pydantic models.
+With pgcrud you can easily fetch the author including the author's books in a single request and return the result as a Pydantic model.
 
 ```python
 from psycopg import Cursor
