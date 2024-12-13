@@ -33,3 +33,6 @@ INSERT INTO book (id, title, author_id) VALUES (6, 'A Storm of Swords', 2);
 INSERT INTO book (id, title, author_id) VALUES (7, 'The Da Vinci Code', 3);
 INSERT INTO book (id, title, author_id) VALUES (8, 'Angels & Demons', 3);
 INSERT INTO book (id, title, author_id) VALUES (9, 'Inferno', 3);
+
+SELECT setval('author_id_seq', 4);
+SELECT setval('book_id_seq', 10);
