@@ -415,8 +415,6 @@ class ReferenceExpr(ScalarExpr):
     _parent: 'ReferenceExpr | None' = None
 
     def __getattr__(self, name: str) -> 'ReferenceExpr':
-        if name in ['__get_pydantic_core_schema__', '__get_pydantic_json_schema__', '__modify_schema__', '__origin__']:
-            return super().__getattribute__(name)
         return ReferenceExpr(name, self)
 
     def __getitem__(self, item: 'ReferenceExpr | tuple[ReferenceExpr, ...]') -> 'TableReferenceExpr':
