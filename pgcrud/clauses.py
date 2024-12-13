@@ -3,7 +3,6 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 
 from psycopg.sql import SQL, Composed, Literal
-from pydantic import BaseModel
 
 from pgcrud.expr import Expr, ReferenceExpr, AliasExpr
 from pgcrud.frame_boundaries import FrameBoundary
@@ -59,33 +58,10 @@ class Select(Clause):
     value: SelectValueType
 
     def __bool__(self) -> bool:
-        return bool(self.exprs)
-
-    def __post_init__(self):
-        
-        exprs: list[Expr] = []
-
-        if isinstance(self.value, type) and issubclass(self.value, BaseModel):
-            for name, field in self.value.model_fields.items():
-                expr = ReferenceExpr(name)
-
-                for m in field.metadata:
-                    if isinstance(m, Expr):
-                        expr = m
-                        break
-
-                if expr:
-                    exprs.append(expr)
-
-        else:
-            for expr in ensure_seq(self.value):
-                if expr:
-                    exprs.append(expr)
-
-        self.exprs = exprs
+        return True
 
     def get_composed(self) -> Composed:
-        return SQL('SELECT {}').format(SQL(', ').join([expr.get_composed() for expr in self.exprs]))
+        return SQL('SELECT {}').format(SQL(', ').join([expr.get_composed() for expr in ensure_seq(self.value)]))
 
 
 @dataclass(repr=False)
@@ -115,20 +91,10 @@ class GroupBy(Clause):
     value: GroupByValueType
 
     def __bool__(self) -> bool:
-        return bool(self.exprs)
-
-    def __post_init__(self):
-
-        exprs: list[Expr] = []
-
-        for expr in ensure_seq(self.value):
-            if expr:
-                exprs.append(expr)
-
-        self.exprs = exprs
+        return True
 
     def get_composed(self) -> Composed:
-        return SQL('GROUP BY {}').format(SQL(', ').join([expr.get_composed() for expr in self.exprs]))
+        return SQL('GROUP BY {}').format(SQL(', ').join([expr.get_composed() for expr in ensure_seq(self.value)]))
 
 
 @dataclass(repr=False)
@@ -248,33 +214,10 @@ class Returning(Clause):
     value: ReturningValueType
 
     def __bool__(self) -> bool:
-        return bool(self.exprs)
-
-    def __post_init__(self):
-
-        exprs: list[Expr] = []
-
-        if isinstance(self.value, type) and issubclass(self.value, BaseModel):
-            for name, field in self.value.model_fields.items():
-                expr = ReferenceExpr(name)
-
-                for m in field.metadata:
-                    if isinstance(m, Expr):
-                        expr = m
-                        break
-
-                if expr:
-                    exprs.append(expr)
-
-        else:
-            for expr in ensure_seq(self.value):
-                if expr:
-                    exprs.append(expr)
-
-        self.exprs = exprs
+        return True
 
     def get_composed(self) -> Composed:
-        return SQL('RETURNING {}').format(SQL(', ').join([expr.get_composed() for expr in self.exprs]))
+        return SQL('RETURNING {}').format(SQL(', ').join([expr.get_composed() for expr in ensure_seq(self.value)]))
 
 
 @dataclass(repr=False)
