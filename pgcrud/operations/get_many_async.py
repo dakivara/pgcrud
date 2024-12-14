@@ -1,18 +1,13 @@
-from typing import Any, Literal, TypeVar, overload
+from typing import Literal, overload
 
-from psycopg import AsyncCursor
-
-from pgcrud.operations.shared import get_async_row_factory, construct_composed_get_query
-from pgcrud.types import GroupByValueType, HavingValueType, SelectValueType, FromValueType, WhereValueType, OrderByValueType, WindowValueType
-
-
-T = TypeVar('T')
+from pgcrud.db import AsyncCursor, AsyncServerCursor
+from pgcrud.operations.shared import construct_composed_get_query
+from pgcrud.types import GroupByValueType, HavingValueType, Row, SelectValueType, FromValueType, WhereValueType, OrderByValueType, WindowValueType
 
 
 @overload
 async def get_many(
-        cursor: AsyncCursor[Any],
-        as_: type[T],
+        cursor: AsyncCursor[Row] | AsyncServerCursor[Row],
         select: SelectValueType,
         from_: FromValueType,
         *,
@@ -24,13 +19,12 @@ async def get_many(
         limit: int | None = None,
         offset: int | None = None,
         no_fetch: Literal[False] = False,
-) -> list[T]: ...
+) -> list[Row]: ...
 
 
 @overload
 async def get_many(
-        cursor: AsyncCursor[Any],
-        as_: type[T],
+        cursor: AsyncCursor[Row],
         select: SelectValueType,
         from_: FromValueType,
         *,
@@ -42,12 +36,28 @@ async def get_many(
         limit: int | None = None,
         offset: int | None = None,
         no_fetch: Literal[True],
-) -> AsyncCursor[T]: ...
+) -> AsyncCursor[Row]: ...
+
+
+@overload
+async def get_many(
+        cursor: AsyncServerCursor[Row],
+        select: SelectValueType,
+        from_: FromValueType,
+        *,
+        where: WhereValueType | None = None,
+        group_by: GroupByValueType | None = None,
+        having: HavingValueType | None = None,
+        window: WindowValueType | None = None,
+        order_by: OrderByValueType | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+        no_fetch: Literal[True],
+) -> AsyncServerCursor[Row]: ...
 
 
 async def get_many(
-        cursor: AsyncCursor[Any],
-        as_: type[T],
+        cursor: AsyncCursor[Row] | AsyncServerCursor[Row],
         select: SelectValueType,
         from_: FromValueType,
         *,
@@ -59,9 +69,8 @@ async def get_many(
         limit: int | None = None,
         offset: int | None = None,
         no_fetch: bool | None = False,
-) -> list[T] | AsyncCursor[T]:
+) -> list[Row] | AsyncCursor[Row] | AsyncServerCursor[Row]:
 
-    cursor.row_factory = get_async_row_factory(as_)
     query = construct_composed_get_query(select, from_, where, group_by, having, window, order_by, limit, offset)
     await cursor.execute(query)
 

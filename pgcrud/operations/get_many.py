@@ -1,18 +1,13 @@
-from typing import Any, Literal, TypeVar, overload
+from typing import Any, Literal, overload
 
-from psycopg import Cursor
-
+from pgcrud.db import Cursor, ServerCursor
 from pgcrud.operations.shared import get_row_factory, construct_composed_get_query
-from pgcrud.types import GroupByValueType, HavingValueType, SelectValueType, FromValueType, WhereValueType, OrderByValueType, WindowValueType
-
-
-T = TypeVar('T')
+from pgcrud.types import GroupByValueType, HavingValueType, Row, SelectValueType, FromValueType, WhereValueType, OrderByValueType, WindowValueType
 
 
 @overload
 def get_many(
-        cursor: Cursor[Any],
-        as_: type[T],
+        cursor: Cursor[Row] | ServerCursor[Row],
         select: SelectValueType,
         from_: FromValueType,
         *,
@@ -24,13 +19,12 @@ def get_many(
         limit: int | None = None,
         offset: int | None = None,
         no_fetch: Literal[False] = False,
-) -> list[T]: ...
+) -> list[Row]: ...
 
 
 @overload
 def get_many(
-        cursor: Cursor[Any],
-        as_: type[T],
+        cursor: Cursor[Row],
         select: SelectValueType,
         from_: FromValueType,
         *,
@@ -42,12 +36,28 @@ def get_many(
         limit: int | None = None,
         offset: int | None = None,
         no_fetch: Literal[True],
-) -> Cursor[T]: ...
+) -> Cursor[Row]: ...
+
+
+@overload
+def get_many(
+        cursor: ServerCursor[Row],
+        select: SelectValueType,
+        from_: FromValueType,
+        *,
+        where: WhereValueType | None = None,
+        group_by: GroupByValueType | None = None,
+        having: HavingValueType | None = None,
+        window: WindowValueType | None = None,
+        order_by: OrderByValueType | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+        no_fetch: Literal[True],
+) -> ServerCursor[Row]: ...
 
 
 def get_many(
-        cursor: Cursor[Any],
-        as_: type[T],
+        cursor: Cursor[Row] | ServerCursor[Row],
         select: SelectValueType,
         from_: FromValueType,
         *,
@@ -59,9 +69,8 @@ def get_many(
         limit: int | None = None,
         offset: int | None = None,
         no_fetch: bool | None = False,
-) -> list[T] | Cursor[T]:
+) -> list[Row] | Cursor[Row] | ServerCursor[Row]:
 
-    cursor.row_factory = get_row_factory(as_)
     query = construct_composed_get_query(select, from_, where, group_by, having, window, order_by, limit, offset)
     cursor.execute(query)
 
