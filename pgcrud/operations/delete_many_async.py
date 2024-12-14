@@ -1,17 +1,13 @@
-from typing import Any, Literal, TypeVar, overload
+from typing import Literal, overload
 
-from psycopg import AsyncCursor
-
-from pgcrud.operations.shared import get_async_row_factory, construct_composed_delete_query
-from pgcrud.types import DeleteFromValueType, ReturningValueType, UsingValueType, WhereValueType
-
-
-T = TypeVar('T')
+from pgcrud.db import AsyncCursor, AsyncServerCursor
+from pgcrud.operations.shared import construct_composed_delete_query
+from pgcrud.types import DeleteFromValueType, ReturningValueType, Row, UsingValueType, WhereValueType
 
 
 @overload
 async def delete_many(
-        cursor: AsyncCursor[Any],
+        cursor: AsyncCursor[Row] | AsyncServerCursor[Row],
         delete_from: DeleteFromValueType,
         *,
         using: UsingValueType | None = None,
@@ -23,48 +19,54 @@ async def delete_many(
 
 @overload
 async def delete_many(
-        cursor: AsyncCursor[Any],
+        cursor: AsyncCursor[Row] | AsyncServerCursor[Row],
         delete_from: DeleteFromValueType,
         *,
         using: UsingValueType | None = None,
         where: WhereValueType | None = None,
         returning: ReturningValueType,
-        as_: type[T],
         no_fetch: Literal[False] = False,
-) -> list[T]: ...
+) -> list[Row]: ...
 
 
 @overload
 async def delete_many(
-        cursor: AsyncCursor[Any],
+        cursor: AsyncCursor[Row],
         delete_from: DeleteFromValueType,
         *,
         using: UsingValueType | None = None,
         where: WhereValueType | None = None,
         returning: ReturningValueType,
-        as_: type[T],
         no_fetch: Literal[True],
-) -> AsyncCursor[T]: ...
+) -> AsyncCursor[Row]: ...
+
+
+@overload
+async def delete_many(
+        cursor: AsyncServerCursor[Row],
+        delete_from: DeleteFromValueType,
+        *,
+        using: UsingValueType | None = None,
+        where: WhereValueType | None = None,
+        returning: ReturningValueType,
+        no_fetch: Literal[True],
+) -> AsyncServerCursor[Row]: ...
 
 
 async def delete_many(
-        cursor: AsyncCursor[Any],
+        cursor: AsyncCursor[Row] | AsyncServerCursor[Row],
         delete_from: DeleteFromValueType,
         *,
         using: UsingValueType | None = None,
         where: WhereValueType | None = None,
         returning: ReturningValueType | None = None,
-        as_: type[T] | None = None,
         no_fetch: bool = False,
-) -> list[T] | AsyncCursor[T] | None:
-
-    if returning and as_:
-        cursor.row_factory = get_async_row_factory(as_)
+) -> list[Row] | AsyncCursor[Row] | AsyncServerCursor[Row] | None:
 
     query = construct_composed_delete_query(delete_from, using, where, returning)
     await cursor.execute(query)
 
-    if returning and as_:
+    if returning:
         if no_fetch:
             return cursor
         else:
