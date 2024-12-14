@@ -1,17 +1,13 @@
-from typing import Any, Literal, TypeVar, overload
+from typing import Literal, overload
 
-from psycopg import AsyncCursor
-
-from pgcrud.operations.shared import get_async_row_factory, construct_composed_update_query
-from pgcrud.types import FromValueType, UpdateValueType, SetColsType, SetValuesType, WhereValueType, ReturningValueType, AdditionalValuesType
-
-
-T = TypeVar('T')
+from pgcrud.db import AsyncCursor, AsyncServerCursor
+from pgcrud.operations.shared import construct_composed_update_query
+from pgcrud.types import FromValueType, Row, UpdateValueType, SetColsType, SetValuesType, WhereValueType, ReturningValueType, AdditionalValuesType
 
 
 @overload
 async def update_many(
-        cursor: AsyncCursor[Any],
+        cursor: AsyncCursor[Row] | AsyncServerCursor[Row],
         update: UpdateValueType,
         set_columns: SetColsType,
         set_values: SetValuesType,
@@ -19,7 +15,6 @@ async def update_many(
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
         returning: None = None,
-        as_: None = None,
         additional_values: AdditionalValuesType | None = None,
         no_fetch: Literal[False] = False,
 ) -> None: ...
@@ -27,7 +22,7 @@ async def update_many(
 
 @overload
 async def update_many(
-        cursor: AsyncCursor[Any],
+        cursor: AsyncCursor[Row] | AsyncServerCursor[Row],
         update: UpdateValueType,
         set_columns: SetColsType,
         set_values: SetValuesType,
@@ -35,15 +30,14 @@ async def update_many(
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
         returning: ReturningValueType,
-        as_: type[T],
         additional_values: AdditionalValuesType | None = None,
         no_fetch: Literal[False] = False,
-) -> list[T]: ...
+) -> list[Row]: ...
 
 
 @overload
 async def update_many(
-        cursor: AsyncCursor[Any],
+        cursor: AsyncCursor[Row],
         update: UpdateValueType,
         set_columns: SetColsType,
         set_values: SetValuesType,
@@ -51,14 +45,28 @@ async def update_many(
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
         returning: ReturningValueType,
-        as_: type[T],
         additional_values: AdditionalValuesType | None = None,
         no_fetch: Literal[True],
-) -> AsyncCursor[T]: ...
+) -> AsyncCursor[Row]: ...
+
+
+@overload
+async def update_many(
+        cursor: AsyncServerCursor[Row],
+        update: UpdateValueType,
+        set_columns: SetColsType,
+        set_values: SetValuesType,
+        *,
+        from_: FromValueType | None = None,
+        where: WhereValueType | None = None,
+        returning: ReturningValueType,
+        additional_values: AdditionalValuesType | None = None,
+        no_fetch: Literal[True],
+) -> AsyncServerCursor[Row]: ...
 
 
 async def update_many(
-        cursor: AsyncCursor[Any],
+        cursor: AsyncCursor[Row] | AsyncServerCursor[Row],
         update: UpdateValueType,
         set_columns: SetColsType,
         set_values: SetValuesType,
@@ -66,18 +74,14 @@ async def update_many(
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
         returning: ReturningValueType | None = None,
-        as_: type[T] | None = None,
         additional_values: AdditionalValuesType | None = None,
         no_fetch: bool = False,
-) -> list[T] | AsyncCursor[T] | None:
-
-    if returning and as_:
-        cursor.row_factory = get_async_row_factory(as_)
+) -> list[Row] | AsyncCursor[Row] | AsyncServerCursor[Row] | None:
 
     query = construct_composed_update_query(update, set_columns, set_values, from_,  where, returning, additional_values)
     await cursor.execute(query)
 
-    if returning and as_:
+    if returning:
         if no_fetch:
             return cursor
         else:

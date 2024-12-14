@@ -1,17 +1,13 @@
-from typing import Any, Literal, TypeVar, overload
+from typing import Literal, overload
 
-from psycopg import Cursor
-
-from pgcrud.operations.shared import get_row_factory, construct_composed_update_query
-from pgcrud.types import FromValueType, UpdateValueType, SetColsType, SetValuesType, WhereValueType, ReturningValueType, AdditionalValuesType
-
-
-T = TypeVar('T')
+from pgcrud.db import Cursor, ServerCursor
+from pgcrud.operations.shared import construct_composed_update_query
+from pgcrud.types import FromValueType, Row, UpdateValueType, SetColsType, SetValuesType, WhereValueType, ReturningValueType, AdditionalValuesType
 
 
 @overload
 def update_many(
-        cursor: Cursor[Any],
+        cursor: Cursor[Row] | ServerCursor[Row],
         update: UpdateValueType,
         set_columns: SetColsType,
         set_values: SetValuesType,
@@ -19,7 +15,6 @@ def update_many(
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
         returning: None = None,
-        as_: None = None,
         additional_values: AdditionalValuesType | None = None,
         no_fetch: Literal[False] = False,
 ) -> None: ...
@@ -27,7 +22,7 @@ def update_many(
 
 @overload
 def update_many(
-        cursor: Cursor[Any],
+        cursor: Cursor[Row] | ServerCursor[Row],
         update: UpdateValueType,
         set_columns: SetColsType,
         set_values: SetValuesType,
@@ -35,15 +30,14 @@ def update_many(
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
         returning: ReturningValueType,
-        as_: type[T],
         additional_values: AdditionalValuesType | None = None,
         no_fetch: Literal[False] = False,
-) -> list[T]: ...
+) -> list[Row]: ...
 
 
 @overload
 def update_many(
-        cursor: Cursor[Any],
+        cursor: Cursor[Row],
         update: UpdateValueType,
         set_columns: SetColsType,
         set_values: SetValuesType,
@@ -51,14 +45,28 @@ def update_many(
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
         returning: ReturningValueType,
-        as_: type[T],
         additional_values: AdditionalValuesType | None = None,
         no_fetch: Literal[True],
-) -> Cursor[T]: ...
+) -> Cursor[Row]: ...
+
+
+@overload
+def update_many(
+        cursor: ServerCursor[Row],
+        update: UpdateValueType,
+        set_columns: SetColsType,
+        set_values: SetValuesType,
+        *,
+        from_: FromValueType | None = None,
+        where: WhereValueType | None = None,
+        returning: ReturningValueType,
+        additional_values: AdditionalValuesType | None = None,
+        no_fetch: Literal[True],
+) -> ServerCursor[Row]: ...
 
 
 def update_many(
-        cursor: Cursor[Any],
+        cursor: Cursor[Row] | ServerCursor[Row],
         update: UpdateValueType,
         set_columns: SetColsType,
         set_values: SetValuesType,
@@ -66,13 +74,9 @@ def update_many(
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
         returning: ReturningValueType | None = None,
-        as_: type[T] | None = None,
         additional_values: AdditionalValuesType | None = None,
         no_fetch: bool = False,
-) -> list[T] | Cursor[T] | None:
-
-    if returning and as_:
-        cursor.row_factory = get_row_factory(as_)
+) -> list[Row] | Cursor[Row] | ServerCursor[Row] | None:
 
     query = construct_composed_update_query(update, set_columns, set_values, from_, where, returning, additional_values)
     cursor.execute(query)
