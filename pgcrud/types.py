@@ -1,5 +1,6 @@
 from collections.abc import Sequence
-from typing import Any, Literal, TypeVar, Union, TYPE_CHECKING
+from typing import Any, Literal, Union, TYPE_CHECKING
+from typing_extensions import TypeVar
 
 from pydantic import BaseModel
 
@@ -10,7 +11,8 @@ if TYPE_CHECKING:
 
 
 __all__ = [
-    'PydanticModel',
+    'Row',
+    'T',
     'SelectValueType',
     'FromValueType',
     'WhereValueType',
@@ -33,7 +35,8 @@ __all__ = [
 ]
 
 
-PydanticModel = TypeVar('PydanticModel', bound=BaseModel)
+Row = TypeVar('Row', covariant=True, default=tuple[Any, ...])
+T = TypeVar('T')
 SelectValueType = Union['Expr', Sequence['Expr']]
 FromValueType = Union['Expr']
 WhereValueType = Union['FilterOperator']
