@@ -1,5 +1,5 @@
 from types import GenericAlias
-from typing import Any, TypeVar
+from typing import Any
 
 import msgspec
 from psycopg.rows import BaseRowFactory, scalar_row, tuple_row, dict_row, class_row, args_row, kwargs_row

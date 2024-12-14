@@ -1,7 +1,7 @@
-from typing import Any, Literal, overload
+from typing import Literal, overload
 
 from pgcrud.db import Cursor, ServerCursor
-from pgcrud.operations.shared import get_row_factory, construct_composed_get_query
+from pgcrud.operations.shared import construct_composed_get_query
 from pgcrud.types import GroupByValueType, HavingValueType, Row, SelectValueType, FromValueType, WhereValueType, OrderByValueType, WindowValueType
 
 
