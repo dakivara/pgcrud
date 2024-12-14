@@ -1,11 +1,9 @@
+import importlib.util
+
 
 __all__ = [
     'is_pydantic_installed',
 ]
 
 
-try:
-    import pydantic
-    is_pydantic_installed = True
-except ImportError:
-    is_pydantic_installed = False
+is_pydantic_installed =  bool(importlib.util.find_spec('pydantic'))
