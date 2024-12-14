@@ -1,51 +1,15 @@
-from typing import Any, get_origin
-from types import GenericAlias
-
 from psycopg.sql import Composed
-from psycopg.rows import class_row, RowFactory, AsyncRowFactory
-from pydantic import BaseModel
 
-from pgcrud.custom_row_factories import scalar_row, tuple_row, dict_row
 from pgcrud.query_builder import QueryBuilder as q
 from pgcrud.types import DeleteFromValueType, GroupByValueType, HavingValueType, SelectValueType, FromValueType, SetColsType, SetValuesType, UpdateValueType, UsingValueType, WhereValueType, OrderByValueType, InsertIntoValueType, ValuesValueType, ReturningValueType, AdditionalValuesType, WindowValueType
 
 
 __all__ = [
-    'get_row_factory',
-    'get_async_row_factory',
     'construct_composed_get_query',
     'construct_composed_insert_query',
     'construct_composed_update_query',
     'construct_composed_delete_query',
 ]
-
-
-def get_row_factory(as_: type) -> RowFactory[Any]:
-
-    base = get_origin(as_) if isinstance(as_, GenericAlias) else as_
-
-    if issubclass(base, BaseModel):
-        return class_row(as_)
-    elif issubclass(base, dict):
-        return dict_row(as_)    # type: ignore
-    elif issubclass(base, tuple):
-        return tuple_row(as_)   # type: ignore
-    else:
-        return scalar_row(as_)
-
-
-def get_async_row_factory(as_: type) -> AsyncRowFactory[Any]:
-
-    base = get_origin(as_) if isinstance(as_, GenericAlias) else as_
-
-    if issubclass(base, BaseModel):
-        return class_row(as_)
-    elif issubclass(base, dict):
-        return dict_row(as_)    # type: ignore
-    elif issubclass(base, tuple):
-        return tuple_row(as_)   # type: ignore
-    else:
-        return scalar_row(as_)
 
 
 def construct_composed_get_query(
