@@ -1,17 +1,10 @@
-from typing import Any, TypeVar
-
-from psycopg import Cursor
-
-from pgcrud.operations.shared import get_row_factory, construct_composed_get_query
-from pgcrud.types import GroupByValueType, HavingValueType, SelectValueType, FromValueType, WhereValueType, OrderByValueType, WindowValueType
-
-
-T = TypeVar('T')
+from pgcrud.db.cursor import Cursor, ServerCursor
+from pgcrud.operations.shared import construct_composed_get_query
+from pgcrud.types import GroupByValueType, HavingValueType, Row, SelectValueType, FromValueType, WhereValueType, OrderByValueType, WindowValueType
 
 
 def get_one(
-        cursor: Cursor[Any],
-        as_: type[T],
+        cursor: Cursor[Row] | ServerCursor[Row],
         select: SelectValueType,
         from_: FromValueType,
         *,
@@ -21,9 +14,8 @@ def get_one(
         window: WindowValueType | None = None,
         order_by: OrderByValueType | None = None,
         offset: int | None = None,
-) -> T | None:
+) -> Row | None:
 
-    cursor.row_factory = get_row_factory(as_)
     query = construct_composed_get_query(select, from_, where, group_by, having, window, order_by, 1, offset)
     cursor.execute(query)
 

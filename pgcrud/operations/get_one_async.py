@@ -1,17 +1,10 @@
-from typing import Any, TypeVar
-
-from psycopg import AsyncCursor
-
-from pgcrud.operations.shared import get_async_row_factory, construct_composed_get_query
-from pgcrud.types import GroupByValueType, HavingValueType, SelectValueType, FromValueType, WhereValueType, OrderByValueType, WindowValueType
-
-
-T = TypeVar('T')
+from pgcrud.db import AsyncCursor, AsyncServerCursor
+from pgcrud.operations.shared import construct_composed_get_query
+from pgcrud.types import GroupByValueType, HavingValueType, Row, SelectValueType, FromValueType, WhereValueType, OrderByValueType, WindowValueType
 
 
 async def get_one(
-        cursor: AsyncCursor[Any],
-        as_: type[T],
+        cursor: AsyncCursor[Row] | AsyncServerCursor[Row],
         select: SelectValueType,
         from_: FromValueType,
         *,
@@ -21,9 +14,8 @@ async def get_one(
         window: WindowValueType | None = None,
         order_by: OrderByValueType | None = None,
         offset: int | None = None,
-) -> T | None:
+) -> Row | None:
 
-    cursor.row_factory = get_async_row_factory(as_)
     query = construct_composed_get_query(select, from_, where, group_by, having, window, order_by, 1, offset)
     await cursor.execute(query)
 
