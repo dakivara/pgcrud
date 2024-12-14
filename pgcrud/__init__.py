@@ -1,3 +1,4 @@
+from pgcrud.db.connection import Connection, ConnectionPool, Cursor
 from pgcrud.operations.get_one import get_one
 from pgcrud.operations.get_many import get_many
 from pgcrud.operations.insert_one import insert_one
@@ -12,6 +13,10 @@ from pgcrud.undefined import Undefined
 
 
 __all__ = [
+    'Connection',
+    'ConnectionPool',
+    'Cursor',
+    'connect',
     'get_one',
     'get_many',
     'insert_one',
@@ -24,3 +29,6 @@ __all__ = [
     'q',
     'Undefined',
 ]
+
+
+connect = Connection.connect
