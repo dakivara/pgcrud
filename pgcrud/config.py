@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import TypedDict
 
+import psycopg.types.json
+
 from pgcrud.optional_dependencies import is_pydantic_installed, is_msgspec_installed
 from pgcrud.types import ValidationType
 
@@ -46,6 +48,12 @@ class Config:
     @strict_validation.setter
     def strict_validation(self, value: bool) -> None:
         self._strict_validation = value
+
+    def set_json_loads(self, loads: psycopg.types.json.JsonLoadsFunction):
+        psycopg.types.json.set_json_loads(loads)
+
+    def set_json_dumps(self, dumps: psycopg.types.json.JsonDumpsFunction):
+        psycopg.types.json.set_json_dumps(dumps)
 
 
 class ConfigDict(TypedDict, total=False):
