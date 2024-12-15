@@ -2,13 +2,12 @@ from abc import abstractmethod
 from collections.abc import Sequence
 from dataclasses import dataclass
 
-import msgspec
 from psycopg.sql import SQL, Composed, Literal
 
 from pgcrud.expr import Expr, ReferenceExpr, AliasExpr
 from pgcrud.frame_boundaries import FrameBoundary
 from pgcrud.operators import SortOperator
-from pgcrud.optional_dependencies import is_pydantic_installed, is_pydantic_instance
+from pgcrud.optional_dependencies import is_pydantic_installed, is_pydantic_instance, is_msgspec_installed, is_msgspec_instance, msgspec_to_dict, pydantic_to_dict
 from pgcrud.types import AdditionalValuesType, DeleteFromValueType, FromValueType, GroupByValueType, HavingValueType, InsertIntoValueType, OrderByValueType, PartitionByValueType, ReturningValueType, SelectValueType, SetColsType, SetValuesType, UpdateValueType, UsingValueType, ValuesValueType, WhereValueType, WindowValueType
 from pgcrud.utils import ensure_seq
 
@@ -190,14 +189,14 @@ class Values(Clause):
 
         for vals in self.value:
 
-            if isinstance(vals, msgspec.Struct):
+            if is_msgspec_installed and is_msgspec_instance(vals):
                 params = self.additional_values.copy()
-                params.update(msgspec.to_builtins(vals))
+                params.update(msgspec_to_dict(vals))
                 vals_composed = SQL(', ').join([Literal(params.get(expr._name)) for expr in self.get_exprs()])
 
             elif is_pydantic_installed and is_pydantic_instance(vals):
                 params = self.additional_values.copy()
-                params.update(vals.model_dump(by_alias=True))  # type: ignore
+                params.update(pydantic_to_dict(vals))
                 vals_composed = SQL(', ').join([Literal(params.get(expr._name)) for expr in self.get_exprs()])
 
             elif isinstance(vals, dict):
@@ -257,14 +256,14 @@ class Set(Clause):
 
         composed_cols = SQL(', ').join([expr.get_composed() for expr in self.cols])
 
-        if isinstance(self.values, msgspec.Struct):
+        if is_msgspec_installed and is_msgspec_instance(self.values):
             params = self.additional_values.copy()
-            params.update(msgspec.to_builtins(self.values))
+            params.update(msgspec_to_dict(self.values))
             vals_composed = SQL(', ').join([Literal(params.get(expr._name)) for expr in self.cols])
 
         elif is_pydantic_installed and is_pydantic_instance(self.values):
             params = self.additional_values.copy()
-            params.update(self.values.model_dump(by_alias=True))  # type: ignore
+            params.update(pydantic_to_dict(self.values))
             vals_composed = SQL(', ').join([Literal(params.get(expr._name)) for expr in self.cols])
 
         elif isinstance(self.values, dict):

@@ -1,3 +1,4 @@
+from pgcrud.config import config
 from pgcrud.db.connection import Connection, ConnectionPool, Cursor
 from pgcrud.operations.get_one import get_one
 from pgcrud.operations.get_many import get_many
@@ -13,6 +14,7 @@ from pgcrud.undefined import Undefined
 
 
 __all__ = [
+    'config',
     'Connection',
     'ConnectionPool',
     'Cursor',

@@ -1,7 +1,9 @@
-import msgspec
+import warnings
+
 from psycopg.rows import BaseRowFactory, scalar_row, tuple_row, dict_row, class_row, args_row, kwargs_row
 
-from pgcrud.optional_dependencies import is_pydantic_installed, is_pydantic_model
+from pgcrud.config import config
+from pgcrud.optional_dependencies import is_pydantic_installed, is_pydantic_model, is_msgspec_installed, is_msgspec_model, msgspec_kwargs_fun_generator, pydantic_kwargs_fun_generator, pydantic_args_fun_generator, msgspec_args_fun_generator, pydantic_scalar_row_generator, msgspec_scalar_row_generator
 from pgcrud.types import T
 
 
@@ -11,49 +13,82 @@ __all__ = [
 ]
 
 
+warning_message = 'Validation is not performed because no validation library is configured. This may lead to unexpected behavior.'
+
+
 def get_params(item: type[T] | tuple[type[T]] | tuple[type[T], bool] | tuple[type[T], bool, bool]) -> tuple[type[T], bool, bool]:
 
     if not isinstance(item, tuple):
-        item = (item, False, False)
+        item = (item, config.validation_default, config.strict_default)
     elif len(item) == 1:
-        item += (False, False)
+        item += (config.validation_default, config.strict_default)
     elif len(item) == 2:
-        item += (False,)
+        item += (config.strict_default,)
 
-    type_, validate, strict = item
-    type_: type[T]  # Pyright is not correctly inferring the type
+    row_type, validate, strict = item
+    row_type: type[T]  # Pyright is not correctly inferring the type
 
-    return type_, validate, strict
+    return row_type, validate, strict
 
 
-def get_row_factory(type_: type[T], validate: bool, strict: bool) -> BaseRowFactory[T]:
+def get_row_factory(row_type: type[T], validate: bool, strict: bool) -> BaseRowFactory[T]:
 
-    if issubclass(type_, msgspec.Struct):
+    if is_msgspec_installed and is_msgspec_model(row_type):
         if validate:
-            return kwargs_row(lambda **kwargs: msgspec.convert(kwargs, type=type_, strict=strict))
+            if config.validation_library == 'pydantic':
+                return kwargs_row(pydantic_kwargs_fun_generator(row_type, strict))
+            elif config.validation_library == 'msgspec':
+                return kwargs_row(msgspec_kwargs_fun_generator(row_type, strict))
+            else:
+                warnings.warn(warning_message)
+                return class_row(row_type)
         else:
-            return class_row(type_)
+            return class_row(row_type)
 
-    elif is_pydantic_installed and is_pydantic_model(type_):
+    elif is_pydantic_installed and is_pydantic_model(row_type):
         if validate:
-            return class_row(type_)
+            if config.validation_library == 'pydantic':
+                return class_row(row_type)
+            elif config.validation_library == 'msgspec':
+                return kwargs_row(msgspec_kwargs_fun_generator(row_type, strict))
+            else:
+                warnings.warn(warning_message)
+                return class_row(row_type) # TODO: needs to be implemented
         else:
-            return kwargs_row(type_.model_construct)  # type: ignore
+            return kwargs_row(row_type.model_construct)  # type: ignore
 
-    elif issubclass(getattr(type_, '__origin__', type_), dict):
+    elif issubclass(getattr(row_type, '__origin__', row_type), dict):
         if validate:
-            return kwargs_row(lambda **kwargs: msgspec.convert(kwargs, type=type_, strict=strict))
+            if config.validation_library == 'pydantic':
+                return kwargs_row(pydantic_kwargs_fun_generator(row_type, strict))
+            elif config.validation_library == 'msgspec':
+                return kwargs_row(msgspec_kwargs_fun_generator(row_type, strict))
+            else:
+                warnings.warn(warning_message)
+                return dict_row  # type: ignore
         else:
             return dict_row  # type: ignore
 
-    elif issubclass(getattr(type_, '__origin__', type_), tuple):
+    elif issubclass(getattr(row_type, '__origin__', row_type), (tuple, list, set)):
         if validate:
-            return args_row(lambda *args: msgspec.convert(args, type=type_, strict=strict))
+            if config.validation_library == 'pydantic':
+                return args_row(pydantic_args_fun_generator(row_type, strict))
+            elif config.validation_library == 'msgspec':
+                return args_row(msgspec_args_fun_generator(row_type, strict))
+            else:
+                warnings.warn(warning_message)
+                return tuple_row  # type: ignore
         else:
             return tuple_row  # type: ignore
 
     else:
         if validate:
-            return args_row(lambda *args: msgspec.convert(args[0], type=type_, strict=strict))
+            if config.validation_library == 'pydantic':
+                return pydantic_scalar_row_generator(row_type, strict)
+            elif config.validation_library == 'msgspec':
+                return msgspec_scalar_row_generator(row_type, strict)
+            else:
+                warnings.warn(warning_message)
+                return scalar_row
         else:
             return scalar_row
