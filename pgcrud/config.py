@@ -3,7 +3,7 @@ from typing import TypedDict
 
 import psycopg.types.json
 
-from pgcrud.optional_dependencies import is_pydantic_installed, is_msgspec_installed
+from pgcrud.optional_dependencies import is_pydantic_installed, is_msgspec_installed, msgspec_json_dumps, msgspec_json_loads
 from pgcrud.types import ValidationType
 
 
@@ -62,3 +62,12 @@ class ConfigDict(TypedDict, total=False):
 
 
 config = Config()
+
+
+if is_pydantic_installed:
+    config.validation_library = 'pydantic'
+
+elif is_msgspec_installed:
+    config.validation_library = 'msgspec'
+    config.set_json_dumps(msgspec_json_dumps)
+    config.set_json_loads(msgspec_json_loads)

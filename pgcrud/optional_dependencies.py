@@ -1,4 +1,4 @@
-# pyright: reportPossiblyUnboundVariable=false
+# pyright: reportPossiblyUnboundVariable=false, reportMissingImports=false
 
 from collections.abc import Sequence
 import importlib.util
@@ -17,6 +17,7 @@ if is_pydantic_installed:
 
 if is_msgspec_installed:
     from msgspec import Struct as MsgspecModel, to_builtins as msgspec_to_builtins, convert as msgspec_convert
+    from msgspec.json import encode as msgspec_encode, decode as msgspec_decode
 
 
 __all__ = [
@@ -35,10 +36,12 @@ __all__ = [
     'msgspec_kwargs_fun_generator',
     'msgspec_args_fun_generator',
     'msgspec_scalar_row_generator',
+    'msgspec_json_dumps',
+    'msgspec_json_loads',
 ]
 
 
-pydantic_type_adapters: dict[type, PydanticTypeAdapter] = {}
+pydantic_type_adapters: dict[type, 'PydanticTypeAdapter'] = {}
 
 
 def is_generic_alias(type_: Any) -> bool:
@@ -61,11 +64,11 @@ def is_msgspec_instance(value: Any) -> bool:
     return isinstance(value, MsgspecModel)
 
 
-def pydantic_to_dict(value: PydanticModel) -> dict[str, Any]:
+def pydantic_to_dict(value: 'PydanticModel') -> dict[str, Any]:
     return value.model_dump(by_alias=True)
 
 
-def msgspec_to_dict(value: MsgspecModel) -> dict[str, Any]:
+def msgspec_to_dict(value: 'MsgspecModel') -> dict[str, Any]:
     return msgspec_to_builtins(value)
 
 
@@ -131,3 +134,11 @@ def msgspec_scalar_row_generator(row_type: type, strict: bool) -> BaseRowFactory
         return msgspec_scalar_row_
 
     return msgspec_scalar_row
+
+
+def msgspec_json_dumps(obj: Any) -> bytes:
+    return msgspec_encode(obj)
+
+
+def msgspec_json_loads(buf: bytes | str) -> Any:
+    return msgspec_decode(buf)
