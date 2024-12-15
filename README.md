@@ -2,13 +2,17 @@
 
 pgcrud is a Python package that makes **C**reate, **R**ead, **U**pdate, and **D**elete (**CRUD**) operations for PostgreSQL simple and fast. 
 
-- **Pydantic**: Native Pydantic integration.
-- **PostgreSQL**: Tailored to PostgreSQL with wide extensions support.
-- **Flexible**: Handle complex parent-child relationships.
-- **Safe**: Protection against SQL-Injection.
-- **Asynchronous**: Perform operations asynchronously (or synchronously).
-- **Lightweight**: Easy to integrate into existing projects.
-- **Type Hints**: Full type hint support.
+**Key Features**:
+
+- No ORM, declarative expressions only.
+- Built-in pydantic and msgspec support for data serialization & validation
+- Efficient handling of complex parent-child relationships 
+- Perform operations sync or async.
+- Full type hint support.
+- Easy to integrate into existing projects.
+- Protection against SQL-Injection
+- Tailored to PostgreSQL with wide extensions support.
+
 
 ## Installation
 
@@ -30,7 +34,6 @@ Imagine you have an Author and Book table in your schema. Each author (the paren
 With pgcrud you can easily fetch the author including the author's books in a single request and return the result as a Pydantic model.
 
 ```python
-from psycopg import Cursor
 from pydantic import BaseModel
 
 import pgcrud as pg
@@ -48,10 +51,9 @@ class Author(BaseModel):
     books: list[Book]
 
     
-def get_author(cursor: Cursor, id_: int) -> Author | None:
+def get_author(cursor: pg.Cursor, id_: int) -> Author | None:
     return pg.get_one(
-        cursor=cursor,
-        as_=Author,
+        cursor=cursor[Author],
         select=(e.author.id, e.author.name, e.author_books.books),   
         from_=e.author.
             JOIN(
@@ -62,6 +64,11 @@ def get_author(cursor: Cursor, id_: int) -> Author | None:
             ).ON(e.author.id == e.author_books.author_id),
         where=e.author.id == id_,
     )
+
+
+with pg.connect('CONN_STR') as conn:
+    with conn.cursor() as cursor:
+        get_author(cursor, 1)
 ```
 
 ## Main Components
@@ -140,9 +147,10 @@ raw SQL. Both approaches have their upsides and downsides:
 - ORMs: While convenient, ORMs map directly to tables, but real-world applications often require modeling relationships. This leads to additional data models and more database requests, increasing complexity and overhead.
 - Raw SQL: Writing raw SQL avoids the abstraction but comes with its own challenges, such as repetitive code and difficulty handling optional filters or sorting conditions effectively.
 
-Unlike traditional ORMs, **pgcrud** enables you to define generic, flexible references to any database object. This drastically 
-reduces the code base and enables highly efficient querying. It offers built-in Pydantic integration and is specifically tailored for 
+Unlike traditional ORMs, **pgcrud** enables you to define generic, declarative expressions. This drastically 
+reduces the code base and enables highly efficient querying. pgcrud has built-in data serialization and validation and is specifically tailored for 
 PostgreSQL, providing a more efficient approach than SQLAlchemy.
+
 
 ## Type Hints
 **pgcrud** offers full support for type hints, making it easier to write and maintain your code with better autocompletion and error checking.
