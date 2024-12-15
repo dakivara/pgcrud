@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 __all__ = [
     'Row',
     'T',
+    'ValidationType',
     'SelectValueType',
     'FromValueType',
     'WhereValueType',
@@ -34,6 +35,9 @@ __all__ = [
 
 Row = TypeVar('Row', covariant=True, default=tuple[Any, ...])
 T = TypeVar('T')
+
+ValidationType = Literal['pydantic', 'msgspec', None]
+
 SelectValueType = Union['Expr', Sequence['Expr']]
 FromValueType = Union['Expr']
 WhereValueType = Union['FilterOperator']

@@ -1,30 +1,33 @@
 from dataclasses import dataclass
-from typing import Literal
+from typing import TypedDict
 
 from pgcrud.optional_dependencies import is_pydantic_installed, is_msgspec_installed
+from pgcrud.types import ValidationType
 
 
-__all__ = ['config']
+__all__ = [
+    'ConfigDict',
+    'config',
+]
 
 
 @dataclass
 class Config:
-    _validation_library: Literal['pydantic', 'msgspec', None] = None
-    _validation_default: bool = False
-    _strict_default: bool = False
+    _validation_library: ValidationType = None
+    _strict_validation: bool = False
 
     def __str__(self):
-        return f'Config(validation_library={self.validation_library}, validation_default={self.validation_default}, strict_default={self._strict_default})'
+        return f'Config(validation_library={self.validation_library}, strict_validation={self.strict_validation})'
 
     def __repr__(self):
         return str(self)
 
     @property
-    def validation_library(self) -> Literal['pydantic', 'msgspec', None]:
+    def validation_library(self) -> ValidationType:
         return self._validation_library
 
     @validation_library.setter
-    def validation_library(self, value: Literal['pydantic', 'msgspec', None]):
+    def validation_library(self, value: ValidationType):
 
         if value == 'pydantic':
             if not is_pydantic_installed:
@@ -37,26 +40,17 @@ class Config:
         self._validation_library = value
 
     @property
-    def validation_default(self) -> bool:
-        return self._validation_default
+    def strict_validation(self) -> bool:
+        return self._strict_validation
 
-    @validation_default.setter
-    def validation_default(self, value: bool) -> None:
-        self._validation_default = value
+    @strict_validation.setter
+    def strict_validation(self, value: bool) -> None:
+        self._strict_validation = value
 
-    @property
-    def strict_default(self) -> bool:
-        return self._strict_default
 
-    @strict_default.setter
-    def strict_default(self, value: bool) -> None:
-        self._strict_default = value
+class ConfigDict(TypedDict, total=False):
+    validation_library: ValidationType
+    strict_validation: bool
 
 
 config = Config()
-
-
-if is_pydantic_installed:
-    config.validation_library = 'pydantic'
-elif is_msgspec_installed:
-    config.validation_library = 'msgspec'
