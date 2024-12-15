@@ -45,7 +45,8 @@ def get_row_factory(row_type: type[T], validate: ValidationType, strict: bool) -
         elif validate == 'msgspec':
             return kwargs_row(msgspec_kwargs_fun_generator(row_type, strict))
         else:
-            return kwargs_row(row_type.model_construct) # type: ignore
+            ## always validates because it is the only way to construct the model recursively
+            return class_row(row_type) # type: ignore
 
     elif issubclass(getattr(row_type, '__origin__', row_type), dict):
         if validate == 'pydantic':
