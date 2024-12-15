@@ -1,9 +1,9 @@
-from pydantic import BaseModel
+from msgspec import Struct
 
 
 __all__ = ['Customer']
 
 
-class Customer(BaseModel):
+class Customer(Struct):
     id: int
     name: str

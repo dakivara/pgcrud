@@ -1,7 +1,8 @@
 import os
 
-import psycopg
 from pytest import fixture
+
+import pgcrud as pg
 
 
 __all__ = [
@@ -13,12 +14,12 @@ __all__ = [
 @fixture(scope='session')
 def conn():
     conn_str = os.environ['CONN_STR']
-    with psycopg.connect(conn_str) as conn:
+    with pg.connect(conn_str) as conn:
         yield conn
 
 
 @fixture
-def cursor(conn):
+def cursor(conn: pg.Connection):
     with conn.cursor() as cursor:
         cursor.execute("SET search_path = test_schema")
         yield cursor
@@ -27,7 +28,7 @@ def cursor(conn):
 def pytest_sessionstart():
 
     conn_str = os.environ['CONN_STR']
-    with psycopg.connect(conn_str) as conn:
+    with pg.connect(conn_str) as conn:
         with conn.cursor() as cursor:
             cursor.execute("DROP SCHEMA IF EXISTS test_schema CASCADE")
             cursor.execute("CREATE SCHEMA test_schema")
