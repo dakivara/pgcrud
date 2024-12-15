@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from typing import Literal, overload
 
 from pgcrud.db import AsyncCursor, AsyncServerCursor
@@ -9,7 +10,7 @@ from pgcrud.types import InsertIntoValueType, AdditionalValuesType, ReturningVal
 async def insert_many(
         cursor: AsyncCursor[Row] | AsyncServerCursor[Row],
         insert_into: InsertIntoValueType,
-        values: ValuesValueType,
+        values: Sequence[ValuesValueType],
         *,
         returning: None = None,
         additional_values: AdditionalValuesType | None = None,
@@ -21,7 +22,7 @@ async def insert_many(
 async def insert_many(
         cursor: AsyncCursor[Row] | AsyncServerCursor[Row],
         insert_into: InsertIntoValueType,
-        values: ValuesValueType,
+        values: Sequence[ValuesValueType],
         *,
         returning: ReturningValueType,
         additional_values: AdditionalValuesType | None = None,
@@ -33,7 +34,7 @@ async def insert_many(
 async def insert_many(
         cursor: AsyncCursor[Row],
         insert_into: InsertIntoValueType,
-        values: ValuesValueType,
+        values: Sequence[ValuesValueType],
         *,
         returning: ReturningValueType,
         additional_values: AdditionalValuesType | None = None,
@@ -45,7 +46,7 @@ async def insert_many(
 async def insert_many(
         cursor: AsyncServerCursor[Row],
         insert_into: InsertIntoValueType,
-        values: ValuesValueType,
+        values: Sequence[ValuesValueType],
         *,
         returning: ReturningValueType,
         additional_values: AdditionalValuesType | None = None,
@@ -56,7 +57,7 @@ async def insert_many(
 async def insert_many(
         cursor: AsyncCursor[Row] | AsyncServerCursor[Row],
         insert_into: InsertIntoValueType,
-        values: ValuesValueType,
+        values: Sequence[ValuesValueType],
         *,
         returning: ReturningValueType | None = None,
         additional_values: AdditionalValuesType | None = None,

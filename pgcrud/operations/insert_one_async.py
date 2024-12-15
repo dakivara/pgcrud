@@ -2,14 +2,14 @@ from typing import overload
 
 from pgcrud.db import AsyncCursor, AsyncServerCursor
 from pgcrud.operations.shared import construct_composed_insert_query
-from pgcrud.types import InsertIntoValueType, AdditionalValuesType, ReturningValueType, Row, ValuesValueItemType
+from pgcrud.types import InsertIntoValueType, AdditionalValuesType, ReturningValueType, Row, ValuesValueType
 
 
 @overload
 async def insert_one(
         cursor: AsyncCursor[Row] | AsyncServerCursor[Row],
         insert_into: InsertIntoValueType,
-        values: ValuesValueItemType,
+        values: ValuesValueType,
         *,
         returning: None = None,
         additional_values: AdditionalValuesType | None = None,
@@ -20,7 +20,7 @@ async def insert_one(
 async def insert_one(
         cursor: AsyncCursor[Row] | AsyncServerCursor[Row],
         insert_into: InsertIntoValueType,
-        values: ValuesValueItemType,
+        values: ValuesValueType,
         *,
         returning: ReturningValueType,
         additional_values: AdditionalValuesType | None = None,
@@ -30,13 +30,13 @@ async def insert_one(
 async def insert_one(
         cursor: AsyncCursor[Row] | AsyncServerCursor[Row],
         insert_into: InsertIntoValueType,
-        values: ValuesValueItemType,
+        values: ValuesValueType,
         *,
         returning: ReturningValueType | None = None,
         additional_values: AdditionalValuesType | None = None,
 ) -> Row | None:
 
-    query = construct_composed_insert_query(insert_into, (values,), returning, additional_values)
+    query = construct_composed_insert_query(insert_into, [values], returning, additional_values)
     await cursor.execute(query)
 
     if returning:

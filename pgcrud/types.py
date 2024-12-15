@@ -2,8 +2,6 @@ from collections.abc import Sequence
 from typing import Any, Literal, Union, TYPE_CHECKING
 from typing_extensions import TypeVar
 
-from pydantic import BaseModel
-
 
 if TYPE_CHECKING:
     from pgcrud.expr import Expr, ReferenceExpr, TableReferenceExpr
@@ -19,7 +17,6 @@ __all__ = [
     'GroupByValueType',
     'OrderByValueType',
     'InsertIntoValueType',
-    'ValuesValueItemType',
     'ValuesValueType',
     'AdditionalValuesType',
     'ReturningValueType',
@@ -43,13 +40,12 @@ WhereValueType = Union['FilterOperator']
 GroupByValueType = Union['Expr', Sequence['Expr']]
 OrderByValueType = Union['Expr', 'SortOperator', Sequence[Union['Expr', 'SortOperator']]]
 InsertIntoValueType = Union['TableReferenceExpr']
-ValuesValueItemType = Sequence[Any] | dict[str, Any] | BaseModel
-ValuesValueType = Sequence[Any] | dict[str, Any] | BaseModel
+ValuesValueType = Any | Sequence[Any] | dict[str, Any]
 AdditionalValuesType = dict[str, Any]
 ReturningValueType = Union['Expr', Sequence['Expr']]
 UpdateValueType = Union['ReferenceExpr']
 SetColsType = Sequence['ReferenceExpr']
-SetValuesType = Sequence[Any] | dict[str, Any] | BaseModel
+SetValuesType = Any | Sequence[Any] | dict[str, Any]
 DeleteFromValueType = Union['ReferenceExpr']
 HavingValueType = Union['FilterOperator']
 WindowValueType = Union['Expr', Sequence['Expr']]

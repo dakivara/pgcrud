@@ -1,11 +1,9 @@
 from collections.abc import Sequence
-from typing import TypeVar
+
+from pgcrud.types import T
 
 
 __all__ = ['ensure_seq']
-
-
-T = TypeVar('T')
 
 
 def ensure_seq(value: T | Sequence[T]) -> Sequence[T]:

@@ -2,11 +2,13 @@ from abc import abstractmethod
 from collections.abc import Sequence
 from dataclasses import dataclass
 
+import msgspec
 from psycopg.sql import SQL, Composed, Literal
 
 from pgcrud.expr import Expr, ReferenceExpr, AliasExpr
 from pgcrud.frame_boundaries import FrameBoundary
 from pgcrud.operators import SortOperator
+from pgcrud.optional_dependencies import is_pydantic_installed, is_pydantic_instance
 from pgcrud.types import AdditionalValuesType, DeleteFromValueType, FromValueType, GroupByValueType, HavingValueType, InsertIntoValueType, OrderByValueType, PartitionByValueType, ReturningValueType, SelectValueType, SetColsType, SetValuesType, UpdateValueType, UsingValueType, ValuesValueType, WhereValueType, WindowValueType
 from pgcrud.utils import ensure_seq
 
@@ -184,23 +186,34 @@ class Values(Clause):
 
     def get_composed(self) -> Composed:
 
-        composed_vals = []
+        vals_composed_list = []
 
         for vals in self.value:
-            if isinstance(vals, Sequence):
-                vals = [Literal(val) for val in vals]
+
+            if isinstance(vals, msgspec.Struct):
+                params = self.additional_values.copy()
+                params.update(msgspec.to_builtins(vals))
+                vals_composed = SQL(', ').join([Literal(params.get(expr._name)) for expr in self.get_exprs()])
+
+            elif is_pydantic_installed and is_pydantic_instance(vals):
+                params = self.additional_values.copy()
+                params.update(vals.model_dump(by_alias=True))  # type: ignore
+                vals_composed = SQL(', ').join([Literal(params.get(expr._name)) for expr in self.get_exprs()])
+
             elif isinstance(vals, dict):
                 params = self.additional_values.copy()
                 params.update(vals)
-                vals = [Literal(params.get(expr._name)) for expr in self.get_exprs()]
+                vals_composed = SQL(', ').join([Literal(params.get(expr._name)) for expr in self.get_exprs()])
+
+            elif isinstance(vals, Sequence):
+                vals_composed =  SQL(', ').join([Literal(val) for val in vals])
+
             else:
-                params = self.additional_values.copy()
-                params.update(vals.model_dump(by_alias=True))
-                vals = [Literal(params.get(expr._name)) for expr in self.get_exprs()]
+                vals_composed = SQL(', ').join([vals])
 
-            composed_vals.append(SQL('({})').format(SQL(', ').join(vals)))
+            vals_composed_list.append(SQL('({})').format(SQL(', ').join(vals_composed)))
 
-        return SQL('VALUES {}').format(SQL(', ').join(composed_vals))
+        return SQL('VALUES {}').format(SQL(', ').join(vals_composed_list))
 
     def get_exprs(self) -> tuple['ReferenceExpr', ...]:
         if self._prev_clause:
@@ -243,32 +256,32 @@ class Set(Clause):
     def get_composed(self) -> Composed:
 
         composed_cols = SQL(', ').join([expr.get_composed() for expr in self.cols])
-        composed_values = []
 
-        if isinstance(self.values, Sequence):
-            for v in self.values:
-                composed_values.append(Literal(v))
+        if isinstance(self.values, msgspec.Struct):
+            params = self.additional_values.copy()
+            params.update(msgspec.to_builtins(self.values))
+            vals_composed = SQL(', ').join([Literal(params.get(expr._name)) for expr in self.cols])
+
+        elif is_pydantic_installed and is_pydantic_instance(self.values):
+            params = self.additional_values.copy()
+            params.update(self.values.model_dump(by_alias=True))  # type: ignore
+            vals_composed = SQL(', ').join([Literal(params.get(expr._name)) for expr in self.cols])
 
         elif isinstance(self.values, dict):
             params = self.additional_values.copy()
             params.update(self.values)
+            vals_composed = SQL(', ').join([Literal(params.get(expr._name)) for expr in self.cols])
 
-            for expr in self.cols:
-                composed_values.append(Literal(params.get(expr._name)))
+        elif isinstance(self.values, Sequence):
+            vals_composed = SQL(', ').join([Literal(v) for v in self.values])
 
         else:
-            params = self.additional_values.copy()
-            params.update(self.values.model_dump(by_alias=True))
-
-            for expr in self.cols:
-                composed_values.append(Literal(params.get(expr._name)))
-
-        composed_values = SQL(', ').join(composed_values)
+            vals_composed = SQL(', ').join([self.values])
 
         if len(self.cols) > 1:
-            return SQL('SET ({}) = ({})').format(composed_cols, composed_values)
+            return SQL('SET ({}) = ({})').format(composed_cols, vals_composed)
         else:
-            return SQL('SET {} = {}').format(composed_cols, composed_values)
+            return SQL('SET {} = {}').format(composed_cols, vals_composed)
 
 
 @dataclass(repr=False)

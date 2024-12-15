@@ -1,3 +1,4 @@
+from typing import Sequence
 from psycopg.sql import Composed
 
 from pgcrud.query_builder import QueryBuilder as q
@@ -46,7 +47,7 @@ def construct_composed_get_query(
 
 def construct_composed_insert_query(
         insert_into: InsertIntoValueType,
-        values: ValuesValueType,
+        values: Sequence[ValuesValueType],
         returning: ReturningValueType | None,
         additional_values: AdditionalValuesType | None,
 ) -> Composed:
