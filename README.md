@@ -2,7 +2,7 @@
 
 pgcrud is a Python package that makes **C**reate, **R**ead, **U**pdate, and **D**elete (**CRUD**) operations for PostgreSQL simple and fast. 
 
-**Key Features**:
+## Key Features
 
 - No ORM, declarative expressions only.
 - Built-in pydantic and msgspec support for data serialization & validation
@@ -21,6 +21,8 @@ The **pgcrud** package is not yet available on PyPI. However, you can install it
 ```
 pip install git+https://github.com/dakivara/pgcrud.git
 ```
+
+To use pydantic or msgspec, ensure you install them separately, as they are optional dependencies.
 
 Do not download the pgcrud package from PyPi. This is an abandoned package and is not affiliated with us.
 
@@ -68,7 +70,7 @@ def get_author(cursor: pg.Cursor, id_: int) -> Author | None:
 
 with pg.connect('CONN_STR') as conn:
     with conn.cursor() as cursor:
-        get_author(cursor, 1)
+        author = get_author(cursor, 1)
 ```
 
 ## Main Components
