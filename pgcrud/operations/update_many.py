@@ -2,15 +2,14 @@ from typing import Literal, overload
 
 from pgcrud.db import Cursor, ServerCursor
 from pgcrud.operations.shared import construct_composed_update_query
-from pgcrud.types import FromValueType, Row, UpdateValueType, SetColsType, SetValuesType, WhereValueType, ReturningValueType, AdditionalValuesType
+from pgcrud.types import FromValueType, Row, UpdateValueType, SetValueType, WhereValueType, ReturningValueType, AdditionalValuesType
 
 
 @overload
 def update_many(
         cursor: Cursor[Row] | ServerCursor[Row],
         update: UpdateValueType,
-        set_columns: SetColsType,
-        set_values: SetValuesType,
+        set_: SetValueType,
         *,
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
@@ -24,8 +23,7 @@ def update_many(
 def update_many(
         cursor: Cursor[Row] | ServerCursor[Row],
         update: UpdateValueType,
-        set_columns: SetColsType,
-        set_values: SetValuesType,
+        set_: SetValueType,
         *,
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
@@ -39,8 +37,7 @@ def update_many(
 def update_many(
         cursor: Cursor[Row],
         update: UpdateValueType,
-        set_columns: SetColsType,
-        set_values: SetValuesType,
+        set_: SetValueType,
         *,
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
@@ -54,8 +51,7 @@ def update_many(
 def update_many(
         cursor: ServerCursor[Row],
         update: UpdateValueType,
-        set_columns: SetColsType,
-        set_values: SetValuesType,
+        set_: SetValueType,
         *,
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
@@ -68,8 +64,7 @@ def update_many(
 def update_many(
         cursor: Cursor[Row] | ServerCursor[Row],
         update: UpdateValueType,
-        set_columns: SetColsType,
-        set_values: SetValuesType,
+        set_: SetValueType,
         *,
         from_: FromValueType | None = None,
         where: WhereValueType | None = None,
@@ -78,7 +73,7 @@ def update_many(
         no_fetch: bool = False,
 ) -> list[Row] | Cursor[Row] | ServerCursor[Row] | None:
 
-    query = construct_composed_update_query(update, set_columns, set_values, from_, where, returning, additional_values)
+    query = construct_composed_update_query(update, set_[0], set_[1], from_, where, returning, additional_values)
     cursor.execute(query)
 
     if returning:
