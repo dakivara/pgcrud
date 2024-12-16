@@ -1,3 +1,7 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "pgcrud"
 version = "0.1.0"
@@ -9,6 +13,7 @@ requires-python = ">=3.12"
 dependencies = [
     "psycopg[binary,pool]>=3.2.3",
 ]
+
 
 [project.optional-dependencies]
 pydantic = [
