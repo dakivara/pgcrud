@@ -9,9 +9,9 @@ from psycopg.pq.abc import PGconn
 from psycopg.rows import RowFactory, AsyncRowFactory, tuple_row
 import psycopg_pool
 
-from pgcrud.config import config
+from pgcrud.config import config, ConfigDict
 from pgcrud.db.cursor import Cursor, ServerCursor, AsyncCursor, AsyncServerCursor
-from pgcrud.db.shared import get_row_factory
+from pgcrud.db.shared import get_row_factory, get_params
 from pgcrud.types import Row, T, ValidationType
 
 
@@ -35,6 +35,11 @@ class Connection(psycopg.Connection[Row]):
         super().__init__(pgconn, cast(RowFactory[Row], tuple_row))
         self.cursor_factory = Cursor
         self.server_cursor_factory = ServerCursor
+
+    def __getitem__(self, item: type[T] | tuple[type[T], ConfigDict]) -> 'Connection[T]':
+        type_, validate, strict = get_params(item)
+        self.row_factory = get_row_factory(type_, validate, strict)  # type: ignore
+        return self  # type: ignore
 
     @classmethod
     def connect(
@@ -170,6 +175,11 @@ class AsyncConnection(psycopg.AsyncConnection[Row]):
         super().__init__(pgconn, cast(AsyncRowFactory[Row], tuple_row))
         self.cursor_factory = AsyncCursor
         self.server_cursor_factory = AsyncServerCursor
+
+    def __getitem__(self, item: type[T] | tuple[type[T], ConfigDict]) -> 'AsyncConnection[T]':
+        type_, validate, strict = get_params(item)
+        self.row_factory = get_row_factory(type_, validate, strict)  # type: ignore
+        return self  # type: ignore
 
     @classmethod
     async def connect(
