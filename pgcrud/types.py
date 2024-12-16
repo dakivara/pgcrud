@@ -24,6 +24,7 @@ __all__ = [
     'UpdateValueType',
     'SetColsType',
     'SetValuesType',
+    'SetValueType',
     'DeleteFromValueType',
     'HavingValueType',
     'WindowValueType',
@@ -50,6 +51,7 @@ ReturningValueType = Union['Expr', Sequence['Expr']]
 UpdateValueType = Union['ReferenceExpr']
 SetColsType = Sequence['ReferenceExpr']
 SetValuesType = Any | Sequence[Any] | dict[str, Any]
+SetValueType = tuple[SetColsType, SetValuesType]
 DeleteFromValueType = Union['ReferenceExpr']
 HavingValueType = Union['FilterOperator']
 WindowValueType = Union['Expr', Sequence['Expr']]
