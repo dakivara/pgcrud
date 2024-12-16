@@ -74,13 +74,29 @@ def get_row_factory(row_type: type[T], validate: ValidationType, strict: bool) -
         else:
             return dict_row  # type: ignore
 
-    elif issubclass(origin, (tuple, list, set)):
+    elif issubclass(origin, list):
+        if validate == 'pydantic':
+            return args_row(pydantic_args_fun_generator(row_type, strict))
+        elif validate == 'msgspec':
+            return args_row(msgspec_args_fun_generator(row_type, strict))
+        else:
+            return args_row(list)  # type: ignore
+
+    elif issubclass(origin, tuple):
         if validate == 'pydantic':
             return args_row(pydantic_args_fun_generator(row_type, strict))
         elif validate == 'msgspec':
             return args_row(msgspec_args_fun_generator(row_type, strict))
         else:
             return tuple_row  # type: ignore
+
+    elif issubclass(origin, set):
+        if validate == 'pydantic':
+            return args_row(pydantic_args_fun_generator(row_type, strict))
+        elif validate == 'msgspec':
+            return args_row(msgspec_args_fun_generator(row_type, strict))
+        else:
+            return args_row(set)  # type: ignore
 
     else:
         if validate == 'pydantic':
