@@ -1,7 +1,6 @@
-from types import GenericAlias
-from typing import Annotated, get_origin
+from types import GenericAlias, UnionType
+from typing import Annotated, Any, get_args, get_origin
 from psycopg.rows import BaseRowFactory, scalar_row, tuple_row, dict_row, class_row, args_row, kwargs_row
-from typing_extensions import get_args
 
 from pgcrud.config import ConfigDict, config
 from pgcrud.optional_dependencies import is_pydantic_installed, is_pydantic_model, is_msgspec_installed, is_msgspec_model, msgspec_kwargs_fun_generator, pydantic_kwargs_fun_generator, pydantic_args_fun_generator, msgspec_args_fun_generator, pydantic_scalar_row_generator, msgspec_scalar_row_generator
@@ -32,15 +31,22 @@ def get_params(item: type[T] | tuple[type[T], ConfigDict]) -> tuple[type[T], Val
     return row_type, validate, strict
 
 
-def get_row_factory(row_type: type[T], validate: ValidationType, strict: bool) -> BaseRowFactory[T]:
+def extract_origin(row_type: Any) -> type:
 
     if get_origin(row_type) is Annotated:
-        origin = get_args(row_type)[0]
+        return extract_origin(get_args(row_type)[0])
     else:
-        origin = row_type
+        if isinstance(row_type, UnionType):
+            return extract_origin(get_args(row_type)[0])
+        elif isinstance(row_type, GenericAlias):
+            return extract_origin(get_origin(row_type))
+        else:
+            return row_type
 
-    if isinstance(origin, GenericAlias):
-        origin = get_origin(origin)
+
+def get_row_factory(row_type: type[T], validate: ValidationType, strict: bool) -> BaseRowFactory[T]:
+
+    origin = extract_origin(row_type)
 
     if is_msgspec_installed and is_msgspec_model(origin):
         if validate == 'pydantic':
