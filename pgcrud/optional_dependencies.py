@@ -2,7 +2,6 @@
 
 from collections.abc import Sequence
 import importlib.util
-from types import GenericAlias
 from typing import Any, Callable
 
 from psycopg._cursor_base import BaseCursor
@@ -44,16 +43,12 @@ __all__ = [
 pydantic_type_adapters: dict[type, 'PydanticTypeAdapter'] = {}
 
 
-def is_generic_alias(type_: Any) -> bool:
-    return isinstance(type_, GenericAlias)
-
-
 def is_pydantic_model(type_: type) -> bool:
-    return not is_generic_alias(type_) and issubclass(type_, PydanticModel)
+    return issubclass(type_, PydanticModel)
 
 
 def is_msgspec_model(type_: type) -> bool:
-    return not is_generic_alias(type_) and issubclass(type_, MsgspecModel)
+    return issubclass(type_, MsgspecModel)
 
 
 def is_pydantic_instance(value: Any) -> bool:

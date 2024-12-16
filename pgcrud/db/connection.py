@@ -37,8 +37,8 @@ class Connection(psycopg.Connection[Row]):
         self.server_cursor_factory = ServerCursor
 
     def __getitem__(self, item: type[T] | tuple[type[T], ConfigDict]) -> 'Connection[T]':
-        type_, validate, strict = get_params(item)
-        self.row_factory = get_row_factory(type_, validate, strict)  # type: ignore
+        row_type, validate, strict = get_params(item)
+        self.row_factory = get_row_factory(row_type, validate, strict)  # type: ignore
         return self  # type: ignore
 
     @classmethod
@@ -177,8 +177,8 @@ class AsyncConnection(psycopg.AsyncConnection[Row]):
         self.server_cursor_factory = AsyncServerCursor
 
     def __getitem__(self, item: type[T] | tuple[type[T], ConfigDict]) -> 'AsyncConnection[T]':
-        type_, validate, strict = get_params(item)
-        self.row_factory = get_row_factory(type_, validate, strict)  # type: ignore
+        row_type, validate, strict = get_params(item)
+        self.row_factory = get_row_factory(row_type, validate, strict)  # type: ignore
         return self  # type: ignore
 
     @classmethod

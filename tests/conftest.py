@@ -26,6 +26,7 @@ def cursor(conn: pg.Connection):
 
 
 def pytest_sessionstart():
+    pg.config.validation_library = 'msgspec'
 
     conn_str = os.environ['CONN_STR']
     with pg.connect(conn_str) as conn:

@@ -64,10 +64,10 @@ class ConfigDict(TypedDict, total=False):
 config = Config()
 
 
-if is_msgspec_installed:
+if is_pydantic_installed:
+    config.validation_library = 'pydantic'
+
+elif is_msgspec_installed:
     config.validation_library = 'msgspec'
     config.set_json_dumps(msgspec_json_dumps)
     config.set_json_loads(msgspec_json_loads)
-
-elif is_pydantic_installed:
-    config.validation_library = 'pydantic'

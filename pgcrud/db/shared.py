@@ -1,4 +1,7 @@
+from types import GenericAlias
+from typing import Annotated, get_origin
 from psycopg.rows import BaseRowFactory, scalar_row, tuple_row, dict_row, class_row, args_row, kwargs_row
+from typing_extensions import get_args
 
 from pgcrud.config import ConfigDict, config
 from pgcrud.optional_dependencies import is_pydantic_installed, is_pydantic_model, is_msgspec_installed, is_msgspec_model, msgspec_kwargs_fun_generator, pydantic_kwargs_fun_generator, pydantic_args_fun_generator, msgspec_args_fun_generator, pydantic_scalar_row_generator, msgspec_scalar_row_generator
@@ -31,7 +34,15 @@ def get_params(item: type[T] | tuple[type[T], ConfigDict]) -> tuple[type[T], Val
 
 def get_row_factory(row_type: type[T], validate: ValidationType, strict: bool) -> BaseRowFactory[T]:
 
-    if is_msgspec_installed and is_msgspec_model(row_type):
+    if get_origin(row_type) is Annotated:
+        origin = get_args(row_type)[0]
+    else:
+        origin = row_type
+
+    if isinstance(origin, GenericAlias):
+        origin = get_origin(origin)
+
+    if is_msgspec_installed and is_msgspec_model(origin):
         if validate == 'pydantic':
             return kwargs_row(pydantic_kwargs_fun_generator(row_type, strict))
         elif validate == 'msgspec':
@@ -40,7 +51,7 @@ def get_row_factory(row_type: type[T], validate: ValidationType, strict: bool) -
             # always validates because it is the only way to construct the model recursively
             return kwargs_row(msgspec_kwargs_fun_generator(row_type, strict))
 
-    elif is_pydantic_installed and is_pydantic_model(row_type):
+    elif is_pydantic_installed and is_pydantic_model(origin):
         if validate == 'pydantic':
             return class_row(row_type)
         elif validate == 'msgspec':
@@ -49,7 +60,7 @@ def get_row_factory(row_type: type[T], validate: ValidationType, strict: bool) -
             # always validates because it is the only way to construct the model recursively
             return class_row(row_type) # type: ignore
 
-    elif issubclass(getattr(row_type, '__origin__', row_type), dict):
+    elif issubclass(origin, dict):
         if validate == 'pydantic':
             return kwargs_row(pydantic_kwargs_fun_generator(row_type, strict))
         elif validate == 'msgspec':
@@ -57,7 +68,7 @@ def get_row_factory(row_type: type[T], validate: ValidationType, strict: bool) -
         else:
             return dict_row  # type: ignore
 
-    elif issubclass(getattr(row_type, '__origin__', row_type), (tuple, list, set)):
+    elif issubclass(origin, (tuple, list, set)):
         if validate == 'pydantic':
             return args_row(pydantic_args_fun_generator(row_type, strict))
         elif validate == 'msgspec':
