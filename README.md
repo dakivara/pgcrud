@@ -85,7 +85,7 @@ expressions, and provide additional capabilities for handling complex database o
 from pgcrud import e
 
 (e.age > 18) & (e.age < 60) & (e.id.IN([1, 2, 3]))
-# "age" > 18 AND "age" < 60 AND "id" IN '{1,2,3}::int2[]'
+# "age" > 18 AND "age" < 60 AND "id" IN (1, 2, 3)
 
 (e.weight / e.height ** 2).AS('bmi')
 # weight" / ("height" ^ 2) AS "bmi"
