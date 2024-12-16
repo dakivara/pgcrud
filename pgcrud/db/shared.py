@@ -13,9 +13,6 @@ __all__ = [
 ]
 
 
-warning_message = 'Validation is not performed because no validation library is configured. This may lead to unexpected behavior.'
-
-
 def get_params(item: type[T] | tuple[type[T], ConfigDict]) -> tuple[type[T], ValidationType, bool]:
 
     if isinstance(item, tuple):
