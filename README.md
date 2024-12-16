@@ -4,7 +4,7 @@ pgcrud is a Python package that makes **C**reate, **R**ead, **U**pdate, and **D*
 
 ## Key Features
 
-- No ORM, declarative expressions only.
+- No ORM, only declarative expressions.
 - Built-in pydantic and msgspec support for data serialization & validation
 - Efficient handling of complex parent-child relationships 
 - Perform operations sync or async.

@@ -2,7 +2,7 @@
 -----
 
 <span style="font-size: 0.9em;">
-    **Note**: Make sure to read the [Getting Started](index.md) and [Demo Schema](demo-schema.md) first, as it is essential for better understanding of this tutorial.
+    **Note**: Make sure to read the [Getting Started](index.md), [Demo Schema](demo-schema.md) and [Cursor](cursor.md) first, as it is essential for better understanding of this tutorial.
 </span>
 
 -----
@@ -20,28 +20,24 @@ And pgcrud has two function to perform **asynchronous** read operations:
 
 ## Parameters
 
-
 The following parameters are available:
 
-- `cursor`: Cursor / AsyncCursor from `psycopg`
-- `select`: To specify the selected columns.
-- `from_`: To define the target.[^1]
-- `where`: To filter records.
-- `group_by`: To group by columns.
-- `having`: To filter by aggregated columns.
-- `window`: To define windows.
-- `order_by`: To sort by columns.
-- `limit`: To limit the number of records.[^2]
-- `offset`: To skip the first n records.
-- `no_fetch`: To execute only.[^2]
+- `cursor` *(required)*: To execute the query.
+- `select` *(required)*: To specify the selected columns.
+- `from_` *(required)*: To define the target.[^1]
+- `where` *(optional)*: To filter records.
+- `group_by` *(optional)*: To group by columns.
+- `having` *(optional)*: To filter by aggregated columns.
+- `window` *(optional)*: To define windows.
+- `order_by` *(optional)*: To sort by columns.
+- `limit` *(optional)*: To limit the number of records.[^2]
+- `offset` *(optional)*: To skip the first n records.
+- `no_fetch` *(optional)*: To execute only.[^2]
 
 
 [^1]: The only reason why this parameter has a trailing underscore is that `from` is a reserved keyword.
 
 [^2]: Only available in `pg.get_many` and `pg.a.get_many`. 
-
-
-We go through each of the parameters and show you how to use them.
 
 
 ## Cursor
@@ -51,33 +47,26 @@ The `cursor` parameter is explained in detail [here](cursor.md).
 
 ## Select
 
-The `select` parameter is required and expects either
+The `select` parameter expects either a single expression or a sequence of expressions. 
 
-- an expression to return a scalar.
-- a sequence of expressions to return a tuple.
-- a Pydantic model to return an instance of the model.
+### Single Column
 
-
-### Scalar
-
-Pass a single expression to the `select` parameter when you want to retrieve only one column.
+You use a single expression to select a specific column from a table, accompanied by an appropriate scalar type hint for the cursor.
 
 === "sync"
 
     ```python
-    from psycopg import Cursor
-    
     import pgcrud as pg
     from pgcrud import e
-    
-    
+
+
     def get_author_name(
-            cursor: Cursor[str], 
+            cursor: pg.Cursor, 
             id_: int,
     ) -> str | None:
         
         return pg.get_one(
-            cursor=cursor,
+            cursor=cursor[str],
             select=e.name,
             from_=e.author,
             where=e.id == id_,
@@ -87,48 +76,42 @@ Pass a single expression to the `select` parameter when you want to retrieve onl
 === "async"
 
     ```python
-    from psycopg import AsyncCursor
-    
     import pgcrud as pg
     from pgcrud import e
-    
-    
+
+
     async def get_author_name(
-            cursor: AsyncCursor[str], 
+            cursor: pg.a.Cursor, 
             id_: int,
     ) -> str | None:
         
         return await pg.a.get_one(
-            cursor=cursor,
+            cursor=cursor[str],
             select=e.name,
             from_=e.author,
             where=e.id == id_,
         )
     ```
 
+### Multiple Columns
 
-
-### Tuple
-
-Pass a sequence of expressions to the `select` parameter when you want to retrieve multiple columns as a tuple.
+You use a sequence of expressions to select multiple columns from a table, with the option to fetch the results as a tuple, dictionary, or model instance.
 
 
 === "sync"
 
     ```python
-    from psycopg import Cursor
-    
     import pgcrud as pg
     from pgcrud import e
-    
-    
+
+
     def get_book_ids_and_titles(
-            cursor: Cursor[tuple[int, str]],
+            cursor: pg.Cursor, 
             author_id: int,
-    ) -> list[tuple[int, str]]:
+    ) -> tuple[int, str] | None:
         
         return pg.get_many(
-            cursor=cursor,
+            cursor=cursor[tuple[int, str]],
             select=(e.id, e.title),
             from_=e.book,
             where=e.author_id == author_id,
@@ -138,116 +121,134 @@ Pass a sequence of expressions to the `select` parameter when you want to retrie
 === "async"
 
     ```python
-    from psycopg import AsyncCursor
-    
     import pgcrud as pg
     from pgcrud import e
-    
-    
+
+
     async def get_book_ids_and_titles(
-            cursor: AsyncCursor[tuple[int, str]],
+            cursor: pg.a.Cursor, 
             author_id: int,
-    ) -> list[tuple[int, str]]:
+    ) -> tuple[int, str] | None:
         
         return await pg.a.get_many(
-            cursor=cursor,
+            cursor=cursor[tuple[int, str]],
             select=(e.id, e.title),
             from_=e.book,
             where=e.author_id == author_id,
-        )
-    ```
-
-
-
-### Pydantic Instance
-
-Pass a Pydantic model to the `select` parameter when you want to directly load the retrieved records into the Pydantic model. By default, pgcrud 
-maps the Pydantic model field names to the corresponding columns in the target table. However, you can customize this mapping by 
-adding expression annotations to each field.
-
-=== "sync"
-
-    ```python
-    from datetime import date
-    from typing import Annotated
-    
-    from psycopg import Cursor
-    from pydantic import BaseModel
-    
-    import pgcrud as pg
-    from pgcrud import e
-    
-    
-    class Author(BaseModel):
-        id: int
-        name: str
-        dob: Annotated[date, e.date_of_birth]
-    
-    
-    def get_author(
-            cursor: Cursor[Author], 
-            id_: int,
-    ) -> Author | None:
-        
-        return pg.get_one(
-            cursor=cursor,
-            select=Author,
-            from_=e.author,
-            where=e.id == id_,
-        )
-    ```
-
-=== "async"
-
-    ```python
-    from datetime import date
-    from typing import Annotated
-    
-    from psycopg import AsyncCursor
-    from pydantic import BaseModel
-    
-    import pgcrud as pg
-    from pgcrud import e
-    
-    
-    class Author(BaseModel):
-        id: int
-        name: str
-        dob: Annotated[date, e.date_of_birth]
-    
-    
-    async def get_author(
-            cursor: AsyncCursor[Author], 
-            id_: int,
-    ) -> Author | None:
-        
-        return await pg.a.get_one(
-            cursor=cursor,
-            select=Author,
-            from_=e.author,
-            where=e.id == id_,
         )
     ```
 
 
 ## From
 
-The `from_` parameter is required and specifies the target. The target is typically a table, view, joined table, or subquery.
+The `from_` specifies the target. The target is typically a table (or view), joined table, or subquery.
+
 
 ### Table (or View)
 
-Pass an expression to the `from_` parameter to directly select from a table or view. 
+You use an expression to select from table (or view).
 
+=== "sync"
 
+    ```python
+    import pgcrud as pg
+    from pgcrud import e
+        
+            
+    def get_book_ids(cursor: pg.Cursor) -> list[int]:
+        return pg.get_many(
+            cursor=cursor[int],
+            select=e.id,
+            from_=e.book,
+        )
+    ```
 
+=== "async"
 
+    ```python
+    import pgcrud as pg
+    from pgcrud import e
+        
+            
+    async def get_book_ids(cursor: pg.a.Cursor) -> list[int]:
+        return await pg.a.get_many(
+            cursor=cursor[int],
+            select=e.id,
+            from_=e.book,
+        )
+    ```
 
 ### Joined Table
 
+You use a joined expression to select from a joined table. In such a case you will typically load fetched data into data models.
 
-### Subquery
+=== "sync"
 
+    ```python
+    from pydantic import BaseModel
+    
+    import pgcrud as pg
+    from pgcrud import e, f
+    
+    
+    class Author(BaseModel):
+        id: int
+        name: str
+    
+        
+    class Book(BaseModel):
+        id: int
+        title: str
+        author: Author
+    
+    
+    def get_book(
+            cursor: pg.Cursor,
+            id_: int,
+    ) -> Book | None:
+    
+        return pg.get_one(
+            cursor=cursor[Book],
+            select=(e.book.id, e.book.title, f.to_json(e.author).AS('author')),
+            from_=e.book.
+                JOIN(e.author).ON(e.book.author_id == e.author.id),
+            where=e.book.id == id_,
+        )
+    ```
 
+=== "async"
+
+    ```python
+    from pydantic import BaseModel
+    
+    import pgcrud as pg
+    from pgcrud import e, f
+    
+    
+    class Author(BaseModel):
+        id: int
+        name: str
+    
+        
+    class Book(BaseModel):
+        id: int
+        title: str
+        author: Author
+    
+    
+    async def get_book(
+            cursor: pg.a.Cursor,
+            id_: int,
+    ) -> Book | None:
+    
+        return await pg.a.get_one(
+            cursor=cursor[Book],
+            select=(e.book.id, e.book.title, f.to_json(e.author).AS('author')),
+            from_=e.book.
+                JOIN(e.author).ON(e.book.author_id == e.author.id),
+            where=e.book.id == id_,
+        )
+    ```
 
 ## Where
 
