@@ -252,6 +252,112 @@ You use a joined expression to select from a joined table. In such a case you wi
 
 ## Where
 
+The `where` parameter expects a comparison expression. This can be a single comparison expression or an intersection or union of expressions. 
+
+=== "sync"
+
+    ```python
+    import pgcrud as pg
+    from pgcrud import e
+    
+    
+    def get_book_titles(
+            cursor: pg.Cursor,
+            author_id_1: int,
+            author_id_2: int,
+    ) -> list[str]:
+        
+        return pg.get_many(
+            cursor=cursor[str],
+            select=e.title,
+            from_=e.book,
+            where=(e.author_id == author_id_1) | (e.author_id == author_id_2),
+        )
+    ```
+
+=== "async"
+
+    ```python
+    import pgcrud as pg
+    from pgcrud import e
+    
+    
+    async def get_book_titles(
+            cursor: pg.a.Cursor,
+            author_id_1: int,
+            author_id_2: int,
+    ) -> list[str]:
+        
+        return await pg.a.get_many(
+            cursor=cursor[str],
+            select=e.title,
+            from_=e.book,
+            where=(e.author_id == author_id_1) | (e.author_id == author_id_2),
+        )
+    ```
+
+### Optional Filter 
+
+It is often convenient to define a function with multiple optional filter parameters. In such cases, you can use `pg.Undefined` as the default 
+value. Any comparison expressions involving `pg.Undefined` are automatically excluded from the where condition.
+
+=== "sync"
+
+    ```python
+    from pydantic import BaseModel
+    
+    import pgcrud as pg
+    from pgcrud import e
+    
+    
+    class Author(BaseModel):
+        id: int
+        name: str
+    
+        
+    def get_author(
+            cursor: pg.Cursor,
+            id_: int | type[pg.Undefined] = pg.Undefined,
+            name: str | type[pg.Undefined] = pg.Undefined,
+    ) -> Author | None:
+    
+        return pg.get_one(
+            cursor=cursor[Author],
+            select=(e.id, e.name),
+            from_=e.author,
+            where=(e.id == id_) & (e.name == name), 
+        )
+    ```
+
+=== "async"
+
+    ```python
+    from pydantic import BaseModel
+    
+    import pgcrud as pg
+    from pgcrud import e
+    
+    
+    class Author(BaseModel):
+        id: int
+        name: str
+    
+        
+    async def get_author(
+            cursor: pg.a.Cursor,
+            id_: int | type[pg.Undefined] = pg.Undefined,
+            name: str | type[pg.Undefined] = pg.Undefined,
+    ) -> Author | None:
+    
+        return await pg.a.get_one(
+            cursor=cursor[Author],
+            select=(e.id, e.name),
+            from_=e.author,
+            where=(e.id == id_) & (e.name == name), 
+        )
+    ```
+
+
 
 ## Group By
 
