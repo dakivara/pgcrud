@@ -9,9 +9,10 @@ from psycopg.pq.abc import PGconn
 from psycopg.rows import RowFactory, AsyncRowFactory, tuple_row
 import psycopg_pool
 
+from pgcrud.config import config
 from pgcrud.db.cursor import Cursor, ServerCursor, AsyncCursor, AsyncServerCursor
 from pgcrud.db.shared import get_row_factory
-from pgcrud.types import Row, T
+from pgcrud.types import Row, T, ValidationType
 
 
 __all__ = [
@@ -44,8 +45,8 @@ class Connection(psycopg.Connection[Row]):
         prepare_threshold: int | None = 5,
         context: AdaptContext | None = None,
         row_type: type[T] = tuple[Any, ...],
-        validate: bool = False,
-        strict: bool = False,
+        validate: ValidationType = config.validation_library,
+        strict: bool = config.strict_validation,
         **kwargs: ConnParam,
     ) -> 'Connection[T]':
 
@@ -179,8 +180,8 @@ class AsyncConnection(psycopg.AsyncConnection[Row]):
         prepare_threshold: int | None = 5,
         context: AdaptContext | None = None,
         row_type: type[T] = tuple[Any, ...],
-        validate: bool = False,
-        strict: bool = False,
+        validate: ValidationType = config.validation_library,
+        strict: bool = config.strict_validation,
         **kwargs: ConnParam,
     ) -> 'AsyncConnection[T]':
 
