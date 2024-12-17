@@ -1,12 +1,12 @@
-from typing import Any, TYPE_CHECKING
+from typing import Any
 
 from psycopg.sql import Placeholder
 
 from pgcrud.clauses import From, RowsBetween, Select, Where, GroupBy, Having, OrderBy, Limit, Offset, InsertInto, Values, Update, Set, DeleteFrom, Using, PartitionBy, With, RangeBetween, Window
-from pgcrud.expr import AliasExpr, PlaceholderExpr
+from pgcrud.expr import Expr, AliasExpr, PlaceholderExpr, make_expr
 from pgcrud.frame_boundaries import FrameBoundary
 from pgcrud.query import Query
-from pgcrud.types import DeleteFromValueType, FromValueType, GroupByValueType, HavingValueType, InsertIntoValueType, OrderByValueType, PartitionByValueType, SelectValueType, SetColsType, SetValuesType, UpdateValueType, UsingValueType, ValuesValueType, WhereValueType, WindowValueType
+from pgcrud.types import DeleteFromValueType, FromValueType, GroupByValueType, HavingValueType, InsertIntoValueType, OrderByValueType, PartitionByValueType, SetColsType, SetValuesType, UpdateValueType, UsingValueType, ValuesValueType, WhereValueType, WindowValueType
 
 
 __all__ = ['QueryBuilder']
@@ -18,8 +18,8 @@ class QueryBuilder:
         raise TypeError("'QueryBuilder' object is not callable")
 
     @staticmethod
-    def SELECT(value: SelectValueType) -> Query:
-        return Query([Select(value)])
+    def SELECT(*args: Any | Expr) -> Query:
+        return Query([Select(args)])
 
     @staticmethod
     def FROM(value: FromValueType) -> Query:

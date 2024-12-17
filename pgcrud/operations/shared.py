@@ -3,6 +3,7 @@ from typing import Sequence
 from pgcrud.query import Query
 from pgcrud.query_builder import QueryBuilder as q
 from pgcrud.types import DeleteFromValueType, GroupByValueType, HavingValueType, SelectValueType, FromValueType, SetColsType, SetValuesType, UpdateValueType, UsingValueType, WhereValueType, OrderByValueType, InsertIntoValueType, ValuesValueType, ReturningValueType, AdditionalValuesType, WindowValueType
+from pgcrud.utils import ensure_seq
 
 
 __all__ = [
@@ -25,7 +26,7 @@ def construct_composed_get_query(
         offset: int | None,
 ) -> Query:
 
-    query = q.SELECT(select).FROM(from_)
+    query = q.SELECT(*ensure_seq(select)).FROM(from_)
 
     if where:
         query = query.WHERE(where)

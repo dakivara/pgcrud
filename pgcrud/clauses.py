@@ -1,6 +1,7 @@
 from abc import abstractmethod
 from collections.abc import Sequence
 from dataclasses import dataclass
+from typing import Any
 
 from psycopg.sql import SQL, Composed, Literal
 
@@ -56,13 +57,13 @@ class Clause:
 
 @dataclass(repr=False)
 class Select(Clause):
-    value: SelectValueType
+    value: Sequence[Any | Expr]
 
     def __bool__(self) -> bool:
         return True
 
     def get_composed(self) -> Composed:
-        return SQL('SELECT {}').format(SQL(', ').join([make_expr(v).get_composed() for v in ensure_seq(self.value)]))
+        return SQL('SELECT {}').format(SQL(', ').join([make_expr(v).get_composed() for v in self.value]))
 
 
 @dataclass(repr=False)
