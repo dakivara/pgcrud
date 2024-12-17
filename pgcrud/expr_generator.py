@@ -16,5 +16,6 @@ class ExprGeneratorType(type):
 
 class ExprGenerator(metaclass=ExprGeneratorType):
 
-    def P(self, name: str | None = None) -> PlaceholderExpr:
+    @staticmethod
+    def P(name: str | None = None) -> PlaceholderExpr:
         return PlaceholderExpr(Placeholder(name or ''))
