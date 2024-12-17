@@ -1,11 +1,12 @@
-from collections.abc import Sequence
-from typing import Any, Literal, Union, TYPE_CHECKING
+from collections.abc import Mapping, Sequence
+from typing import Any, Literal, LiteralString, Union, TYPE_CHECKING
 from typing_extensions import TypeVar
 
 
 if TYPE_CHECKING:
     from pgcrud.expr import Expr, ReferenceExpr, TableReferenceExpr
     from pgcrud.operators import FilterOperator, SortOperator
+    from pgcrud.query import Query
 
 
 __all__ = [
@@ -38,6 +39,8 @@ Row = TypeVar('Row', covariant=True, default=tuple[Any, ...])
 T = TypeVar('T')
 
 ValidationType = Literal['pydantic', 'msgspec', None]
+QueryType = Union[LiteralString | bytes | 'Query']
+ParamsType = Union[Sequence[Any], Mapping[str, Any]]
 
 SelectValueType = Union[Any, 'Expr', Sequence[Union[Any, 'Expr']]]
 FromValueType = Union['Expr']

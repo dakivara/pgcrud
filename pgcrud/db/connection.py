@@ -4,7 +4,7 @@ from contextlib import contextmanager, asynccontextmanager
 from typing import Any, AsyncIterator, Awaitable, Callable, Iterator, Literal, cast, overload
 
 import psycopg
-from psycopg.abc import AdaptContext, ConnParam, Query, Params
+from psycopg.abc import AdaptContext, ConnParam
 from psycopg.pq.abc import PGconn
 from psycopg.rows import RowFactory, AsyncRowFactory, tuple_row
 import psycopg_pool
@@ -12,7 +12,8 @@ import psycopg_pool
 from pgcrud.config import config, ConfigDict
 from pgcrud.db.cursor import Cursor, ServerCursor, AsyncCursor, AsyncServerCursor
 from pgcrud.db.shared import get_row_factory, get_params
-from pgcrud.types import Row, T, ValidationType
+from pgcrud.types import ParamsType, QueryType, Row, T, ValidationType
+from pgcrud.query import Query
 
 
 __all__ = [
@@ -88,15 +89,15 @@ class Connection(psycopg.Connection[Row]):
 
     def execute(
         self,
-        query: Query,
-        params: Params | None = None,
+        query: QueryType,
+        params: ParamsType | None = None,
         *,
         prepare: bool | None = None,
         binary: bool = False,
     ) -> Cursor[Row]:
 
         return super().execute(
-            query=query,
+            query=query.get_composed() if isinstance(query, Query) else query,
             params=params,
             prepare=prepare,
             binary=binary,
@@ -228,15 +229,15 @@ class AsyncConnection(psycopg.AsyncConnection[Row]):
 
     async def execute(
         self,
-        query: Query,
-        params: Params | None = None,
+        query: QueryType,
+        params: ParamsType | None = None,
         *,
         prepare: bool | None = None,
         binary: bool = False,
     ) -> AsyncCursor[Row]:
 
         return await super().execute(
-            query=query,
+            query=query.get_composed() if isinstance(query, Query) else query,
             params=params,
             prepare=prepare,
             binary=binary,
