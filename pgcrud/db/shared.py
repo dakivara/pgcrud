@@ -16,9 +16,9 @@ __all__ = [
 
 def deserialize_params(params: Any) -> Any:
     if is_pydantic_installed and is_pydantic_instance(params):
-        params = pydantic_to_dict(params)  # type: ignore
+        return pydantic_to_dict(params)  # type: ignore
     elif is_msgspec_installed and is_msgspec_instance(params):
-        params = msgspec_to_dict(params)  # type: ignore
+        return msgspec_to_dict(params)  # type: ignore
     else:
         return params
 
