@@ -69,6 +69,27 @@ e.id.IN([1, 2, 3])
 # "age" > 4 OR "height" > 100
 ```
 
+### Sort Operations
+
+Each expression can specify the ordering of data in either ascending or descending order, with the option to reverse the order using a boolean flag.
+
+```python
+from pgcrud import e
+
+e.id.ASC()
+# "id" ASC
+
+e.name.DESC()
+# "name" DESC
+
+e.id.ASC(False)
+# "id" DESC
+
+e.name.DESC(False)
+# "name" ASC
+```
+
+
 ### Reference for Table and Columns
 
 For insert operations, you need to specify the target table and the columns you want to populate.
@@ -111,6 +132,22 @@ e.employee.AS('e').\
     JOIN(e.department.AS('d')).\
     ON((e.e.department_id == e.d.id) & (e.d.type == 'Finance'))
 # "employee" AS "e" JOIN "department" AS "d" ON "e"."department_id" = "d"."id" AND "d"."type" = 'Finance'
+```
+
+### Undefined Type
+
+pgcrud includes a special object called `pg.Undefined`. When used in comparison or sorting operations, it is automatically ignored. This 
+feature is particularly useful for handling optional parameters.
+
+```python
+import pgcrud as pg
+from pgcrud import e
+
+(e.id == 1) & (e.name == pg.Undefined)
+# "id" = 1
+
+e.id.ASC(pg.Undefined)
+#
 ```
 
 ## Function Bearer
