@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 from psycopg.sql import SQL, Composed
 
 from pgcrud.operators.operator import Operator
-from pgcrud.undefined import Undefined
 
 
 if TYPE_CHECKING:

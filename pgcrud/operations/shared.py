@@ -31,13 +31,13 @@ def construct_composed_get_query(
     if where:
         query = query.WHERE(where)
     if group_by:
-        query = query.GROUP_BY(group_by)
+        query = query.GROUP_BY(*ensure_seq(group_by))
     if having:
         query = query.HAVING(having)
     if window:
-        query = query.WINDOW(window)
+        query = query.WINDOW(*ensure_seq(window))
     if order_by:
-        query = query.ORDER_BY(order_by)
+        query = query.ORDER_BY(*ensure_seq(order_by))
     if limit:
         query = query.LIMIT(limit)
     if offset:

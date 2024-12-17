@@ -1,12 +1,14 @@
+from collections.abc import Sequence
 from typing import Any
 
 from psycopg.sql import Placeholder
 
 from pgcrud.clauses import From, RowsBetween, Select, Where, GroupBy, Having, OrderBy, Limit, Offset, InsertInto, Values, Update, Set, DeleteFrom, Using, PartitionBy, With, RangeBetween, Window, Returning
-from pgcrud.expr import Expr, AliasExpr, PlaceholderExpr, make_expr
+from pgcrud.expr import Expr, AliasExpr, PlaceholderExpr, ReferenceExpr, TableReferenceExpr, make_expr
 from pgcrud.frame_boundaries import FrameBoundary
+from pgcrud.operators import FilterOperator, SortOperator
 from pgcrud.query import Query
-from pgcrud.types import DeleteFromValueType, FromValueType, GroupByValueType, HavingValueType, InsertIntoValueType, OrderByValueType, PartitionByValueType, SetColsType, SetValuesType, UpdateValueType, UsingValueType, ValuesValueType, WhereValueType, WindowValueType
+from pgcrud.utils import ensure_seq
 
 
 __all__ = ['QueryBuilder']
@@ -22,28 +24,28 @@ class QueryBuilder:
         return Query([Select([make_expr(v) for v in args])])
 
     @staticmethod
-    def FROM(value: FromValueType) -> Query:
+    def FROM(value: Expr) -> Query:
         return Query([From(value)])
 
     @staticmethod
-    def WHERE(value: WhereValueType) -> Query:
+    def WHERE(value: FilterOperator) -> Query:
         return Query([Where(value)])
 
     @staticmethod
-    def GROUP_BY(value: GroupByValueType) -> Query:
-        return Query([GroupBy(value)])
+    def GROUP_BY(*args: Any | Expr) -> Query:
+        return Query([GroupBy([make_expr(v) for v in args])])
 
     @staticmethod
-    def HAVING(value: HavingValueType) -> Query:
+    def HAVING(value: FilterOperator) -> Query:
         return Query([Having(value)])
 
     @staticmethod
-    def WINDOW(value: WindowValueType) -> Query:
-        return Query([Window(value)])
+    def WINDOW(*args: AliasExpr) -> Query:
+        return Query([Window(args)])
 
     @staticmethod
-    def ORDER_BY(value: OrderByValueType) -> Query:
-        return Query([OrderBy(value)])
+    def ORDER_BY(*args: Any | Expr | SortOperator) -> Query:
+        return Query([OrderBy([v if isinstance(v, (Expr, SortOperator)) else make_expr(v) for v in args])])
 
     @staticmethod
     def LIMIT(value: int) -> Query:
@@ -54,11 +56,11 @@ class QueryBuilder:
         return Query([Offset(value)])
 
     @staticmethod
-    def INSERT_INTO(value: InsertIntoValueType) -> Query:
+    def INSERT_INTO(value: TableReferenceExpr) -> Query:
         return Query([InsertInto(value)])
 
     @staticmethod
-    def VALUES(*args: ValuesValueType, **kwargs: Any) -> Query:
+    def VALUES(*args: Any | Sequence[Any] | dict[str, Any], **kwargs: Any) -> Query:
         return Query([Values(args, kwargs)])
 
     @staticmethod
@@ -66,24 +68,24 @@ class QueryBuilder:
         return Query([Returning([make_expr(v) for v in args])])
 
     @staticmethod
-    def UPDATE(value: UpdateValueType) -> Query:
+    def UPDATE(value: ReferenceExpr) -> Query:
         return Query([Update(value)])
 
     @staticmethod
-    def SET(cols: SetColsType, values: SetValuesType, **kwargs: Any) -> Query:
-        return Query([Set(cols, values, kwargs)])
+    def SET(cols: ReferenceExpr | Sequence[ReferenceExpr], values: Any | Sequence | dict[str, Any], **kwargs: Any) -> Query:
+        return Query([Set(ensure_seq(cols), values, kwargs)])
 
     @staticmethod
-    def DELETE_FROM(value: DeleteFromValueType) -> Query:
+    def DELETE_FROM(value: ReferenceExpr) -> Query:
         return Query([DeleteFrom(value)])
 
     @staticmethod
-    def USING(value: UsingValueType) -> Query:
+    def USING(value: Expr) -> Query:
         return Query([Using(value)])
 
     @staticmethod
-    def PARTITION_BY(value: PartitionByValueType) -> Query:
-        return Query([PartitionBy(value)])
+    def PARTITION_BY(*args: Expr) -> Query:
+        return Query([PartitionBy(args)])
 
     @staticmethod
     def ROWS_BETWEEN(start: FrameBoundary, end: FrameBoundary) -> Query:

@@ -5,14 +5,12 @@ from typing import TYPE_CHECKING, Any
 
 from psycopg.sql import SQL, Composed, Literal
 
-from pgcrud.expr import Expr, ReferenceExpr, AliasExpr, make_expr
 from pgcrud.frame_boundaries import FrameBoundary
 from pgcrud.optional_dependencies import is_pydantic_installed, is_pydantic_instance, is_msgspec_installed, is_msgspec_instance, msgspec_to_dict, pydantic_to_dict
-from pgcrud.types import AdditionalValuesType, DeleteFromValueType, GroupByValueType, HavingValueType, InsertIntoValueType, OrderByValueType, PartitionByValueType, ReturningValueType, SelectValueType, SetColsType, SetValuesType, UpdateValueType, UsingValueType, ValuesValueType, WhereValueType, WindowValueType
-from pgcrud.utils import ensure_seq
 
 
 if TYPE_CHECKING:
+    from pgcrud.expr import Expr, ReferenceExpr, AliasExpr, TableReferenceExpr
     from pgcrud.operators import SortOperator, FilterOperator
 
 
@@ -60,7 +58,7 @@ class Clause:
 
 @dataclass(repr=False)
 class Select(Clause):
-    value: Sequence[Expr]
+    value: Sequence['Expr']
 
     def __bool__(self) -> bool:
         return True
@@ -71,7 +69,7 @@ class Select(Clause):
 
 @dataclass(repr=False)
 class From(Clause):
-    value: Expr
+    value: 'Expr'
 
     def __bool__(self) -> bool:
         return bool(self.value)
@@ -93,18 +91,18 @@ class Where(Clause):
 
 @dataclass(repr=False)
 class GroupBy(Clause):
-    value: GroupByValueType
+    value: Sequence['Expr']
 
     def __bool__(self) -> bool:
         return True
 
     def get_composed(self) -> Composed:
-        return SQL('GROUP BY {}').format(SQL(', ').join([expr.get_composed() for expr in ensure_seq(self.value)]))
+        return SQL('GROUP BY {}').format(SQL(', ').join([expr.get_composed() for expr in self.value]))
 
 
 @dataclass(repr=False)
 class Having(Clause):
-    value: HavingValueType
+    value: 'FilterOperator'
 
     def __bool__(self) -> bool:
         return bool(self.value)
@@ -115,34 +113,27 @@ class Having(Clause):
 
 @dataclass(repr=False)
 class Window(Clause):
-    value: WindowValueType
+    value: Sequence['AliasExpr']
 
     def __bool__(self) -> bool:
         return bool(self.value)
 
     def get_composed(self) -> Composed:
-        return SQL('WINDOW {}').format(SQL(', ').join([v.get_composed() for v in ensure_seq(self.value)]))
+        return SQL('WINDOW {}').format(SQL(', ').join([v.get_composed() for v in self.value]))
 
 
 @dataclass(repr=False)
 class OrderBy(Clause):
-    value: OrderByValueType
+    value: Sequence['Expr | SortOperator']
 
     def __bool__(self) -> bool:
-        return bool(self.exprs)
+        return len(self.value) > 0
 
     def __post_init__(self):
-
-        exprs: 'list[Expr | SortOperator]' = []
-
-        for expr in ensure_seq(self.value):
-            if expr:
-                exprs.append(expr)
-
-        self.exprs = exprs
+        self.value = [v for v in self.value if v]
 
     def get_composed(self) -> Composed:
-        return SQL('ORDER BY {}').format(SQL(', ').join([expr.get_composed() for expr in self.exprs]))
+        return SQL('ORDER BY {}').format(SQL(', ').join([v.get_composed() for v in self.value]))
 
 
 @dataclass(repr=False)
@@ -169,7 +160,7 @@ class Offset(Clause):
 
 @dataclass(repr=False)
 class InsertInto(Clause):
-    value: InsertIntoValueType
+    value: 'TableReferenceExpr'
 
     def __bool__(self) -> bool:
         return bool(self.value.children)
@@ -180,8 +171,8 @@ class InsertInto(Clause):
 
 @dataclass(repr=False)
 class Values(Clause):
-    value: tuple[ValuesValueType, ...]
-    additional_values: AdditionalValuesType
+    value: Sequence[Any | Sequence[Any] | dict[str, Any]]
+    additional_values: dict[str, Any]
     _prev_clause: InsertInto | None = None
 
     def __bool__(self) -> bool:
@@ -227,7 +218,7 @@ class Values(Clause):
 
 @dataclass(repr=False)
 class Returning(Clause):
-    value: Sequence[Expr]
+    value: Sequence['Expr']
 
     def __bool__(self) -> bool:
         return True
@@ -238,7 +229,7 @@ class Returning(Clause):
 
 @dataclass(repr=False)
 class Update(Clause):
-    value: UpdateValueType
+    value: 'ReferenceExpr'
 
     def __bool__(self) -> bool:
         return True
@@ -249,9 +240,9 @@ class Update(Clause):
 
 @dataclass(repr=False)
 class Set(Clause):
-    cols: SetColsType
-    values: SetValuesType
-    additional_values: AdditionalValuesType
+    cols: Sequence['ReferenceExpr']
+    values: Any | Sequence[Any] | dict[str, Any]
+    additional_values: dict[str, Any]
 
     def __bool__(self) -> bool:
         return bool(self.cols)
@@ -289,7 +280,7 @@ class Set(Clause):
 
 @dataclass(repr=False)
 class DeleteFrom(Clause):
-    value: DeleteFromValueType
+    value: 'ReferenceExpr'
 
     def __bool__(self) -> bool:
         return True
@@ -300,7 +291,7 @@ class DeleteFrom(Clause):
 
 @dataclass(repr=False)
 class Using(Clause):
-    value: UsingValueType
+    value: 'Expr'
 
     def __bool__(self) -> bool:
         return True
@@ -311,13 +302,13 @@ class Using(Clause):
 
 @dataclass(repr=False)
 class PartitionBy(Clause):
-    value: PartitionByValueType
+    value: Sequence['Expr']
 
     def __bool__(self) -> bool:
         return True
 
     def get_composed(self) -> Composed:
-        return SQL('PARTITION BY {}').format(SQL(', ').join([expr.get_composed() for expr in ensure_seq(self.value)]))
+        return SQL('PARTITION BY {}').format(SQL(', ').join([v.get_composed() for v in self.value]))
 
 
 @dataclass(repr=False)
@@ -346,7 +337,7 @@ class RangeBetween(Clause):
 
 @dataclass(repr=False)
 class With(Clause):
-    exprs: tuple[AliasExpr, ...]
+    exprs: Sequence['AliasExpr']
 
     def __bool__(self) -> bool:
         return True
