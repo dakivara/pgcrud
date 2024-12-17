@@ -463,6 +463,49 @@ Similar to the `where` parameter you can pass a comparison expression to the `ha
 
 ## Window
 
+You can pass a single or sequence of aliased expressions to the `window` parameter.
+
+=== "sync"
+
+    ```python
+    import pgcrud as pg
+    from pgcrud import e, f, q
+    
+    
+    def get_book_order(
+            cursor: pg.Cursor,
+            author_id: int,
+    ) -> list[tuple[str, int]]:
+        
+        return pg.get_many(
+            cursor=cursor[tuple[str, int]],
+            select=(e.title, f.row_number().OVER(e.w)),
+            from_=e.book,
+            where=e.author_id == author_id,
+            window=e.w.AS(q.ORDER_BY(e.publication_date)),
+        )
+    ```
+
+=== "async"
+
+    ```python
+    import pgcrud as pg
+    from pgcrud import e, f, q
+    
+    
+    async def get_book_order(
+            cursor: pg.a.Cursor,
+            author_id: int,
+    ) -> list[tuple[str, int]]:
+        
+        return await pg.a.get_many(
+            cursor=cursor[tuple[str, int]],
+            select=(e.title, f.row_number().OVER(e.w)),
+            from_=e.book,
+            where=e.author_id == author_id,
+            window=e.w.AS(q.ORDER_BY(e.publication_date)),
+        )
+    ```
 
 ## Order By
 
