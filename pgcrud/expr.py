@@ -102,7 +102,7 @@ class Expr:
 
     def AS(self, alias: 'str | Query') -> 'AliasExpr':
         if isinstance(alias, str):
-            return AliasExpr(self, LiteralExpr(alias))
+            return AliasExpr(self, ReferenceExpr(alias))
         else:
             return AliasExpr(self, QueryExpr(alias))
 
