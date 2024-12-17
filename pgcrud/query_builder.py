@@ -98,7 +98,3 @@ class QueryBuilder:
     @staticmethod
     def WITH(*args: AliasExpr) -> 'Query':
         return Query([With(args)])
-
-    @staticmethod
-    def Placeholder(name: str | None = None) -> PlaceholderExpr:
-        return PlaceholderExpr(Placeholder(name or ""))

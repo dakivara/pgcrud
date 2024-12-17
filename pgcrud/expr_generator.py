@@ -1,5 +1,6 @@
-from pgcrud.expr import ReferenceExpr
+from psycopg.sql import Placeholder
 
+from pgcrud.expr import ReferenceExpr, PlaceholderExpr
 
 __all__ = ['ExprGenerator']
 
@@ -14,4 +15,6 @@ class ExprGeneratorType(type):
 
 
 class ExprGenerator(metaclass=ExprGeneratorType):
-    pass
+
+    def P(self, name: str | None = None) -> PlaceholderExpr:
+        return PlaceholderExpr(Placeholder(name or ''))
