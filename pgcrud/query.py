@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any
 from psycopg.sql import SQL, Composed
 
 from pgcrud.clauses import Clause, DeleteFrom, From, Select, Values, Where, GroupBy, Having, OrderBy, Offset, Limit, InsertInto, Returning, Set, Update, Using, PartitionBy, RowsBetween, With, RangeBetween, Window
-from pgcrud.expr import Expr, AliasExpr, QueryExpr
+from pgcrud.expr import Expr, AliasExpr, QueryExpr, make_expr
 from pgcrud.frame_boundaries import FrameBoundary
 from pgcrud.types import DeleteFromValueType, FromValueType, GroupByValueType, HavingValueType, InsertIntoValueType, OrderByValueType, PartitionByValueType, ReturningValueType, SelectValueType, SetColsType, SetValuesType, UpdateValueType, UsingValueType, ValuesValueType, WhereValueType, WindowValueType
 
@@ -30,7 +30,7 @@ class Query:
         return SQL(' ').join([clause.get_composed() for clause in self.clauses if clause])
 
     def SELECT(self, *args: Any | Expr) -> 'Query':
-        self.clauses.append(Select(args))
+        self.clauses.append(Select([make_expr(v) for v in args]))
         return self
 
     def FROM(self, value: FromValueType) -> 'Query':
@@ -74,8 +74,8 @@ class Query:
         self.clauses.append(Values(args, kwargs, prev_clause))
         return self
 
-    def RETURNING(self, value: ReturningValueType) -> 'Query':
-        self.clauses.append(Returning(value))
+    def RETURNING(self, *args: Any | Expr) -> 'Query':
+        self.clauses.append(Returning([make_expr(v) for v in args]))
         return self
 
     def UPDATE(self, value: UpdateValueType) -> 'Query':

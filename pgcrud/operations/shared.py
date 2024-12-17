@@ -58,7 +58,7 @@ def construct_composed_insert_query(
     query = q.INSERT_INTO(insert_into).VALUES(*values, **additional_values)
 
     if returning:
-        query = query.RETURNING(returning)
+        query = query.RETURNING(*ensure_seq(returning))
 
     return query
 
@@ -82,7 +82,7 @@ def construct_composed_update_query(
     if where:
         query = query.WHERE(where)
     if returning:
-        query = query.RETURNING(returning)
+        query = query.RETURNING(*ensure_seq(returning))
 
     return query
 
@@ -101,6 +101,6 @@ def construct_composed_delete_query(
     if where:
         query = query.WHERE(where)
     if returning:
-        query = query.RETURNING(returning)
+        query = query.RETURNING(*ensure_seq(returning))
 
     return query

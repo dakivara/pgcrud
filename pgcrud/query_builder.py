@@ -2,7 +2,7 @@ from typing import Any
 
 from psycopg.sql import Placeholder
 
-from pgcrud.clauses import From, RowsBetween, Select, Where, GroupBy, Having, OrderBy, Limit, Offset, InsertInto, Values, Update, Set, DeleteFrom, Using, PartitionBy, With, RangeBetween, Window
+from pgcrud.clauses import From, RowsBetween, Select, Where, GroupBy, Having, OrderBy, Limit, Offset, InsertInto, Values, Update, Set, DeleteFrom, Using, PartitionBy, With, RangeBetween, Window, Returning
 from pgcrud.expr import Expr, AliasExpr, PlaceholderExpr, make_expr
 from pgcrud.frame_boundaries import FrameBoundary
 from pgcrud.query import Query
@@ -19,7 +19,7 @@ class QueryBuilder:
 
     @staticmethod
     def SELECT(*args: Any | Expr) -> Query:
-        return Query([Select(args)])
+        return Query([Select([make_expr(v) for v in args])])
 
     @staticmethod
     def FROM(value: FromValueType) -> Query:
@@ -60,6 +60,10 @@ class QueryBuilder:
     @staticmethod
     def VALUES(*args: ValuesValueType, **kwargs: Any) -> Query:
         return Query([Values(args, kwargs)])
+
+    @staticmethod
+    def RETURNING(*args: Any | Expr) -> Query:
+        return Query([Returning([make_expr(v) for v in args])])
 
     @staticmethod
     def UPDATE(value: UpdateValueType) -> Query:

@@ -1,16 +1,19 @@
 from abc import abstractmethod
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from psycopg.sql import SQL, Composed, Literal
 
 from pgcrud.expr import Expr, ReferenceExpr, AliasExpr, make_expr
 from pgcrud.frame_boundaries import FrameBoundary
-from pgcrud.operators import SortOperator
 from pgcrud.optional_dependencies import is_pydantic_installed, is_pydantic_instance, is_msgspec_installed, is_msgspec_instance, msgspec_to_dict, pydantic_to_dict
-from pgcrud.types import AdditionalValuesType, DeleteFromValueType, FromValueType, GroupByValueType, HavingValueType, InsertIntoValueType, OrderByValueType, PartitionByValueType, ReturningValueType, SelectValueType, SetColsType, SetValuesType, UpdateValueType, UsingValueType, ValuesValueType, WhereValueType, WindowValueType
+from pgcrud.types import AdditionalValuesType, DeleteFromValueType, GroupByValueType, HavingValueType, InsertIntoValueType, OrderByValueType, PartitionByValueType, ReturningValueType, SelectValueType, SetColsType, SetValuesType, UpdateValueType, UsingValueType, ValuesValueType, WhereValueType, WindowValueType
 from pgcrud.utils import ensure_seq
+
+
+if TYPE_CHECKING:
+    from pgcrud.operators import SortOperator, FilterOperator
 
 
 __all__ = [
@@ -57,18 +60,18 @@ class Clause:
 
 @dataclass(repr=False)
 class Select(Clause):
-    value: Sequence[Any | Expr]
+    value: Sequence[Expr]
 
     def __bool__(self) -> bool:
         return True
 
     def get_composed(self) -> Composed:
-        return SQL('SELECT {}').format(SQL(', ').join([make_expr(v).get_composed() for v in self.value]))
+        return SQL('SELECT {}').format(SQL(', ').join([v.get_composed() for v in self.value]))
 
 
 @dataclass(repr=False)
 class From(Clause):
-    value: FromValueType
+    value: Expr
 
     def __bool__(self) -> bool:
         return bool(self.value)
@@ -79,7 +82,7 @@ class From(Clause):
 
 @dataclass(repr=False)
 class Where(Clause):
-    value: WhereValueType
+    value: 'FilterOperator'
 
     def __bool__(self) -> bool:
         return bool(self.value)
@@ -130,7 +133,7 @@ class OrderBy(Clause):
 
     def __post_init__(self):
 
-        exprs: list[Expr | SortOperator] = []
+        exprs: 'list[Expr | SortOperator]' = []
 
         for expr in ensure_seq(self.value):
             if expr:
@@ -224,13 +227,13 @@ class Values(Clause):
 
 @dataclass(repr=False)
 class Returning(Clause):
-    value: ReturningValueType
+    value: Sequence[Expr]
 
     def __bool__(self) -> bool:
         return True
 
     def get_composed(self) -> Composed:
-        return SQL('RETURNING {}').format(SQL(', ').join([make_expr(v).get_composed() for v in ensure_seq(self.value)]))
+        return SQL('RETURNING {}').format(SQL(', ').join([v.get_composed() for v in self.value]))
 
 
 @dataclass(repr=False)
