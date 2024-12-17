@@ -1,6 +1,6 @@
 from typing import Sequence
-from psycopg.sql import Composed
 
+from pgcrud.query import Query
 from pgcrud.query_builder import QueryBuilder as q
 from pgcrud.types import DeleteFromValueType, GroupByValueType, HavingValueType, SelectValueType, FromValueType, SetColsType, SetValuesType, UpdateValueType, UsingValueType, WhereValueType, OrderByValueType, InsertIntoValueType, ValuesValueType, ReturningValueType, AdditionalValuesType, WindowValueType
 
@@ -23,7 +23,7 @@ def construct_composed_get_query(
         order_by: OrderByValueType | None,
         limit: int | None,
         offset: int | None,
-) -> Composed:
+) -> Query:
 
     query = q.SELECT(select).FROM(from_)
 
@@ -42,7 +42,7 @@ def construct_composed_get_query(
     if offset:
         query = query.OFFSET(offset)
 
-    return query.get_composed()
+    return query
 
 
 def construct_composed_insert_query(
@@ -50,7 +50,7 @@ def construct_composed_insert_query(
         values: Sequence[ValuesValueType],
         returning: ReturningValueType | None,
         additional_values: AdditionalValuesType | None,
-) -> Composed:
+) -> Query:
 
     additional_values = additional_values or {}
 
@@ -59,7 +59,7 @@ def construct_composed_insert_query(
     if returning:
         query = query.RETURNING(returning)
 
-    return query.get_composed()
+    return query
 
 
 def construct_composed_update_query(
@@ -70,7 +70,7 @@ def construct_composed_update_query(
         where: WhereValueType | None,
         returning: ReturningValueType | None,
         additional_values: AdditionalValuesType | None,
-) -> Composed:
+) -> Query:
 
     additional_values = additional_values or {}
 
@@ -83,7 +83,7 @@ def construct_composed_update_query(
     if returning:
         query = query.RETURNING(returning)
 
-    return query.get_composed()
+    return query
 
 
 def construct_composed_delete_query(
@@ -91,7 +91,7 @@ def construct_composed_delete_query(
         using: UsingValueType | None,
         where: WhereValueType | None,
         returning: ReturningValueType | None,
-) -> Composed:
+) -> Query:
 
     query = q.DELETE_FROM(delete_from)
 
@@ -102,4 +102,4 @@ def construct_composed_delete_query(
     if returning:
         query = query.RETURNING(returning)
 
-    return query.get_composed()
+    return query
