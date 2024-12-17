@@ -150,6 +150,22 @@ e.id.ASC(pg.Undefined)
 #
 ```
 
+### Placeholders
+
+The Expression Generator has the method `e.P` which is used to create placeholders that can be used in parametrized queries.
+
+```python
+from pgcrud import e
+
+e.P()
+# %s
+
+
+e.P('id')
+# %(id)s
+```
+
+
 ## Function Bearer
 
 The Function Bearer encapsulates all PostgreSQL functions, which can be used to transform or aggregate database objects.
@@ -226,16 +242,14 @@ from pgcrud import e, f, q
 
 q.WITH(
     e.stats.AS(
-        q.SELECT((e.department_id, f.avg(e.salary).AS('avg_salary'))).
+        q.SELECT(e.department_id, f.avg(e.salary).AS('avg_salary')).
         FROM(e.employee).
         GROUP_BY(e.department_id)
     )
 ).INSERT_INTO(e.department_stats[e.id, e.avg_salary]).\
-    SELECT((e.department_id, e.avg_salary)).\
+    SELECT(e.department_id, e.avg_salary).\
     FROM(e.stats)
 # WITH "stats" AS (SELECT "department_id", avg("salary") AS "avg_salary" FROM "employee" GROUP BY "department_id") INSERT INTO "department_stats" ("id", "avg_salary") SELECT "department_id", "avg_salary" FROM "stats"
-
-
 ```
 
 

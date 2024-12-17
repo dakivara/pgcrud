@@ -1,8 +1,9 @@
-
+from material.plugins.blog.author import Author
 The pgcrud cursor extends the psycopg cursor, offering enhanced functionality and usability:
 
-- **Row Factory Integration**: Supports passing a row factory directly via type hints, simplifying code and improving readability.
-- **Built-in Serialization & Validation**: Provides integration with your preferred data serialization and validation library, ensuring robust data handling.
+- **Row Factory Integration**: Supports passing a row factory directly via type hints.
+- **Built-in Serialization & Validation**: Provides integration with your preferred data serialization and validation library.
+- **Execute Queries for Query Builder**: You can directly execute your queries from the pgcrud Query Builder.
 
 
 ## Row Factory
@@ -126,8 +127,8 @@ pgcrud currently supports the following data serialization & validation librarie
 - [pydantic](https://docs.pydantic.dev/latest/): the most popular library.
 - [msgspec](https://jcristharif.com/msgspec/): the fastest library.
 
-If one of the two libraries is installed, pgcrud will automatically use it for validation.[^2]
-
+If one of the two libraries is installed, pgcrud will automatically use it for validation.[^2] You can use model instances both to 
+determine the row factory and as input parameters.
 
 === "sync"
 
@@ -142,9 +143,12 @@ If one of the two libraries is installed, pgcrud will automatically use it for v
         name: str
     
 
-    with pg.connect(conn_str) as conn:
+    with pg.connect('CONN_STR') as conn:
         with conn.cursor() as cursor:
-            cursor[tuple[int, str]].execute("SELECT 1, 'J.K. Rowling'").fetchone()
+            cursor[tuple[int, str]].execute(
+                query="SELECT %(id)s, %(name)s", 
+                params=Author(id=1, name='J.K. Rowling'),
+            ).fetchone()
             # returns (1, 'J.K. Rowling')
     
             cursor[Author].execute("SELECT 1 AS id, 'J.K. Rowling' AS name").fetchone()
@@ -172,18 +176,95 @@ If one of the two libraries is installed, pgcrud will automatically use it for v
     async def main():
         async with await pg.a.connect('CONN_STR') as conn:
             async with conn.cursor() as cursor:
-                await cursor[tuple[int, str]].execute("SELECT 1, 'J.K. Rowling'")
+                await cursor[tuple[int, str]].execute(
+                    query="SELECT %(id)s, %(name)s", 
+                    params=Author(id=1, name='J.K. Rowling'),
+                )
                 await cursor.fetchone()
                 # returns (1, 'J.K. Rowling')
     
-            await cursor[Author].execute("SELECT 1 AS id, 'J.K. Rowling' AS name")
-            await cursor.fetchone()
-            # returns Author(id=1 name='J.K. Rowling')
+                await cursor[Author].execute("SELECT 1 AS id, 'J.K. Rowling' AS name")
+                await cursor.fetchone()
+                # returns Author(id=1 name='J.K. Rowling')
 
-            await cursor[str].execute("SELECT 1")
-            await cursor.fetchone()
-            # raises ValidationError: Input should be a valid string [type=string_type, input_value=1, input_type=int]
+                await cursor[str].execute("SELECT 1")
+                await cursor.fetchone()
+                # raises ValidationError: Input should be a valid string [type=string_type, input_value=1, input_type=int]
+
+
+    asyncio.run(main())
     ```
 
 
 [^2]: If both libraries are installed, pgcrud will use pydantic by default. You can change it by changing the value of `pg.config.validation_library`.
+
+
+## Queries from Query Builder
+
+You can pass a Query from the Query Builder just like a normal SQL query.
+
+
+=== "sync"
+
+    ```python
+    from pydantic import BaseModel
+    
+    import pgcrud as pg
+    from pgcrud import e, q
+    
+    
+    class Author(BaseModel):
+        id: int
+        name: str
+    
+    
+    with pg.connect('CONN_STR') as conn:
+        with conn.cursor() as cursor:
+            cursor[Author].execute(
+                query=q.SELECT(e.P().AS('id'), e.P().AS('name')), 
+                params=(1, 'J.K. Rowling'),
+            ).fetchone()
+            # returns Author(id=1 name='J.K. Rowling')
+    
+            cursor[tuple[int, str]].execute(
+                query=q.SELECT(e.P('id'), e.P('name')), 
+                params=Author(id=1, name='J.K. Rowling'),
+            ).fetchone()
+            # returns (1, 'J.K. Rowling')
+    ```
+
+=== "async"
+
+    ```python
+    import asyncio
+
+    from pydantic import BaseModel
+    
+    import pgcrud as pg
+    from pgcrud import e, q
+    
+    
+    class Author(BaseModel):
+        id: int
+        name: str
+    
+    
+    async def main():
+        async with await pg.a.connect('CONN_STR') as conn:
+            async with conn.cursor() as cursor:
+                await cursor[Author].execute(
+                    query=q.SELECT(e.P().AS('id'), e.P().AS('name')), 
+                    params=(1, 'J.K. Rowling'),
+                )
+                await cursor.fetchone()
+                # returns Author(id=1 name='J.K. Rowling')
+        
+                await cursor[tuple[int, str]].execute(
+                    query=q.SELECT(e.P('id'), e.P('name')), 
+                    params=Author(id=1, name='J.K. Rowling'),
+                )
+                await cursor.fetchone()
+                # returns (1, 'J.K. Rowling')
+
+    asyncio.run(main())
+    ```

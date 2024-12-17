@@ -47,7 +47,9 @@ The `cursor` parameter is explained in detail [here](cursor.md).
 
 ## Select
 
-The `select` parameter expects either a single expression or a sequence of expressions. 
+You can use a single expression to select a single column or a sequence of expressions to select multiple columns. [^3]
+
+[^3]: In some cases, you may also want to include constants in your selection. To do this, simply pass the constant value directly in the select statement. Obviously you can also select constants and columns at once.
 
 ### Single Column
 
