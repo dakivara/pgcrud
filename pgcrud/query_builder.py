@@ -1,13 +1,12 @@
 from typing import Any, TYPE_CHECKING
 
+from psycopg.sql import Placeholder
+
 from pgcrud.clauses import From, RowsBetween, Select, Where, GroupBy, Having, OrderBy, Limit, Offset, InsertInto, Values, Update, Set, DeleteFrom, Using, PartitionBy, With, RangeBetween, Window
+from pgcrud.expr import AliasExpr, PlaceholderExpr
 from pgcrud.frame_boundaries import FrameBoundary
 from pgcrud.query import Query
 from pgcrud.types import DeleteFromValueType, FromValueType, GroupByValueType, HavingValueType, InsertIntoValueType, OrderByValueType, PartitionByValueType, SelectValueType, SetColsType, SetValuesType, UpdateValueType, UsingValueType, ValuesValueType, WhereValueType, WindowValueType
-
-
-if TYPE_CHECKING:
-    from pgcrud.expr import AliasExpr
 
 
 __all__ = ['QueryBuilder']
@@ -91,5 +90,9 @@ class QueryBuilder:
         return Query([RangeBetween(start, end)])
 
     @staticmethod
-    def WITH(*args: 'AliasExpr') -> 'Query':
+    def WITH(*args: AliasExpr) -> 'Query':
         return Query([With(args)])
+
+    @staticmethod
+    def Placeholder(name: str | None = None) -> PlaceholderExpr:
+        return PlaceholderExpr(Placeholder(name or ""))

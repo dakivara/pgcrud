@@ -3,7 +3,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any, TYPE_CHECKING
 
-from psycopg.sql import SQL, Identifier, Composed, Literal
+from psycopg.sql import SQL, Identifier, Composed, Literal, Placeholder
 
 from pgcrud.operators.filter import Between, FilterOperator, UndefinedFilter, Equal, NotEqual, GreaterThan, GreaterThanEqual, LessThan, LessThanEqual, IsNull, IsNotNull, IsIn, IsNotIn
 from pgcrud.operators.sort import Ascending, Descending, UndefinedSort
@@ -750,6 +750,14 @@ class QueryExpr(Expr):
 
     def get_composed(self) -> Composed:
         return SQL('({})').format(self.query.get_composed())
+
+
+@dataclass(repr=False, eq=False)
+class PlaceholderExpr(Expr):
+    placeholder: Placeholder
+
+    def get_composed(self) -> Composed:
+        return Composed([self.placeholder])
 
 
 @dataclass(repr=False, eq=False)
