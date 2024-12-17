@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 from psycopg.sql import SQL, Composed, Literal
 
-from pgcrud.expr import Expr, ReferenceExpr, AliasExpr
+from pgcrud.expr import Expr, ReferenceExpr, AliasExpr, make_expr
 from pgcrud.frame_boundaries import FrameBoundary
 from pgcrud.operators import SortOperator
 from pgcrud.optional_dependencies import is_pydantic_installed, is_pydantic_instance, is_msgspec_installed, is_msgspec_instance, msgspec_to_dict, pydantic_to_dict
@@ -62,7 +62,7 @@ class Select(Clause):
         return True
 
     def get_composed(self) -> Composed:
-        return SQL('SELECT {}').format(SQL(', ').join([expr.get_composed() for expr in ensure_seq(self.value)]))
+        return SQL('SELECT {}').format(SQL(', ').join([make_expr(v).get_composed() for v in ensure_seq(self.value)]))
 
 
 @dataclass(repr=False)
@@ -191,12 +191,12 @@ class Values(Clause):
 
             if is_msgspec_installed and is_msgspec_instance(vals):
                 params = self.additional_values.copy()
-                params.update(msgspec_to_dict(vals))
+                params.update(msgspec_to_dict(vals))  # type: ignore
                 vals_composed = SQL(', ').join([Literal(params.get(expr._name)) for expr in self.get_exprs()])
 
             elif is_pydantic_installed and is_pydantic_instance(vals):
                 params = self.additional_values.copy()
-                params.update(pydantic_to_dict(vals))
+                params.update(pydantic_to_dict(vals))  # type: ignore
                 vals_composed = SQL(', ').join([Literal(params.get(expr._name)) for expr in self.get_exprs()])
 
             elif isinstance(vals, dict):
@@ -229,7 +229,7 @@ class Returning(Clause):
         return True
 
     def get_composed(self) -> Composed:
-        return SQL('RETURNING {}').format(SQL(', ').join([expr.get_composed() for expr in ensure_seq(self.value)]))
+        return SQL('RETURNING {}').format(SQL(', ').join([make_expr(v).get_composed() for v in ensure_seq(self.value)]))
 
 
 @dataclass(repr=False)
@@ -258,12 +258,12 @@ class Set(Clause):
 
         if is_msgspec_installed and is_msgspec_instance(self.values):
             params = self.additional_values.copy()
-            params.update(msgspec_to_dict(self.values))
+            params.update(msgspec_to_dict(self.values))  # type: ignore
             vals_composed = SQL(', ').join([Literal(params.get(expr._name)) for expr in self.cols])
 
         elif is_pydantic_installed and is_pydantic_instance(self.values):
             params = self.additional_values.copy()
-            params.update(pydantic_to_dict(self.values))
+            params.update(pydantic_to_dict(self.values))  # type: ignore
             vals_composed = SQL(', ').join([Literal(params.get(expr._name)) for expr in self.cols])
 
         elif isinstance(self.values, dict):

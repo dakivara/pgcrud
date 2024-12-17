@@ -39,7 +39,7 @@ T = TypeVar('T')
 
 ValidationType = Literal['pydantic', 'msgspec', None]
 
-SelectValueType = Union['Expr', Sequence['Expr']]
+SelectValueType = Union[Any, 'Expr', Sequence[Union[Any, 'Expr']]]
 FromValueType = Union['Expr']
 WhereValueType = Union['FilterOperator']
 GroupByValueType = Union['Expr', Sequence['Expr']]
@@ -47,7 +47,7 @@ OrderByValueType = Union['Expr', 'SortOperator', Sequence[Union['Expr', 'SortOpe
 InsertIntoValueType = Union['TableReferenceExpr']
 ValuesValueType = Any | Sequence[Any] | dict[str, Any]
 AdditionalValuesType = dict[str, Any]
-ReturningValueType = Union['Expr', Sequence['Expr']]
+ReturningValueType = Union[Any, 'Expr', Sequence[Union[Any, 'Expr']]]
 UpdateValueType = Union['ReferenceExpr']
 SetColsType = Sequence['ReferenceExpr']
 SetValuesType = Any | Sequence[Any] | dict[str, Any]
