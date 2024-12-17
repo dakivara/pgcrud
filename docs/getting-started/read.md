@@ -363,8 +363,102 @@ value. Any comparison expressions involving `pg.Undefined` are automatically exc
 
 ## Group By
 
+You can pass a single or multiple expressions to group by the corresponding columns.[^4]
+
+[^4]: You can also use pass integers to the `group_by` parameter to group by the respective columns in the `select`clause.
+
+=== "sync"
+
+    ```python
+    from pydantic import BaseModel
+    
+    import pgcrud as pg
+    from pgcrud import e, f
+    
+    
+    class AuthorStats(BaseModel):
+        author_id: int
+        n_books: int
+    
+        
+    def get_author_stats(cursor: pg.Cursor) -> list[AuthorStats]:
+        return pg.get_many(
+            cursor=cursor[AuthorStats],
+            select=(e.author_id, f.count(e.book).AS('n_books')),
+            from_=e.book,
+            group_by=e.author_id,
+        )
+    ```
+
+=== "async"
+
+    ```python
+    from pydantic import BaseModel
+    
+    import pgcrud as pg
+    from pgcrud import e, f
+    
+    
+    class AuthorStats(BaseModel):
+        author_id: int
+        n_books: int
+    
+        
+    async def get_author_stats(cursor: pg.a.Cursor) -> list[AuthorStats]:
+        return await pg.a.get_many(
+            cursor=cursor[AuthorStats],
+            select=(e.author_id, f.count(e.book).AS('n_books')),
+            from_=e.book,
+            group_by=e.author_id,
+        )
+    ```
+
 
 ## Having
+
+Similar to the `where` parameter you can pass a comparison expression to the `having` parameter.
+
+=== "sync"
+
+    ```python
+    import pgcrud as pg
+    from pgcrud import e, f
+    
+    
+    def get_top_author_ids(
+            cursor: pg.Cursor,
+            n_books: int,
+    ) -> list[int]:
+    
+        return pg.get_many(
+            cursor=cursor[int],
+            select=e.author_id,
+            from_=e.book,
+            group_by=e.author_id,
+            having=f.count(e.book) > n_books,
+        )
+    ```
+
+=== "async"
+
+    ```python
+    import pgcrud as pg
+    from pgcrud import e, f
+    
+    
+    async def get_top_author_ids(
+            cursor: pg.a.Cursor,
+            n_books: int,
+    ) -> list[int]:
+    
+        return await pg.a.get_many(
+            cursor=cursor[int],
+            select=e.author_id,
+            from_=e.book,
+            group_by=e.author_id,
+            having=f.count(e.book) > n_books,
+        )
+    ```
 
 
 ## Window

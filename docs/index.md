@@ -18,7 +18,7 @@ pgcrud is a Python package that makes **C**reate, **R**ead, **U**pdate, and **D*
 
 pgcrud's only dependency is [psycopg](https://www.psycopg.org) including it's binary and pool extensions.
 
-### Optional Dependencies
+### Optional
 
 For data serialization & validation you can choose between:
 
