@@ -98,8 +98,11 @@ class Expr:
     def CROSS_JOIN(self, expr: 'Expr') -> 'JoinExpr':
         return JoinExpr(self, expr, 'CROSS')
 
-    def OVER(self, query: 'Query') -> 'OverExpr':
-        return OverExpr(self, QueryExpr(query))
+    def OVER(self, value: 'ReferenceExpr | Query') -> 'OverExpr':
+        if isinstance(value, ReferenceExpr):
+            return OverExpr(self, value)
+        else:
+            return OverExpr(self, QueryExpr(value))
 
     def AS(self, alias: 'str | Query') -> 'AliasExpr':
         if isinstance(alias, str):
@@ -730,10 +733,10 @@ class JoinOnExpr(Expr):
 @dataclass(repr=False, eq=False)
 class OverExpr(Expr):
     expr: Expr
-    query: 'QueryExpr'
+    value: 'ReferenceExpr | QueryExpr'
 
     def get_composed(self) -> Composed:
-        return SQL('{} OVER {}').format(self.expr.get_composed(), self.query.get_composed())
+        return SQL('{} OVER {}').format(self.expr.get_composed(), self.value.get_composed())
 
 
 @dataclass(repr=False, eq=False)
