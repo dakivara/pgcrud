@@ -46,6 +46,7 @@ __all__ = [
     'JsonAggExpr',
     'CoalesceExpr',
     'ToJsonExpr',
+    'RowNumberExpr',
 ]
 
 
@@ -838,3 +839,10 @@ class ToJsonExpr(FunExpr):
 
     def get_composed(self) -> Composed:
         return SQL('to_json({})').format(self.expr.get_composed())
+
+
+@dataclass(repr=False, eq=False)
+class RowNumberExpr(FunExpr):
+
+    def get_composed(self) -> Composed:
+        return Composed([SQL('row_number()')])

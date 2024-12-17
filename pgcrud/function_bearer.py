@@ -1,6 +1,6 @@
 from typing import Any
 
-from pgcrud.expr import ArrayAggExpr, CountExpr, make_expr, Expr, AvgExpr, SumExpr, ToJsonExpr, JsonAggExpr, CoalesceExpr, MinExpr, MaxExpr
+from pgcrud.expr import ArrayAggExpr, CountExpr, make_expr, Expr, AvgExpr, SumExpr, ToJsonExpr, JsonAggExpr, CoalesceExpr, MinExpr, MaxExpr, RowNumberExpr
 
 __all__ = ['FunctionBearer']
 
@@ -45,3 +45,7 @@ class FunctionBearer:
     @staticmethod
     def to_json(expr: Expr) -> ToJsonExpr:
         return ToJsonExpr(expr)
+
+    @staticmethod
+    def row_number() -> RowNumberExpr:
+        return RowNumberExpr()
