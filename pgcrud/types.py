@@ -1,4 +1,4 @@
-from collections.abc import Mapping, Sequence
+from collections.abc import Sequence
 from typing import Any, Literal, LiteralString, Union, TYPE_CHECKING
 from typing_extensions import TypeVar
 
@@ -40,7 +40,7 @@ T = TypeVar('T')
 
 ValidationType = Literal['pydantic', 'msgspec', None]
 QueryType = Union[LiteralString | bytes | 'Query']
-ParamsType = Union[Sequence[Any], Mapping[str, Any]]
+ParamsType = Union[Any, Sequence[Any], dict[str, Any]]
 
 SelectValueType = Union[Any, 'Expr', Sequence[Union[Any, 'Expr']]]
 FromValueType = Union['Expr']

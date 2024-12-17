@@ -3,9 +3,10 @@
 from typing import Any, Iterable, Iterator, AsyncIterator
 
 import psycopg
+from psycopg.errors import Sequence
 
 from pgcrud.config import ConfigDict
-from pgcrud.db.shared import T, get_params, get_row_factory
+from pgcrud.db.shared import T, deserialize_params, get_params, get_row_factory
 from pgcrud.types import ParamsType, QueryType, Row
 from pgcrud.query import Query
 
@@ -36,7 +37,7 @@ class Cursor(psycopg.Cursor[Row]):
 
         return super().execute(
             query=query.get_composed() if isinstance(query, Query) else query,
-            params=params,
+            params=deserialize_params(params),
             prepare=prepare,
             binary=binary,
         )
@@ -44,14 +45,14 @@ class Cursor(psycopg.Cursor[Row]):
     def executemany(
         self,
         query: QueryType,
-        params_seq: Iterable[ParamsType],
+        params_seq: Sequence[ParamsType],
         *,
         returning: bool = False
     ) -> None:
 
         super().executemany(
             query=query.get_composed() if isinstance(query, Query) else query,
-            params_seq=params_seq,
+            params_seq=[deserialize_params(params) for params in params_seq],
             returning=returning,
         )
 
@@ -66,7 +67,7 @@ class Cursor(psycopg.Cursor[Row]):
 
         return super().stream(
             query=query.get_composed() if isinstance(query, Query) else query,
-            params=params,
+            params=deserialize_params(params),
             binary=binary,
             size=size,
         )
@@ -90,7 +91,7 @@ class ServerCursor(psycopg.ServerCursor[Row]):
 
         return super().execute(
             query=query.get_composed() if isinstance(query, Query) else query,
-            params=params,
+            params=deserialize_params(params),
             binary=binary,
             **kwargs,
         )
@@ -105,7 +106,7 @@ class ServerCursor(psycopg.ServerCursor[Row]):
 
         super().executemany(
             query=query.get_composed() if isinstance(query, Query) else query,
-            params_seq=params_seq,
+            params_seq=[deserialize_params(params) for params in params_seq],
             returning=returning,
         )
 
@@ -120,7 +121,7 @@ class ServerCursor(psycopg.ServerCursor[Row]):
 
         return super().stream(
             query=query.get_composed() if isinstance(query, Query) else query,
-            params=params,
+            params=deserialize_params(params),
             binary=binary,
             size=size,
         )
@@ -144,7 +145,7 @@ class AsyncCursor(psycopg.AsyncCursor[Row]):
 
         return await super().execute(
             query=query.get_composed() if isinstance(query, Query) else query,
-            params=params,
+            params=deserialize_params(params),
             prepare=prepare,
             binary=binary,
         )
@@ -159,7 +160,7 @@ class AsyncCursor(psycopg.AsyncCursor[Row]):
 
         await super().executemany(
             query=query.get_composed() if isinstance(query, Query) else query,
-            params_seq=params_seq,
+            params_seq=[deserialize_params(params) for params in params_seq],
             returning=returning,
         )
 
@@ -174,7 +175,7 @@ class AsyncCursor(psycopg.AsyncCursor[Row]):
 
         return super().stream(
             query=query.get_composed() if isinstance(query, Query) else query,
-            params=params,
+            params=deserialize_params(params),
             binary=binary,
             size=size,
         )
@@ -198,7 +199,7 @@ class AsyncServerCursor(psycopg.AsyncServerCursor[Row]):
 
         return await super().execute(
             query=query.get_composed() if isinstance(query, Query) else query,
-            params=params,
+            params=deserialize_params(params),
             binary=binary,
             **kwargs,
         )
@@ -213,7 +214,7 @@ class AsyncServerCursor(psycopg.AsyncServerCursor[Row]):
 
         await super().executemany(
             query=query.get_composed() if isinstance(query, Query) else query,
-            params_seq=params_seq,
+            params_seq=[deserialize_params(params) for params in params_seq],
             returning=returning,
         )
 
@@ -228,7 +229,7 @@ class AsyncServerCursor(psycopg.AsyncServerCursor[Row]):
 
         return super().stream(
             query=query.get_composed() if isinstance(query, Query) else query,
-            params=params,
+            params=deserialize_params(params),
             binary=binary,
             size=size,
         )

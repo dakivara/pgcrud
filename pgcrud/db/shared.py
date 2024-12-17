@@ -3,14 +3,24 @@ from typing import Annotated, Any, get_args, get_origin
 from psycopg.rows import BaseRowFactory, scalar_row, tuple_row, dict_row, class_row, args_row, kwargs_row
 
 from pgcrud.config import ConfigDict, config
-from pgcrud.optional_dependencies import is_pydantic_installed, is_pydantic_model, is_msgspec_installed, is_msgspec_model, msgspec_kwargs_fun_generator, pydantic_kwargs_fun_generator, pydantic_args_fun_generator, msgspec_args_fun_generator, pydantic_scalar_row_generator, msgspec_scalar_row_generator
+from pgcrud.optional_dependencies import is_pydantic_installed, is_pydantic_model, is_msgspec_installed, is_msgspec_model, msgspec_kwargs_fun_generator, pydantic_kwargs_fun_generator, pydantic_args_fun_generator, msgspec_args_fun_generator, pydantic_scalar_row_generator, msgspec_scalar_row_generator, pydantic_to_dict, msgspec_to_dict, is_pydantic_instance, is_msgspec_instance
 from pgcrud.types import T, ValidationType
 
 
 __all__ = [
+    'deserialize_params',
     'get_params',
     'get_row_factory',
 ]
+
+
+def deserialize_params(params: Any) -> Any:
+    if is_pydantic_installed and is_pydantic_instance(params):
+        params = pydantic_to_dict(params)  # type: ignore
+    elif is_msgspec_installed and is_msgspec_instance(params):
+        params = msgspec_to_dict(params)  # type: ignore
+    else:
+        return params
 
 
 def get_params(item: type[T] | tuple[type[T], ConfigDict]) -> tuple[type[T], ValidationType, bool]:
