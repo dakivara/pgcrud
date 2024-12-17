@@ -14,7 +14,7 @@ class Operator:
         return self.get_composed().as_string()
 
     def __repr__(self):
-        return self.__str__()
+        return str(self)
 
     @abstractmethod
     def __bool__(self) -> bool:

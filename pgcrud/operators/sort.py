@@ -31,7 +31,7 @@ class SortOperator(Operator):
         pass
 
 
-@dataclass
+@dataclass(repr=False)
 class UndefinedSort(SortOperator):
 
     def get_composed(self) -> Composed:
@@ -53,7 +53,7 @@ class Ascending(SortOperator):
 @dataclass(repr=False)
 class Descending(SortOperator):
     expr: 'Expr'
-    flag: bool | type[Undefined] = True
+    flag: bool = True
 
     def get_composed(self) -> Composed:
         if self.flag:
