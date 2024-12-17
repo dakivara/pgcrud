@@ -1,4 +1,5 @@
 from typing import Any, TYPE_CHECKING
+
 from pgcrud.clauses import From, RowsBetween, Select, Where, GroupBy, Having, OrderBy, Limit, Offset, InsertInto, Values, Update, Set, DeleteFrom, Using, PartitionBy, With, RangeBetween, Window
 from pgcrud.frame_boundaries import FrameBoundary
 from pgcrud.query import Query

@@ -7,9 +7,11 @@ from psycopg.sql import SQL, Identifier, Composed, Literal
 
 from pgcrud.operators.filter import Between, FilterOperator, UndefinedFilter, Equal, NotEqual, GreaterThan, GreaterThanEqual, LessThan, LessThanEqual, IsNull, IsNotNull, IsIn, IsNotIn
 from pgcrud.operators.sort import Ascending, Descending, UndefinedSort
+
 from pgcrud.types import HowValueType
 from pgcrud.undefined import Undefined
 from pgcrud.utils import ensure_seq
+
 
 if TYPE_CHECKING:
     from pgcrud.query import Query
@@ -34,7 +36,6 @@ __all__ = [
     'JoinOnExpr',
     'OverExpr',
     'AliasExpr',
-    'QueryExpr',
     'FunExpr',
     'CountExpr',
     'SumExpr',
@@ -97,10 +98,13 @@ class Expr:
         return JoinExpr(self, expr, 'CROSS')
 
     def OVER(self, query: 'Query') -> 'OverExpr':
-        return OverExpr(self, query)
+        return OverExpr(self, QueryExpr(query))
 
     def AS(self, alias: 'str | Query') -> 'AliasExpr':
-        return AliasExpr(self, alias)
+        if isinstance(alias, str):
+            return AliasExpr(self, LiteralExpr(alias))
+        else:
+            return AliasExpr(self, QueryExpr(alias))
 
 
 @dataclass(repr=False, eq=False)
@@ -725,32 +729,27 @@ class JoinOnExpr(Expr):
 @dataclass(repr=False, eq=False)
 class OverExpr(Expr):
     expr: Expr
-    query: 'Query'
+    query: 'QueryExpr'
 
     def get_composed(self) -> Composed:
-        return SQL('{} OVER ({})').format(self.expr.get_composed(), self.query.get_composed())
+        return SQL('{} OVER {}').format(self.expr.get_composed(), self.query.get_composed())
 
 
 @dataclass(repr=False, eq=False)
 class AliasExpr(Expr):
     expr: Expr
-    alias: 'str | Query'
+    alias: Expr
 
     def get_composed(self) -> Composed:
-        if isinstance(self.alias, str):
-            return SQL('{} AS {}').format(self.expr.get_composed(), Identifier(self.alias))
-        else:
-            return SQL('{} AS ({})').format(self.expr.get_composed(), self.alias.get_composed())
+        return SQL('{} AS {}').format(self.expr.get_composed(), self.alias.get_composed())
 
 
 @dataclass(repr=False, eq=False)
 class QueryExpr(Expr):
     query: 'Query'
-    alias: str
 
-    @abstractmethod
     def get_composed(self) -> Composed:
-        return SQL('({}) AS {}').format(self.query.get_composed(), Identifier(self.alias))
+        return SQL('({})').format(self.query.get_composed())
 
 
 @dataclass(repr=False, eq=False)

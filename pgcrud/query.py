@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any
 from psycopg.sql import SQL, Composed
 
 from pgcrud.clauses import Clause, DeleteFrom, From, Select, Values, Where, GroupBy, Having, OrderBy, Offset, Limit, InsertInto, Returning, Set, Update, Using, PartitionBy, RowsBetween, With, RangeBetween, Window
-from pgcrud.expr import QueryExpr, AliasExpr
+from pgcrud.expr import AliasExpr, QueryExpr
 from pgcrud.frame_boundaries import FrameBoundary
 from pgcrud.types import DeleteFromValueType, FromValueType, GroupByValueType, HavingValueType, InsertIntoValueType, OrderByValueType, PartitionByValueType, ReturningValueType, SelectValueType, SetColsType, SetValuesType, UpdateValueType, UsingValueType, ValuesValueType, WhereValueType, WindowValueType
 
@@ -110,5 +110,5 @@ class Query:
         self.clauses.append(With(args))
         return self
 
-    def AS(self, alias: str) -> QueryExpr:
-        return QueryExpr(self, alias)
+    def AS(self, alias: str) -> AliasExpr:
+        return QueryExpr(self).AS(alias)
