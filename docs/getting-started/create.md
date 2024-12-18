@@ -14,8 +14,8 @@ pgcrud has two functions to perform **synchronous** insert operations:
 
 And pgcrud has two function to perform **asynchronous** insert operations:
 
-- `pg.a.insert_one`: Analogous to `pg.insert_one`
-- `pg.a.insert_many`: Analogous to `pg.insert_many`
+- `pg.a.insert_one`: Analogous to `pg.insert_one`.
+- `pg.a.insert_many`: Analogous to `pg.insert_many`.
 
 
 ## Parameters

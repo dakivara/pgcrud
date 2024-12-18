@@ -14,8 +14,8 @@ pgcrud has two functions to perform **synchronous** read operations:
 
 And pgcrud has two function to perform **asynchronous** read operations:
 
-- `pg.a.get_one`: Analogous to `pg.get_one`
-- `pg.a.get_many`: Analogous to `pg.get_many`
+- `pg.a.get_one`: Analogous to `pg.get_one`.
+- `pg.a.get_many`: Analogous to `pg.get_many`.
 
 
 ## Parameters
