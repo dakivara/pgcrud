@@ -20,6 +20,7 @@ CREATE TABLE author (
 CREATE TABLE book (
     id serial PRIMARY KEY,
     title varchar(255) NOT NULL,
+    publication_date date NOT NULL,
     author_id int NOT NULL,
     FOREIGN KEY (author_id) REFERENCES author(id)
 )
@@ -27,22 +28,4 @@ CREATE TABLE book (
 
 The schema illustrates a straightforward one-to-many relationship, where the author 
 serves as the parent and the books as the children. The [script](https://github.com/dakivara/pgcrud/tree/main/demo/setup_schema.sql) also includes insert 
-statements with sample data featuring some of my favorite authors and books:
-
-```sql
-INSERT INTO author (id, name, date_of_birth) VALUES (1, 'J.K. Rowling', '1965-07-31');
-INSERT INTO author (id, name, date_of_birth) VALUES (2, 'George R.R. Martin', '1948-09-20');
-INSERT INTO author (id, name, date_of_birth) VALUES (3, 'Dan Brown', '1964-06-22');
-
-INSERT INTO book (id, title, author_id) VALUES (1, 'Harry Potter and the Sorcerer''s Stone', 1);
-INSERT INTO book (id, title, author_id) VALUES (2, 'Harry Potter and the Chamber of Secrets', 1);
-INSERT INTO book (id, title, author_id) VALUES (3, 'Harry Potter and the Prisoner of Azkaban', 1);
-
-INSERT INTO book (id, title, author_id) VALUES (4, 'A Game of Thrones', 2);
-INSERT INTO book (id, title, author_id) VALUES (5, 'A Clash of Kings', 2);
-INSERT INTO book (id, title, author_id) VALUES (6, 'A Storm of Swords', 2);
-
-INSERT INTO book (id, title, author_id) VALUES (7, 'The Da Vinci Code', 3);
-INSERT INTO book (id, title, author_id) VALUES (8, 'Angels & Demons', 3);
-INSERT INTO book (id, title, author_id) VALUES (9, 'Inferno', 3);
-```
+statements with sample data featuring some of my favorite authors and books.
