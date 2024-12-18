@@ -254,7 +254,7 @@ You use a joined expression to select from a joined table. In such a case you wi
 
 ## Where
 
-The `where` parameter expects a comparison expression. This can be a single comparison expression or an intersection or union of expressions. 
+The `where` parameter is used to specify conditions for filtering records to fetch. It accepts a comparison expression as its input. This can be a single comparison expression or an intersection or union of expressions. 
 
 === "sync"
 
@@ -363,7 +363,8 @@ value. Any comparison expressions involving `pg.Undefined` are automatically exc
 
 ## Group By
 
-You can pass a single or multiple expressions to group by the corresponding columns.[^4]
+The `group_by` parameter is used to aggregate records based on one or more columns. You can provide a single 
+expression to group by one column or multiple expressions to group by several columns.[^4]
 
 [^4]: You can also use pass integers to the `group_by` parameter to group by the respective columns in the `select`clause.
 
@@ -416,7 +417,8 @@ You can pass a single or multiple expressions to group by the corresponding colu
 
 ## Having
 
-Similar to the `where` parameter you can pass a comparison expression to the `having` parameter.
+The `having` parameter is used to filter records after they have been aggregated with the `group_by` parameter. Similar to 
+the `where` parameter, it accepts a comparison expression as input.
 
 === "sync"
 
@@ -463,26 +465,21 @@ Similar to the `where` parameter you can pass a comparison expression to the `ha
 
 ## Window
 
-You can pass a single or sequence of aliased expressions to the `window` parameter.
+The `window` parameter is used to define windows, which allow calculations across a set of table rows related to the current row. You can 
+pass a single or sequence of aliased expressions to the `window` parameter.
 
 === "sync"
 
     ```python
     import pgcrud as pg
     from pgcrud import e, f, q
-    
-    
-    def get_book_order(
-            cursor: pg.Cursor,
-            author_id: int,
-    ) -> list[tuple[str, int]]:
-        
+
+    def get_book_order(cursor: pg.Cursor) -> list[tuple[int, str, int]]:
         return pg.get_many(
-            cursor=cursor[tuple[str, int]],
-            select=(e.title, f.row_number().OVER(e.w)),
+            cursor=cursor[tuple[int, str, int]],
+            select=(e.author_id, e.title, f.row_number().OVER(e.w)),
             from_=e.book,
-            where=e.author_id == author_id,
-            window=e.w.AS(q.ORDER_BY(e.publication_date)),
+            window=e.w.AS(q.PARTITION_BY(e.author_id).ORDER_BY(e.publication_date)),
         )
     ```
 
@@ -493,28 +490,280 @@ You can pass a single or sequence of aliased expressions to the `window` paramet
     from pgcrud import e, f, q
     
     
-    async def get_book_order(
-            cursor: pg.a.Cursor,
-            author_id: int,
-    ) -> list[tuple[str, int]]:
-        
+    async def get_book_order(cursor: pg.a.Cursor) -> list[tuple[int, str, int]]:
         return await pg.a.get_many(
-            cursor=cursor[tuple[str, int]],
-            select=(e.title, f.row_number().OVER(e.w)),
+            cursor=cursor[tuple[int, str, int]],
+            select=(e.author_id, e.title, f.row_number().OVER(e.w)),
             from_=e.book,
-            where=e.author_id == author_id,
             window=e.w.AS(q.ORDER_BY(e.publication_date)),
         )
     ```
 
 ## Order By
 
+The `order_by` parameter is used to sort records based on one or more columns. It accepts either expressions[^5] or sort operators as input.
+
+[^5]: Passing an expression will sort the records in ascending order.
+
+
+=== "sync"
+
+    ```python
+    import pgcrud as pg
+    from pgcrud import e
+    
+    
+    def get_sorted_book_ids(
+            cursor: pg.Cursor,
+            author_id: int,
+    ) -> list[int]:
+    
+        return pg.get_many(
+            cursor=cursor[int],
+            select=e.id,
+            from_=e.book,
+            where=e.author_id == author_id,
+            order_by=e.id.ASC(),
+        )
+    ```
+
+=== "async"
+
+    ```python
+    import pgcrud as pg
+    from pgcrud import e
+    
+    
+    async def get_sorted_book_ids(
+            cursor: pg.a.Cursor,
+            author_id: int,
+    ) -> list[int]:
+    
+        return await pg.a.get_many(
+            cursor=cursor[int],
+            select=e.id,
+            from_=e.book,
+            where=e.author_id == author_id,
+            order_by=e.id.ASC(),
+        )
+    ```
+
+
+### Optional Sort
+
+It is often convenient to define a function with multiple optional sort parameters. In such cases, you can use `pg.Undefined` as the default 
+value. Any sort expressions involving `pg.Undefined` are automatically excluded from the `order_by`.
+
+
+
+=== "sync"
+
+    ```python
+    import pgcrud as pg
+    from pgcrud import e
+    
+    
+    def get_book_ids(
+            cursor: pg.Cursor,
+            author_id: int,
+            id_asc: bool | type[pg.Undefined] = pg.Undefined,
+            title_asc: bool | type[pg.Undefined] = pg.Undefined,
+    ) -> list[int]:
+    
+        return pg.get_many(
+            cursor=cursor[int],
+            select=e.id,
+            from_=e.book,
+            where=e.author_id == author_id,
+            order_by=(e.id.ASC(id_asc), e.title.ASC(title_asc)),
+        )
+    ```
+
+=== "async"
+
+    ```python
+    import pgcrud as pg
+    from pgcrud import e
+    
+    
+    async def get_sorted_book_ids(
+            cursor: pg.a.Cursor,
+            author_id: int,
+            id_asc: bool | type[pg.Undefined] = pg.Undefined,
+            title_asc: bool | type[pg.Undefined] = pg.Undefined,
+    ) -> list[int]:
+    
+        return await pg.a.get_many(
+            cursor=cursor[int],
+            select=e.id,
+            from_=e.book,
+            where=e.author_id == author_id,
+            order_by=(e.id.ASC(id_asc), e.title.ASC(title_asc)),
+        )
+    ```
 
 ## Limit
 
+The `limit` parameter is used to restrict the number of records fetched. It is only available in the `get_many` methods 
+and accepts an integer as input.
+
+
+=== "sync"
+
+    ```python
+    from pydantic import BaseModel
+
+    import pgcrud as pg
+    from pgcrud import e
+    
+    
+    class Author(BaseModel):
+        id: int
+        name: str
+
+    
+    def get_authors(
+            cursor: pg.Cursor,
+            limit: int | None = None,
+    ) -> list[Author]:
+    
+        return pg.get_many(
+            cursor=cursor[Author],
+            select=(e.id, e.name),
+            from_=e.author,
+            limit=limit,
+        )
+    ```
+
+=== "async"
+
+    ```python
+    from pydantic import BaseModel
+
+    import pgcrud as pg
+    from pgcrud import e
+    
+    
+    class Author(BaseModel):
+        id: int
+        name: str
+
+    
+    async def get_authors(
+            cursor: pg.a.Cursor,
+            limit: int | None = None,
+    ) -> list[Author]:
+    
+        return await pg.a.get_many(
+            cursor=cursor[Author],
+            select=(e.id, e.name),
+            from_=e.author,
+            limit=limit,
+        )
+    ```
 
 ## Offset
+
+The `offset` parameter skips a specified number of records in the query result. It is commonly used for pagination or infinite scrolling. It accepts
+an integer as input.
+
+
+=== "sync"
+
+    ```python
+    from pydantic import BaseModel
+
+    import pgcrud as pg
+    from pgcrud import e
+    
+    
+    class Author(BaseModel):
+        id: int
+        name: str
+
+    
+    def get_authors(
+            cursor: pg.Cursor,
+            limit: int | None = None,
+            offset: int | None = None,
+    ) -> list[Author]:
+    
+        return pg.get_many(
+            cursor=cursor[Author],
+            select=(e.id, e.name),
+            from_=e.author,
+            order_by=e.id,
+            limit=limit,
+            offset=offset,
+        )
+    ```
+
+=== "async"
+
+    ```python
+    from pydantic import BaseModel
+
+    import pgcrud as pg
+    from pgcrud import e
+    
+    
+    class Author(BaseModel):
+        id: int
+        name: str
+
+    
+    async def get_authors(
+            cursor: pg.a.Cursor,
+            limit: int | None = None,
+            offset: int | None = None,
+    ) -> list[Author]:
+    
+        return await pg.a.get_many(
+            cursor=cursor[Author],
+            select=(e.id, e.name),
+            from_=e.author,
+            order_by=e.id,
+            limit=limit,
+            offset=offset,
+        )
+    ```
 
 
 ## No Fetch
 
+The `no_fetch` parameter determines whether to fetch the data or only execute the query. It is only available in the `get_many` methods.
+By default, it is set to `False`. If set to `True`, the method will return a cursor, making it more time and memory efficient 
+when you need to iterate through the data without loading it all at once.
+
+
+=== "sync"
+
+    ```python
+    import pgcrud as pg
+    from pgcrud import e
+
+
+    def get_book_titles(cursor: pg.Cursor) -> pg.Cursor[str]:
+        return pg.get_many(
+            cursor=cursor[str],
+            select=e.title,
+            from_=e.book,
+            no_fetch=True,
+        )
+    ```
+
+=== "async"
+
+    ```python
+    import pgcrud as pg
+    from pgcrud import e
+
+
+    async def get_book_titles(cursor: pg.a.Cursor) -> pg.a.Cursor[str]:
+        return await pg.a.get_many(
+            cursor=cursor[str],
+            select=e.title,
+            from_=e.book,
+            no_fetch=True,
+        )
+    ```
