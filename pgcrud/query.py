@@ -8,7 +8,7 @@ from pgcrud.clauses import Clause, DeleteFrom, From, Select, Values, Where, Grou
 from pgcrud.expr import Expr, AliasExpr, QueryExpr, ReferenceExpr, TableReferenceExpr, make_expr
 from pgcrud.frame_boundaries import FrameBoundary
 from pgcrud.operators import FilterOperator, SortOperator
-
+from pgcrud.utils import ensure_seq
 
 if TYPE_CHECKING:
     from pgcrud.clauses import Clause
@@ -83,8 +83,8 @@ class Query:
         self.clauses.append(Update(value))
         return self
 
-    def SET(self, cols: Sequence[ReferenceExpr], values: Any | Sequence[Any] | dict[str, Any], **kwargs: Any) -> 'Query':
-        self.clauses.append(Set(cols, values, kwargs))
+    def SET(self, cols: ReferenceExpr | Sequence[ReferenceExpr], values: Any | Sequence[Any] | dict[str, Any], **kwargs: Any) -> 'Query':
+        self.clauses.append(Set(ensure_seq(cols), values, kwargs))
         return self
 
     def DELETE_FROM(self, value: ReferenceExpr) -> 'Query':
