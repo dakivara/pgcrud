@@ -9,8 +9,8 @@
 
 pgcrud has two functions to perform **synchronous** read operations:
 
-- `pg.get_one`: Returns a single record. If no record is found, the method returns `None`. If more than one record is found, the method returns the first one.
-- `pg.get_many`: Returns either a list of records or an iterable cursor.
+- `pg.get_one`: Retrieve a single record. If no record is found, the method returns `None`. If more than one record is found, the method returns the first one.
+- `pg.get_many`: Retrieve either a list of records or an iterable cursor.
 
 And pgcrud has two function to perform **asynchronous** read operations:
 
