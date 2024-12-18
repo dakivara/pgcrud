@@ -205,7 +205,7 @@ class Values(Clause):
             else:
                 vals_composed = SQL(', ').join([vals])
 
-            vals_composed_list.append(SQL('({})').format(SQL(', ').join(vals_composed)))
+            vals_composed_list.append(SQL('({})').format(vals_composed))
 
         return SQL('VALUES {}').format(SQL(', ').join(vals_composed_list))
 
