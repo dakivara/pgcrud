@@ -42,4 +42,7 @@ nav:
     - Getting Started: getting-started/index.md
     - Demo Schema: getting-started/demo-schema.md
     - Cursor: getting-started/cursor.md
+    - Create: getting-started/create.md
     - Read: getting-started/read.md
+    - Update: getting-started/update.md
+    - Delete: getting-started/delete.md
