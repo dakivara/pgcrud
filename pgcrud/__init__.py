@@ -8,7 +8,6 @@ from pgcrud.operations.update_many import update_many
 from pgcrud.operations.delete_many import delete_many
 from pgcrud import a
 from pgcrud.expr_generator import ExprGenerator as e
-from pgcrud.function_bearer import FunctionBearer as f
 from pgcrud.query_builder import QueryBuilder as q
 from pgcrud.undefined import Undefined
 
@@ -27,7 +26,6 @@ __all__ = [
     'delete_many',
     'a',
     'e',
-    'f',
     'q',
     'Undefined',
 ]
