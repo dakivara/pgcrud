@@ -36,6 +36,7 @@ __all__ = [
     'Literal',
     'Placeholder',
     'Identifier',
+    'Undefined',
 
     'UNDEFINED',
     'UNBOUNDED',
