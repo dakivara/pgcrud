@@ -310,6 +310,9 @@ class Identifier(Expression, metaclass=IdentifierType):
         self._name = name
         self._parent = parent
 
+    def __call__(self, item: str) -> Identifier:
+        return Identifier(item, self)
+
     def __getattr__(self, item: str) -> Identifier:
         return Identifier(item, self)
 
