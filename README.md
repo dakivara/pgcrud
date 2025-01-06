@@ -98,6 +98,22 @@ i.author.AS(i.a).LEFT_JOIN(i.publisher.AS(i.p)).ON(i.a.publisher_id == i.p.id)
 ```
 
 
+### Functions
+
+You can import the Functions with `from pgcrud import functions`. Each function corresponds to 
+a PostgreSQL function. You can use them to declare transformations, aggregations, and more.
+
+```python
+from pgcrud import functions as f, Identifier as i
+
+f.avg(i.salary + i.bonus).AS(i.average_compensation)
+# avg("salary" + "bonus") AS "average_compensation"
+
+f.to_json(i.publisher).AS(i.publisher)
+# to_json("publisher") AS "publisher"
+```
+
+
 ### Query Builder
 
 You can import the Query Builder with `from pgcrud import QueryBuilder`. The Query Builder is used to construct queries and subqueries for performing any CRUD operation.
@@ -124,22 +140,6 @@ q.DELETE_FROM(i.employee).\
 WHERE(i.salary > 10000).\
 RETURNING(i.id)
 # DELETE FROM "employee" WHERE "salary" > 10000 RETURNING "id"
-```
-
-
-### Functions
-
-You can import the Functions with `from pgcrud import functions`. Each function corresponds to 
-a PostgreSQL function. You can use them to declare transformations, aggregations, and more.
-
-```python
-from pgcrud import functions as f, Identifier as i
-
-f.avg(i.salary + i.bonus).AS(i.average_compensation)
-# avg("salary" + "bonus") AS "average_compensation"
-
-f.to_json(i.publisher).AS(i.publisher)
-# to_json("publisher") AS "publisher"
 ```
 
 
