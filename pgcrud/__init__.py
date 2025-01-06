@@ -29,6 +29,7 @@ __all__ = [
     'AsyncConnection',
     'AsyncCursor',
     'connect',
+    'async_connect',
 
     'QueryBuilder',
 
@@ -56,6 +57,8 @@ __all__ = [
 
 
 connect = Connection.connect
+async_connect = AsyncConnection.connect
+
 UNDEFINED = Undefined()
 
 UNBOUNDED: Unbounded
