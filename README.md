@@ -39,7 +39,7 @@ With pgcrud you can easily fetch the author including the author's books in a si
 from pydantic import BaseModel
 
 import pgcrud as pg
-from pgcrud import e, q, f
+from pgcrud import Identifier as i, QueryBuilder as q, functions as f
 
 
 class Book(BaseModel):
@@ -56,15 +56,15 @@ class Author(BaseModel):
 def get_author(cursor: pg.Cursor, id_: int) -> Author | None:
     return pg.get_one(
         cursor=cursor[Author],
-        select=(e.author.id, e.author.name, e.author_books.books),   
-        from_=e.author.
-            JOIN(
-                q.SELECT((e.author_id, f.json_agg(e.book).AS('books'))).
-                FROM(e.book).
-                GROUP_BY(e.author_id).
-                AS('author_books')
-            ).ON(e.author.id == e.author_books.author_id),
-        where=e.author.id == id_,
+        select=(i.author.id, i.author.name, i.author_books.books),
+        from_=i.author.
+        JOIN(
+            q.SELECT(i.author_id, f.json_agg(i.book).AS(i.books)).
+            FROM(i.book).
+            GROUP_BY(i.author_id).
+            AS(i.author_books)
+        ).ON(i.author.id == i.author_books.author_id),
+        where=i.author.id == id_,
     )
 
 
@@ -75,71 +75,73 @@ with pg.connect('CONN_STR') as conn:
 
 ## Main Components
 
-### Expression Generator
+### Identifier
 
-You can import the expression generator with `from pgcrud import e`. The expression generator enables you to define generic references to database objects 
+You can import the Identifier with `from pgcrud import Identifier`. The Identifier enables you to define generic references to database objects 
 such as columns, tables, views, or subqueries. These references support arithmetic and comparison operations, allow you to define aliases and join 
 expressions, and provide additional capabilities for handling complex database operations.
 
 ```python
-from pgcrud import e
+from pgcrud import Identifier as i
 
-(e.age > 18) & (e.age < 60) & (e.id.IN([1, 2, 3]))
+(i.age > 18) & (i.age < 60) & (i.id.IN([1, 2, 3]))
 # "age" > 18 AND "age" < 60 AND "id" IN (1, 2, 3)
 
-(e.weight / e.height ** 2).AS('bmi')
+(i.weight / i.height ** 2).AS(i.bmi)
 # weight" / ("height" ^ 2) AS "bmi"
 
-e.user.name
+i.user.name
 # "user"."name"
 
-e.author.AS('a').LEFT_JOIN(e.publisher.AS('p')).ON(e.a.publisher_id == e.p.id)
+i.author.AS(i.a).LEFT_JOIN(i.publisher.AS(i.p)).ON(i.a.publisher_id == i.p.id)
 # "author" AS "a" LEFT JOIN "publisher" AS "p" ON "a"."publisher_id" = "p"."id"
 ```
 
 
-### Function Bearer
+### Query Builder
 
-You can import the function bearer with `from pgcrud import f`. The function bearer provides access to functions that 
-correspond to PostgreSQL functions. You can use it to declare transformations, aggregations, and more.
+You can import the Query Builder with `from pgcrud import QueryBuilder`. The Query Builder is used to construct queries and subqueries for performing any CRUD operation.
 
 ```python
-from pgcrud import e, f
+from pgcrud import Identifier as i, QueryBuilder as q
 
-f.avg(e.salary + e.bonus).AS('average_compensation')
+q.SELECT(i.id, i.name, i.salary).\
+FROM(i.employee).\
+WHERE(i.salary > 10000)
+# SELECT "id", "name", "salary" FROM "employee" WHERE "salary" > 10000
+
+q.INSERT_INTO(i.employee[i.name, i.salary, i.department_id]).\
+VALUES(('John Doe', 1000, 1), {'name': 'Jane Doe', 'salary': 2000, 'department_id': 2}).\
+RETURNING(i.id)
+# INSERT INTO "employee" ("name", "salary", "department_id") VALUES ('John Doe', 1000, 1), ('Jane Doe', 2000, 2) RETURNING "id"
+
+q.UPDATE(i.employee).\
+SET((i.salary, i.department_id), (3000, 3)).\
+WHERE(i.id == 1)
+# UPDATE "employee" SET ("salary", "department_id") = (3000, 3) WHERE "id" = 1
+
+q.DELETE_FROM(i.employee).\
+WHERE(i.salary > 10000).\
+RETURNING(i.id)
+# DELETE FROM "employee" WHERE "salary" > 10000 RETURNING "id"
+```
+
+
+### Functions
+
+You can import the Functions with `from pgcrud import functions`. Each function corresponds to 
+a PostgreSQL function. You can use them to declare transformations, aggregations, and more.
+
+```python
+from pgcrud import functions as f, Identifier as i
+
+f.avg(i.salary + i.bonus).AS(i.average_compensation)
 # avg("salary" + "bonus") AS "average_compensation"
 
-f.to_json(e.publisher).AS('publisher')
+f.to_json(i.publisher).AS(i.publisher)
 # to_json("publisher") AS "publisher"
 ```
 
-### Query Builder
-
-You can import the query builder with `from pgcrud import q`. The query builder is used to construct queries and subqueries for performing any CRUD operation.
-
-```python
-from pgcrud import e, f, q
-
-q.SELECT((e.department.id, e.department.name, f.avg(e.employee.salary).AS('avg_salary'))).\
-FROM(e.employee.JOIN(e.deparment).ON(e.employee.department_id == e.departement.id)).\
-GROUP_BY(e.employee.department_id)
-# SELECT "department"."id", "department"."name", avg("employee"."salary") AS "avg_salary" FROM "employee" JOIN "deparment" ON "employee"."department_id" = "departement"."id" GROUP BY "employee"."department_id"
-
-q.INSERT_INTO(e.employee[e.name, e.salary, e.department_id]).\
-VALUES(('John Doe', 1000, 1), {'name': 'Jane Doe', 'salary': 2000, 'department_id': 2}).\
-RETURNING(e.id)
-# INSERT INTO "employee" ("name", "salary", "department_id") VALUES ('John Doe', 1000, 1), ('Jane Doe', 2000, 2) RETURNING "id"
-
-q.UPDATE(e.employee).\
-SET((e.salary, e.department_id), (3000, 3)).\
-WHERE(e.id == 1)
-# UPDATE "employee" SET ("salary", "department_id") = (3000, 3) WHERE "id" = 1
-
-q.DELETE_FROM(e.employee).\
-WHERE(e.salary > 10000).\
-RETURNING(e.id)
-# DELETE FROM "employee" WHERE "salary" > 10000 RETURNING "id"
-```
 
 ## Why choose pgcrud?
 

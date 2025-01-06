@@ -6,7 +6,7 @@ from pgcrud.types import InsertIntoValueType, AdditionalValuesType, ReturningVal
 
 
 @overload
-async def insert_one(
+async def async_insert_one(
         cursor: AsyncCursor[Row] | AsyncServerCursor[Row],
         insert_into: InsertIntoValueType,
         values: ValuesValueType,
@@ -17,7 +17,7 @@ async def insert_one(
 
 
 @overload
-async def insert_one(
+async def async_insert_one(
         cursor: AsyncCursor[Row] | AsyncServerCursor[Row],
         insert_into: InsertIntoValueType,
         values: ValuesValueType,
@@ -27,7 +27,7 @@ async def insert_one(
 ) -> Row | None: ...
 
 
-async def insert_one(
+async def async_insert_one(
         cursor: AsyncCursor[Row] | AsyncServerCursor[Row],
         insert_into: InsertIntoValueType,
         values: ValuesValueType,

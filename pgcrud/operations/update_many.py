@@ -73,7 +73,7 @@ def update_many(
         no_fetch: bool = False,
 ) -> list[Row] | Cursor[Row] | ServerCursor[Row] | None:
 
-    query = construct_composed_update_query(update, set_[0], set_[1], from_, where, returning, additional_values)
+    query = construct_composed_update_query(update, set_, from_, where, returning, additional_values)
     cursor.execute(query)
 
     if returning:

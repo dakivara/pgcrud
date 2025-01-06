@@ -1,346 +1,578 @@
+from __future__ import annotations
+
 from abc import abstractmethod
-from collections.abc import Sequence
-from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import Any, Sequence, TYPE_CHECKING
 
-from psycopg.sql import SQL, Composed, Literal
+from psycopg.sql import Literal as _Literal
 
-from pgcrud.frame_boundaries import FrameBoundary
-from pgcrud.optional_dependencies import is_pydantic_installed, is_pydantic_instance, is_msgspec_installed, is_msgspec_instance, msgspec_to_dict, pydantic_to_dict
+from pgcrud.optional_dependencies import (
+    is_pydantic_installed,
+    is_pydantic_instance,
+    pydantic_to_dict,
+    is_msgspec_installed,
+    is_msgspec_instance,
+    msgspec_to_dict,
+)
 
 
 if TYPE_CHECKING:
-    from pgcrud.expr import Expr, ReferenceExpr, AliasExpr, TableReferenceExpr
-    from pgcrud.operators import SortOperator, FilterOperator
+    from pgcrud.expressions import Expression, Literal, Undefined, Unbounded, CurrentRow, Identifier, TableIdentifier
+    from pgcrud.filter_conditions import FilterCondition
 
 
 __all__ = [
     'Clause',
-    'Select',
+    'As',
+    'Asc',
+    'CrossJoin',
+    'DeleteFrom',
+    'Desc',
+    'Filter',
+    'Following',
     'From',
-    'Where',
+    'FullJoin',
     'GroupBy',
     'Having',
-    'Window',
-    'OrderBy',
+    'InnerJoin',
+    'InsertInto',
+    'Join',
+    'LeftJoin',
     'Limit',
     'Offset',
-    'InsertInto',
-    'Values',
-    'Returning',
-    'Update',
-    'Set',
-    'DeleteFrom',
-    'Using',
+    'On',
+    'OrderBy',
     'PartitionBy',
+    'Preceding',
+    'RangeBetween',
+    'Returning',
+    'RightJoin',
     'RowsBetween',
+    'Select',
+    'Set',
+    'Update',
+    'Using',
+    'Values',
+    'Where',
+    'Window',
     'With',
 ]
 
 
-@dataclass
 class Clause:
 
-    def __str__(self):
-        return self.get_composed().as_string()
+    _tag = 'CLAUSE'
 
-    def __repr__(self):
+    @abstractmethod
+    def __str__(self) -> str:
+        pass
+
+    def __repr__(self) -> str:
         return str(self)
 
-    @abstractmethod
-    def __bool__(self) -> bool:
-        pass
-
-    @abstractmethod
-    def get_composed(self) -> Composed:
-        pass
-
-
-@dataclass(repr=False)
-class Select(Clause):
-    value: Sequence['Expr']
-
     def __bool__(self) -> bool:
         return True
 
-    def get_composed(self) -> Composed:
-        return SQL('SELECT {}').format(SQL(', ').join([v.get_composed() for v in self.value]))
+
+class As(Clause):
+
+    def __init__(
+            self,
+            alias: Expression,
+    ):
+        self.alias = alias
+
+    def __str__(self) -> str:
+        return f'AS {self.alias}'
 
 
-@dataclass(repr=False)
-class From(Clause):
-    value: 'Expr'
+class Asc(Clause):
 
-    def __bool__(self) -> bool:
-        return bool(self.value)
+    def __init__(
+            self,
+            flag: bool | Undefined = True,
+    ):
+        self.flag = flag
 
-    def get_composed(self) -> Composed:
-        return SQL('FROM {}').format(self.value.get_composed())
-
-
-@dataclass(repr=False)
-class Where(Clause):
-    value: 'FilterOperator'
-
-    def __bool__(self) -> bool:
-        return bool(self.value)
-
-    def get_composed(self) -> Composed:
-        return SQL('WHERE {}').format(self.value.get_composed())
-
-
-@dataclass(repr=False)
-class GroupBy(Clause):
-    value: Sequence['Expr']
-
-    def __bool__(self) -> bool:
-        return True
-
-    def get_composed(self) -> Composed:
-        return SQL('GROUP BY {}').format(SQL(', ').join([expr.get_composed() for expr in self.value]))
-
-
-@dataclass(repr=False)
-class Having(Clause):
-    value: 'FilterOperator'
-
-    def __bool__(self) -> bool:
-        return bool(self.value)
-
-    def get_composed(self) -> Composed:
-        return SQL('HAVING {}').format(self.value.get_composed())
-
-
-@dataclass(repr=False)
-class Window(Clause):
-    value: Sequence['AliasExpr']
-
-    def __bool__(self) -> bool:
-        return bool(self.value)
-
-    def get_composed(self) -> Composed:
-        return SQL('WINDOW {}').format(SQL(', ').join([v.get_composed() for v in self.value]))
-
-
-@dataclass(repr=False)
-class OrderBy(Clause):
-    value: Sequence['Expr | SortOperator']
-
-    def __bool__(self) -> bool:
-        return len(self.value) > 0
-
-    def __post_init__(self):
-        self.value = [v for v in self.value if v]
-
-    def get_composed(self) -> Composed:
-        return SQL('ORDER BY {}').format(SQL(', ').join([v.get_composed() for v in self.value]))
-
-
-@dataclass(repr=False)
-class Limit(Clause):
-    value: int
-
-    def __bool__(self) -> bool:
-        return True
-
-    def get_composed(self) -> Composed:
-        return SQL('LIMIT {}').format(self.value)
-
-
-@dataclass(repr=False)
-class Offset(Clause):
-    value: int
-
-    def __bool__(self) -> bool:
-        return True
-
-    def get_composed(self) -> Composed:
-        return SQL('OFFSET {}').format(self.value)
-
-
-@dataclass(repr=False)
-class InsertInto(Clause):
-    value: 'TableReferenceExpr'
-
-    def __bool__(self) -> bool:
-        return bool(self.value.children)
-
-    def get_composed(self) -> Composed:
-        return SQL('INSERT INTO {}').format(self.value.get_composed())
-
-
-@dataclass(repr=False)
-class Values(Clause):
-    value: Sequence[Any | Sequence[Any] | dict[str, Any]]
-    additional_values: dict[str, Any]
-    _prev_clause: InsertInto | None = None
-
-    def __bool__(self) -> bool:
-        return bool(self.value)
-
-    def get_composed(self) -> Composed:
-
-        vals_composed_list = []
-
-        for vals in self.value:
-
-            if is_msgspec_installed and is_msgspec_instance(vals):
-                params = self.additional_values.copy()
-                params.update(msgspec_to_dict(vals))  # type: ignore
-                vals_composed = SQL(', ').join([Literal(params.get(expr._name)) for expr in self.get_exprs()])
-
-            elif is_pydantic_installed and is_pydantic_instance(vals):
-                params = self.additional_values.copy()
-                params.update(pydantic_to_dict(vals))  # type: ignore
-                vals_composed = SQL(', ').join([Literal(params.get(expr._name)) for expr in self.get_exprs()])
-
-            elif isinstance(vals, dict):
-                params = self.additional_values.copy()
-                params.update(vals)
-                vals_composed = SQL(', ').join([Literal(params.get(expr._name)) for expr in self.get_exprs()])
-
-            elif isinstance(vals, Sequence):
-                vals_composed =  SQL(', ').join([Literal(val) for val in vals])
-
+    def __str__(self) -> str:
+        if self:
+            if self.flag:
+                return 'ASC'
             else:
-                vals_composed = SQL(', ').join([vals])
-
-            vals_composed_list.append(SQL('({})').format(vals_composed))
-
-        return SQL('VALUES {}').format(SQL(', ').join(vals_composed_list))
-
-    def get_exprs(self) -> tuple['ReferenceExpr', ...]:
-        if self._prev_clause:
-            return self._prev_clause.value.children
+                return 'DESC'
         else:
-            return ()
+            return ''
+
+    def __bool__(self) -> bool:
+        return isinstance(self.flag, bool)
 
 
-@dataclass(repr=False)
+class CrossJoin(Clause):
+
+    def __init__(
+            self,
+            expression: Expression,
+    ):
+        self.expression = expression
+
+    def __str__(self) -> str:
+        return f'CROSS JOIN {self.expression}'
+
+
+class DeleteFrom(Clause):
+
+    def __init__(
+            self,
+            identifier: Identifier,
+    ):
+        self.identifier = identifier
+
+    def __str__(self) -> str:
+        return f'DELETE FROM {self.identifier}'
+
+
+class Desc(Clause):
+
+    def __init__(
+            self,
+            flag: bool | Undefined = True,
+    ):
+        self.flag = flag
+
+    def __str__(self) -> str:
+        if self:
+            if self.flag:
+                return 'DESC'
+            else:
+                return 'ASC'
+        else:
+            return ''
+
+
+class Filter(Clause):
+
+    def __init__(
+            self,
+            where: Where,
+    ):
+        self.where = where
+
+    def __str__(self) -> str:
+        return f'FILTER ({self.where})'
+
+
+class Following(Clause):
+
+    def __str__(self) -> str:
+        return 'FOLLOWING'
+
+
+class From(Clause):
+
+    def __init__(
+            self,
+            expression: Expression,
+    ):
+        self.expression = expression
+
+    def __str__(self) -> str:
+        return f'FROM {self.expression}'
+
+
+class FullJoin(Clause):
+
+    def __init__(
+            self,
+            expression: Expression,
+    ):
+        self.expression = expression
+
+    def __str__(self) -> str:
+        return f'FULL JOIN {self.expression}'
+
+
+class GroupBy(Clause):
+
+    def __init__(
+            self,
+            exprs: list[Expression],
+    ):
+        self.exprs = exprs
+
+    def __str__(self) -> str:
+        return f"GROUP BY {', '.join([str(expr) for expr in self.exprs])}"
+
+
+class Having(Clause):
+
+    def __init__(
+            self,
+            condition: FilterCondition,
+    ):
+        self.condition = condition
+
+    def __str__(self) -> str:
+        if self:
+            return f'HAVING {self.condition}'
+        else:
+            return ''
+
+    def __bool__(self) -> bool:
+        return bool(self.condition)
+
+
+class InnerJoin(Clause):
+
+    def __init__(
+            self,
+            expression: Expression,
+    ):
+        self.expression = expression
+
+    def __str__(self) -> str:
+        return f'INNER JOIN {self.expression}'
+
+
+class InsertInto(Clause):
+
+    def __init__(
+            self,
+            identifier: Identifier | TableIdentifier,
+    ):
+        self.identifier = identifier
+
+    def __str__(self) -> str:
+        return f'INSERT INTO {self.identifier}'
+
+
+class Join(Clause):
+
+    def __init__(
+            self,
+            expr: Expression,
+    ):
+        self.expr = expr
+
+    def __str__(self) -> str:
+        return f'JOIN {self.expr}'
+
+
+class LeftJoin(Clause):
+
+    def __init__(
+            self,
+            expression: Expression,
+    ):
+        self.expression = expression
+
+    def __str__(self) -> str:
+        return f'LEFT JOIN {self.expression}'
+
+
+class Limit(Clause):
+
+    def __init__(
+            self,
+            value: int,
+    ):
+        self.value = value
+
+    def __str__(self) -> str:
+        return f'LIMIT {self.value}'
+
+
+class Offset(Clause):
+
+    def __init__(
+            self,
+            value: int,
+    ):
+        self.value = value
+
+    def __str__(self) -> str:
+        return f'OFFSET {self.value}'
+
+
+class On(Clause):
+
+    def __init__(
+            self,
+            condition: FilterCondition,
+    ):
+        self.condition = condition
+
+    def __str__(self) -> str:
+        return f'ON {self.condition}'
+
+
+class OrderBy(Clause):
+
+    def __init__(
+            self,
+            expressions: Sequence[Expression],
+    ):
+        self.expressions = expressions
+
+    def __str__(self) -> str:
+        if self:
+            return f"ORDER BY {', '.join(str(expression) for expression in self.expressions if expression)}"
+        else:
+            return ''
+
+    def __bool__(self) -> bool:
+        return any(self.expressions)
+
+
+class PartitionBy(Clause):
+
+    def __init__(
+            self,
+            expressions: Sequence[Expression],
+    ):
+        self.expressions = expressions
+
+    def __str__(self) -> str:
+        return f"PARTITION BY {', '.join([str(expression) for expression in self.expressions])}"
+
+
+class Preceding(Clause):
+
+    def __str__(self) -> str:
+        return 'PRECEDING'
+
+
+class RangeBetween(Clause):
+
+    def __init__(
+            self,
+            start: Literal | Unbounded | CurrentRow,
+            end: Literal | Unbounded | CurrentRow,
+    ):
+        self.start = start
+        self.end = end
+
+    def __str__(self) -> str:
+        return f'RANGE BETWEEN {self.start} {self.end}'
+
+
 class Returning(Clause):
-    value: Sequence['Expr']
 
-    def __bool__(self) -> bool:
-        return True
+    def __init__(
+            self,
+            expressions: Sequence[Expression],
+    ):
+        self.expressions = expressions
 
-    def get_composed(self) -> Composed:
-        return SQL('RETURNING {}').format(SQL(', ').join([v.get_composed() for v in self.value]))
-
-
-@dataclass(repr=False)
-class Update(Clause):
-    value: 'ReferenceExpr'
-
-    def __bool__(self) -> bool:
-        return True
-
-    def get_composed(self) -> Composed:
-        return SQL('UPDATE {}').format(self.value.get_composed())
+    def __str__(self) -> str:
+        return f"RETURNING {', '.join([str(expression) for expression in self.expressions])}"
 
 
-@dataclass(repr=False)
+class RightJoin(Clause):
+
+    def __init__(
+            self,
+            expression: Expression,
+    ):
+        self.expression = expression
+
+    def __str__(self) -> str:
+        return f'RIGHT JOIN {self.expression}'
+
+
+class RowsBetween(Clause):
+
+    def __init__(
+            self,
+            start: Literal | Unbounded | CurrentRow,
+            end: Literal | Unbounded | CurrentRow,
+    ):
+        self.start = start
+        self.end = end
+
+    def __str__(self) -> str:
+        return f'ROWS BETWEEN {self.start} {self.end}'
+
+
+class Select(Clause):
+
+    def __init__(
+            self,
+            expressions: Sequence[Expression],
+    ):
+        self.expressions = expressions
+
+    def __str__(self) -> str:
+        return f"SELECT {', '.join([str(expression) for expression in self.expressions])}"
+
+
 class Set(Clause):
-    cols: Sequence['ReferenceExpr']
-    values: Any | Sequence[Any] | dict[str, Any]
-    additional_values: dict[str, Any]
 
-    def __bool__(self) -> bool:
-        return bool(self.cols)
+    def __init__(
+            self,
+            columns: Sequence[Identifier],
+            values: Any,
+            additional_values: dict[str, Any],
+    ):
+        self.columns = columns
+        self.values = values
+        self.additional_values = additional_values
 
-    def get_composed(self) -> Composed:
+    def __str__(self) -> str:
 
-        composed_cols = SQL(', ').join([expr.get_composed() for expr in self.cols])
+        col_strs = []
+        val_strs = []
 
-        if is_msgspec_installed and is_msgspec_instance(self.values):
-            params = self.additional_values.copy()
-            params.update(msgspec_to_dict(self.values))  # type: ignore
-            vals_composed = SQL(', ').join([Literal(params.get(expr._name)) for expr in self.cols])
+        if is_pydantic_installed and is_pydantic_instance(self.values):
+            params = pydantic_to_dict(self.values)
+            params.update(self.additional_values)
+            for ref in self.columns:
+                col_strs.append(str(ref))
+                val_strs.append(_Literal(params[ref._name]).as_string())
 
-        elif is_pydantic_installed and is_pydantic_instance(self.values):
-            params = self.additional_values.copy()
-            params.update(pydantic_to_dict(self.values))  # type: ignore
-            vals_composed = SQL(', ').join([Literal(params.get(expr._name)) for expr in self.cols])
+        elif is_msgspec_installed and is_msgspec_instance(self.values):
+            params = msgspec_to_dict(self.values)
+            params.update(self.additional_values)
+            for ref in self.columns:
+                col_strs.append(str(ref))
+                val_strs.append(_Literal(params[ref._name]).as_string())
 
         elif isinstance(self.values, dict):
-            params = self.additional_values.copy()
-            params.update(self.values)
-            vals_composed = SQL(', ').join([Literal(params.get(expr._name)) for expr in self.cols])
+            params = self.values
+            params.update(self.additional_values)
+            for ref in self.columns:
+                col_strs.append(str(ref))
+                val_strs.append(_Literal(params[ref._name]).as_string())
 
         elif isinstance(self.values, Sequence):
-            vals_composed = SQL(', ').join([Literal(v) for v in self.values])
+            for ref, val in zip(self.columns, self.values, strict=True):
+                col_strs.append(str(ref))
+                val_strs.append(_Literal(val).as_string())
 
         else:
-            vals_composed = SQL(', ').join([self.values])
+            for ref, val in zip(self.columns, [self.values], strict=True):
+                col_strs.append(str(ref))
+                val_strs.append(_Literal(val).as_string())
 
-        if len(self.cols) > 1:
-            return SQL('SET ({}) = ({})').format(composed_cols, vals_composed)
+        if len(col_strs) < 2:
+            return f"SET {col_strs[0]} = {val_strs[0]}"
         else:
-            return SQL('SET {} = {}').format(composed_cols, vals_composed)
+            return f"SET ({', '.join(col_strs)}) = ({', '.join(val_strs)})"
 
 
-@dataclass(repr=False)
-class DeleteFrom(Clause):
-    value: 'ReferenceExpr'
+class Update(Clause):
 
-    def __bool__(self) -> bool:
-        return True
+    def __init__(
+            self,
+            identifier: Identifier,
+    ):
+        self.identifier = identifier
 
-    def get_composed(self) -> Composed:
-        return SQL('DELETE FROM {}').format(self.value.get_composed())
+    def __str__(self) -> str:
+        return f'UPDATE {self.identifier}'
 
 
-@dataclass(repr=False)
 class Using(Clause):
-    value: 'Expr'
+
+    def __init__(
+            self,
+            expression: Expression,
+    ):
+        self.expression = expression
+
+    def __str__(self) -> str:
+        return f'USING {self.expression}'
+
+
+class Values(Clause):
+
+    def __init__(
+            self,
+            values: Sequence[Any],
+            additional_values: dict[str, Any],
+            order: Sequence[Identifier] | None = None,
+    ):
+        self.values = values
+        self.additional_values = additional_values
+        self.order = order
+
+    def __str__(self) -> str:
+
+        str_list = []
+
+        for value in self.values:
+
+            if is_pydantic_installed and is_pydantic_instance(value):
+                params = pydantic_to_dict(value)
+                params.update(self.additional_values)
+                if self.order:
+                    str_item = ', '.join([_Literal(params[ref._name]).as_string() for ref in self.order])
+                else:
+                    str_item = ', '.join(_Literal(v).as_string() for v in params.values())
+                str_list.append(f'({str_item})')
+
+            elif is_msgspec_installed and is_msgspec_instance(value):
+                params = msgspec_to_dict(value)
+                params.update(self.additional_values)
+                if self.order:
+                    str_item = ', '.join([_Literal(params[ref._name]).as_string() for ref in self.order])
+                else:
+                    str_item = ', '.join(_Literal(v).as_string() for v in params.values())
+                str_list.append(f'({str_item})')
+
+            elif isinstance(value, dict):
+                params = value.copy()
+                params.update(self.additional_values)
+                if self.order:
+                    str_item = ', '.join([_Literal(params[ref._name]).as_string() for ref in self.order])
+                else:
+                    str_item = ', '.join(_Literal(v).as_string() for v in params.values())
+                str_list.append(f'({str_item})')
+
+            elif isinstance(value, Sequence):
+                str_list.append(f"({', '.join(_Literal(v).as_string() for v in value)})")
+
+            else:
+                str_list.append(f"({_Literal(value).as_string()})")
+
+        return f"VALUES {', '.join(str_list)}"
+
+
+class Where(Clause):
+
+    def __init__(
+            self,
+            condition: FilterCondition,
+    ):
+        self.condition = condition
+
+    def __str__(self) -> str:
+        if self:
+            return f'WHERE {self.condition}'
+        else:
+            return ''
 
     def __bool__(self) -> bool:
-        return True
-
-    def get_composed(self) -> Composed:
-        return SQL('USING {}').format(self.value.get_composed())
+        return bool(self.condition)
 
 
-@dataclass(repr=False)
-class PartitionBy(Clause):
-    value: Sequence['Expr']
+class Window(Clause):
 
-    def __bool__(self) -> bool:
-        return True
+    def __init__(
+            self,
+            identifiers: Sequence[Identifier],
+    ):
+        self.identifiers = identifiers
 
-    def get_composed(self) -> Composed:
-        return SQL('PARTITION BY {}').format(SQL(', ').join([v.get_composed() for v in self.value]))
-
-
-@dataclass(repr=False)
-class RowsBetween(Clause):
-    start: FrameBoundary
-    end: FrameBoundary
-
-    def __bool__(self) -> bool:
-        return True
-
-    def get_composed(self) -> Composed:
-        return SQL('ROWS BETWEEN {} AND {}').format(self.start.get_composed(), self.end.get_composed())
+    def __str__(self) -> str:
+        return f"WINDOW {','.join([str(identifier) for identifier in self.identifiers])}"
 
 
-@dataclass(repr=False)
-class RangeBetween(Clause):
-    start: FrameBoundary
-    end: FrameBoundary
-
-    def __bool__(self) -> bool:
-        return True
-
-    def get_composed(self) -> Composed:
-        return SQL('RANGE BETWEEN {} AND {}').format(self.start.get_composed(), self.end.get_composed())
-
-
-@dataclass(repr=False)
 class With(Clause):
-    exprs: Sequence['AliasExpr']
 
-    def __bool__(self) -> bool:
-        return True
+    def __init__(
+            self,
+            identifiers: Sequence[Identifier],
+    ):
+        self.identifiers = identifiers
 
-    def get_composed(self) -> Composed:
-        return SQL('WITH {}').format(SQL(', ').join([expr.get_composed() for expr in self.exprs]))
+    def __str__(self) -> str:
+        return f"WITH {','.join([str(identifier) for identifier in self.identifiers])}"

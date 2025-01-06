@@ -3,7 +3,7 @@ from pgcrud.operations.shared import construct_composed_get_query
 from pgcrud.types import GroupByValueType, HavingValueType, Row, SelectValueType, FromValueType, WhereValueType, OrderByValueType, WindowValueType
 
 
-async def get_one(
+async def async_get_one(
         cursor: AsyncCursor[Row] | AsyncServerCursor[Row],
         select: SelectValueType,
         from_: FromValueType,

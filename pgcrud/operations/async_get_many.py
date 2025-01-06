@@ -6,7 +6,7 @@ from pgcrud.types import GroupByValueType, HavingValueType, Row, SelectValueType
 
 
 @overload
-async def get_many(
+async def async_get_many(
         cursor: AsyncCursor[Row] | AsyncServerCursor[Row],
         select: SelectValueType,
         from_: FromValueType,
@@ -23,7 +23,7 @@ async def get_many(
 
 
 @overload
-async def get_many(
+async def async_get_many(
         cursor: AsyncCursor[Row],
         select: SelectValueType,
         from_: FromValueType,
@@ -40,7 +40,7 @@ async def get_many(
 
 
 @overload
-async def get_many(
+async def async_get_many(
         cursor: AsyncServerCursor[Row],
         select: SelectValueType,
         from_: FromValueType,
@@ -56,7 +56,7 @@ async def get_many(
 ) -> AsyncServerCursor[Row]: ...
 
 
-async def get_many(
+async def async_get_many(
         cursor: AsyncCursor[Row] | AsyncServerCursor[Row],
         select: SelectValueType,
         from_: FromValueType,

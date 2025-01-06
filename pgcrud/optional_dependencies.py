@@ -8,7 +8,7 @@ from psycopg._cursor_base import BaseCursor
 from psycopg.rows import BaseRowFactory, RowMaker, scalar_row
 
 
-is_pydantic_installed =  bool(importlib.util.find_spec('pydantic'))
+is_pydantic_installed = bool(importlib.util.find_spec('pydantic'))
 is_msgspec_installed = bool(importlib.util.find_spec('msgspec'))
 
 if is_pydantic_installed:

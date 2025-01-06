@@ -1,4 +1,5 @@
-from pgcrud.db.connection import Connection, ConnectionPool, AsyncConnection, AsyncConnectionPool
+from pgcrud.db.connection_pool import ConnectionPool, AsyncConnectionPool
+from pgcrud.db.connection import Connection, AsyncConnection
 from pgcrud.db.cursor import Cursor, ServerCursor, AsyncCursor, AsyncServerCursor
 
 

@@ -32,8 +32,8 @@ def get_params(item: type[T] | tuple[type[T], ConfigDict]) -> tuple[type[T], Val
         row_type = item
         config_dict: ConfigDict = {}
 
-    validate = config_dict.get('validation_library') or config.validation_library
-    strict = config_dict.get('strict_validation') or config.strict_validation
+    validate = config_dict.get('validation') or config.validation
+    strict = config_dict.get('strict') or config.strict
 
     return row_type, validate, strict
 

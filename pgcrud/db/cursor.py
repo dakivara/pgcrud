@@ -1,14 +1,13 @@
 # pyright: reportIncompatibleMethodOverride=false, reportIncompatibleVariableOverride=false
 
-from typing import Any, Iterable, Iterator, AsyncIterator
+from typing import Any, Iterable, Iterator, Sequence, AsyncIterator
 
 import psycopg
-from psycopg.errors import Sequence
 
 from pgcrud.config import ConfigDict
-from pgcrud.db.shared import T, deserialize_params, get_params, get_row_factory
-from pgcrud.types import ParamsType, QueryType, Row
+from pgcrud.db.shared import deserialize_params, get_params, get_row_factory
 from pgcrud.query import Query
+from pgcrud.types import ParamsType, QueryType, Row, T
 
 
 __all__ = [
@@ -21,7 +20,10 @@ __all__ = [
 
 class Cursor(psycopg.Cursor[Row]):
 
-    def __getitem__(self, item: type[T] | tuple[type[T], ConfigDict]) -> 'Cursor[T]':
+    def __getitem__(
+            self,
+            item: type[T] | tuple[type[T], ConfigDict],
+    ) -> 'Cursor[T]':
         row_type, validate, strict = get_params(item)
         self.row_factory = get_row_factory(row_type, validate, strict)  # type: ignore
         return self  # type: ignore
@@ -36,7 +38,7 @@ class Cursor(psycopg.Cursor[Row]):
     ) -> 'Cursor[Row]':
 
         return super().execute(
-            query=query.get_composed() if isinstance(query, Query) else query,
+            query=str(query) if isinstance(query, Query) else query,  # type: ignore
             params=deserialize_params(params),
             prepare=prepare,
             binary=binary,
@@ -51,7 +53,7 @@ class Cursor(psycopg.Cursor[Row]):
     ) -> None:
 
         super().executemany(
-            query=query.get_composed() if isinstance(query, Query) else query,
+            query=str(query) if isinstance(query, Query) else query,  # type: ignore
             params_seq=[deserialize_params(params) for params in params_seq],
             returning=returning,
         )
@@ -66,7 +68,7 @@ class Cursor(psycopg.Cursor[Row]):
     ) -> Iterator[Row]:
 
         return super().stream(
-            query=query.get_composed() if isinstance(query, Query) else query,
+            query=str(query) if isinstance(query, Query) else query,  # type: ignore
             params=deserialize_params(params),
             binary=binary,
             size=size,
@@ -75,7 +77,11 @@ class Cursor(psycopg.Cursor[Row]):
 
 class ServerCursor(psycopg.ServerCursor[Row]):
 
-    def __getitem__(self, item: type[T] | tuple[type[T], ConfigDict]) -> 'ServerCursor[T]':
+    def __getitem__(
+            self,
+            item: type[T] | tuple[type[T], ConfigDict],
+    ) -> 'ServerCursor[T]':
+
         row_type, validate, strict = get_params(item)
         self.row_factory = get_row_factory(row_type, validate, strict)  # type: ignore
         return self  # type: ignore
@@ -90,7 +96,7 @@ class ServerCursor(psycopg.ServerCursor[Row]):
     ) -> 'ServerCursor[Row]':
 
         return super().execute(
-            query=query.get_composed() if isinstance(query, Query) else query,
+            query=str(query) if isinstance(query, Query) else query,  # type: ignore
             params=deserialize_params(params),
             binary=binary,
             **kwargs,
@@ -105,7 +111,7 @@ class ServerCursor(psycopg.ServerCursor[Row]):
     ) -> None:
 
         super().executemany(
-            query=query.get_composed() if isinstance(query, Query) else query,
+            query=str(query) if isinstance(query, Query) else query,  # type: ignore
             params_seq=[deserialize_params(params) for params in params_seq],
             returning=returning,
         )
@@ -120,7 +126,7 @@ class ServerCursor(psycopg.ServerCursor[Row]):
     ) -> Iterator[Row]:
 
         return super().stream(
-            query=query.get_composed() if isinstance(query, Query) else query,
+            query=str(query) if isinstance(query, Query) else query,  # type: ignore
             params=deserialize_params(params),
             binary=binary,
             size=size,
@@ -144,7 +150,7 @@ class AsyncCursor(psycopg.AsyncCursor[Row]):
     ) -> 'AsyncCursor[Row]':
 
         return await super().execute(
-            query=query.get_composed() if isinstance(query, Query) else query,
+            query=str(query) if isinstance(query, Query) else query,  # type: ignore
             params=deserialize_params(params),
             prepare=prepare,
             binary=binary,
@@ -159,7 +165,7 @@ class AsyncCursor(psycopg.AsyncCursor[Row]):
     ) -> None:
 
         await super().executemany(
-            query=query.get_composed() if isinstance(query, Query) else query,
+            query=str(query) if isinstance(query, Query) else query,  # type: ignore
             params_seq=[deserialize_params(params) for params in params_seq],
             returning=returning,
         )
@@ -174,7 +180,7 @@ class AsyncCursor(psycopg.AsyncCursor[Row]):
     ) -> AsyncIterator[Row]:
 
         return super().stream(
-            query=query.get_composed() if isinstance(query, Query) else query,
+            query=str(query) if isinstance(query, Query) else query,  # type: ignore
             params=deserialize_params(params),
             binary=binary,
             size=size,
@@ -198,7 +204,7 @@ class AsyncServerCursor(psycopg.AsyncServerCursor[Row]):
     ) -> 'AsyncServerCursor[Row]':
 
         return await super().execute(
-            query=query.get_composed() if isinstance(query, Query) else query,
+            query=str(query) if isinstance(query, Query) else query,  # type: ignore
             params=deserialize_params(params),
             binary=binary,
             **kwargs,
@@ -213,7 +219,7 @@ class AsyncServerCursor(psycopg.AsyncServerCursor[Row]):
     ) -> None:
 
         await super().executemany(
-            query=query.get_composed() if isinstance(query, Query) else query,
+            query=str(query) if isinstance(query, Query) else query,  # type: ignore
             params_seq=[deserialize_params(params) for params in params_seq],
             returning=returning,
         )
@@ -228,7 +234,7 @@ class AsyncServerCursor(psycopg.AsyncServerCursor[Row]):
     ) -> AsyncIterator[Row]:
 
         return super().stream(
-            query=query.get_composed() if isinstance(query, Query) else query,
+            query=str(query) if isinstance(query, Query) else query,  # type: ignore
             params=deserialize_params(params),
             binary=binary,
             size=size,

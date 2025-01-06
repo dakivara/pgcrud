@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from typing import TypedDict
 
 import psycopg.types.json
@@ -13,23 +12,28 @@ __all__ = [
 ]
 
 
-@dataclass
 class Config:
-    _validation_library: ValidationType = None
-    _strict_validation: bool = False
+
+    def __init__(
+            self,
+            validation: ValidationType = None,
+            strict: bool = False,
+    ):
+        self._validation = validation
+        self._strict = strict
 
     def __str__(self):
-        return f'Config(validation_library={self.validation_library}, strict_validation={self.strict_validation})'
+        return f'Config(validation={self.validation}, strict={self.strict})'
 
     def __repr__(self):
         return str(self)
 
     @property
-    def validation_library(self) -> ValidationType:
-        return self._validation_library
+    def validation(self) -> ValidationType:
+        return self._validation  # type: ignore
 
-    @validation_library.setter
-    def validation_library(self, value: ValidationType):
+    @validation.setter
+    def validation(self, value: ValidationType):
 
         if value == 'pydantic':
             if not is_pydantic_installed:
@@ -39,35 +43,37 @@ class Config:
             if not is_msgspec_installed:
                 raise ValueError('Cannot set the value because msgspec is not installed.')
 
-        self._validation_library = value
+        self._validation = value
 
     @property
-    def strict_validation(self) -> bool:
-        return self._strict_validation
+    def strict(self) -> bool:
+        return self._strict
 
-    @strict_validation.setter
-    def strict_validation(self, value: bool) -> None:
-        self._strict_validation = value
+    @strict.setter
+    def strict(self, value: bool) -> None:
+        self._strict = value
 
-    def set_json_loads(self, loads: psycopg.types.json.JsonLoadsFunction):
+    @staticmethod
+    def set_json_loads(loads: psycopg.types.json.JsonLoadsFunction):
         psycopg.types.json.set_json_loads(loads)
 
-    def set_json_dumps(self, dumps: psycopg.types.json.JsonDumpsFunction):
+    @staticmethod
+    def set_json_dumps(dumps: psycopg.types.json.JsonDumpsFunction):
         psycopg.types.json.set_json_dumps(dumps)
 
 
 class ConfigDict(TypedDict, total=False):
-    validation_library: ValidationType
-    strict_validation: bool
+    validation: ValidationType
+    strict: bool
 
 
 config = Config()
 
 
 if is_pydantic_installed:
-    config.validation_library = 'pydantic'
+    config.validation = 'pydantic'
 
 elif is_msgspec_installed:
-    config.validation_library = 'msgspec'
+    config.validation = 'msgspec'
     config.set_json_dumps(msgspec_json_dumps)
     config.set_json_loads(msgspec_json_loads)

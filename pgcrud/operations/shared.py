@@ -2,7 +2,7 @@ from typing import Sequence
 
 from pgcrud.query import Query
 from pgcrud.query_builder import QueryBuilder as q
-from pgcrud.types import DeleteFromValueType, GroupByValueType, HavingValueType, SelectValueType, FromValueType, SetColsType, SetValuesType, UpdateValueType, UsingValueType, WhereValueType, OrderByValueType, InsertIntoValueType, ValuesValueType, ReturningValueType, AdditionalValuesType, WindowValueType
+from pgcrud.types import DeleteFromValueType, GroupByValueType, HavingValueType, SelectValueType, FromValueType, SetValueType, UpdateValueType, UsingValueType, WhereValueType, OrderByValueType, InsertIntoValueType, ValuesValueType, ReturningValueType, AdditionalValuesType, WindowValueType
 from pgcrud.utils import ensure_seq
 
 
@@ -65,8 +65,7 @@ def construct_composed_insert_query(
 
 def construct_composed_update_query(
         update: UpdateValueType,
-        set_columns: SetColsType,
-        set_values: SetValuesType,
+        set_: SetValueType,
         from_: FromValueType | None,
         where: WhereValueType | None,
         returning: ReturningValueType | None,
@@ -75,7 +74,7 @@ def construct_composed_update_query(
 
     additional_values = additional_values or {}
 
-    query = q.UPDATE(update).SET(set_columns, set_values, **additional_values)
+    query = q.UPDATE(update).SET(set_[0], set_[1], **additional_values)
 
     if from_:
         query = query.FROM(from_)
