@@ -35,13 +35,18 @@ class Config:
     @validation.setter
     def validation(self, value: ValidationType):
 
-        if value == 'pydantic':
-            if not is_pydantic_installed:
-                raise ValueError('Cannot set the value because pydantic is not installed.')
+        if value:
 
-        elif value == 'msgspec':
-            if not is_msgspec_installed:
-                raise ValueError('Cannot set the value because msgspec is not installed.')
+            if value == 'pydantic':
+                if not is_pydantic_installed:
+                    raise ValueError('Cannot set the value because pydantic is not installed.')
+
+            elif value == 'msgspec':
+                if not is_msgspec_installed:
+                    raise ValueError('Cannot set the value because msgspec is not installed.')
+
+            else:
+                raise ValueError("Invalid value: must be one of ['pydantic', 'msgspec'] or None.")
 
         self._validation = value
 
