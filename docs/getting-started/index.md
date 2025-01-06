@@ -2,70 +2,68 @@
 pgcrud is designed to closely mirror PostgreSQL's query language. If you are familiar 
 with PostgreSQL, you will quickly recognize the similarities, making this tutorial much easier to follow.
 
-There are 3 key objects in pgcrud which are essential for unlocking its full functionality. The 3 objects are 
-named `e`, `f`, and `q` and can be imported using `from pgcrud import e, f, q`.
+There are 3 components in pgcrud which are essential for unlocking its full functionality.
 
-- Expression Generator `e`: Creates generic references to database objects.
-- Function Bearer `f`: Facilitates the use of PostgreSQL functions.
-- Query Builder `q`: Enables modular query construction, mirroring PostgreSQL.
+- Identifier: Creates generic references to database objects.
+- Functions: Facilitates the use of PostgreSQL functions.
+- Query Builder: Enables modular query construction, mirroring PostgreSQL.
 
-## Expression Generator
+## Identifier
 
-Any attribute of the Expression Generator is an expression, and any attribute of 
-an expression is also an expression[^1]. Expressions are primarily used to 
+Any attribute of the Identifier class is an Identifier, and any attribute of 
+an Identifier is also an Identifier[^1]. Identifiers are primarily used to 
 represent tables or columns in the database.
 
 [^1]: Except for keywords, like `JOIN`, `OVER` or `AS`, which a pre-defined methods of an expression.
 
 ```python
-from pgcrud import e
+from pgcrud import Identifier as i
 
-e.author
+i.author
 # "author"
 
-e.name
+i.name
 # "name"
 
-e.author.name
+i.author.name
 # "author"."name"
 ```
 
 ### Arithmetic Operations
 
-Expressions fully support arithmetic operations with each other and with built-in Python objects. 
-The result of each operation is again an expression.
+Identifiers fully support arithmetic operations with each other and with built-in Python objects. 
 
 ```python
-from pgcrud import e
+from pgcrud import Identifier as i
 
-e.salary + e.bonus
+i.salary + i.bonus
 # "salary" + "bonus"
 
-e.net_price * 1.2
+i.net_price * 1.2
 # "net_price" * 1.2
 
-e.weight / e.height ** 2
+i.weight / i.height ** 2
 # "weight" / ("height" ^ 2)
 ```
 
 ### Comparison Operations
 
-Expressions fully support comparison operations with each other and with built-in Python objects. Additionally, you can 
+Identifiers fully support comparison operations with each other and with built-in Python objects. Additionally, you can 
 chain them logically using the `&` and `|` operators.
 
 ```python
-from pgcrud import e
+from pgcrud import Identifier as i
 
-e.author.id == 1
+i.author.id == 1
 # "author"."id" = 1
 
-e.salary + e.bonus > 10000
+i.salary + i.bonus > 10000
 # "salary" + "bonus" > 10000
 
-e.id.IN([1, 2, 3])
+i.id.IN(1, 2, 3)
 # "id" IN (1, 2, 3)
 
-(e.age > 4) | (e.height > 100)
+(i.age > 4) | (i.height > 100)
 # "age" > 4 OR "height" > 100
 ```
 
@@ -74,18 +72,18 @@ e.id.IN([1, 2, 3])
 Each expression can specify the ordering of data in either ascending or descending order, with the option to reverse the order using a boolean flag.
 
 ```python
-from pgcrud import e
+from pgcrud import Identifier as i
 
-e.id.ASC()
+i.id.ASC()
 # "id" ASC
 
-e.name.DESC()
+i.name.DESC()
 # "name" DESC
 
-e.id.ASC(False)
+i.id.ASC(False)
 # "id" DESC
 
-e.name.DESC(False)
+i.name.DESC(False)
 # "name" ASC
 ```
 
@@ -95,9 +93,9 @@ e.name.DESC(False)
 For insert operations, you need to specify the target table and the columns you want to populate.
 
 ```python
-from pgcrud import e
+from pgcrud import Identifier as i
 
-e.author[e.name, e.date_of_birth]
+i.author[i.name, i.date_of_birth]
 # "author" ("name", "date_of_birth")
 ```
 
@@ -107,12 +105,12 @@ e.author[e.name, e.date_of_birth]
 You can alias any expression to simplify or make your code clearer.
 
 ```python
-from pgcrud import e
+from pgcrud import Identifier as i
 
-(e.salary + e.bonus).AS('total_compensation')
+(i.salary + i.bonus).AS(i.total_compensation)
 # "salary" + "bonus" AS "total_compensation"
 
-(e.weight / e.height ** 2).AS('bmi')
+(i.weight / i.height ** 2).AS(i.bmi)
 # "weight" / ("height" ^ 2) AS "bmi"
 ```
 
@@ -121,65 +119,50 @@ from pgcrud import e
 Expressions support defining joins in a style similar to PostgreSQL. 
 
 ```python
-from pgcrud import e
+from pgcrud import Identifier as i
 
-e.book.\
-    LEFT_JOIN(e.autor).\
-    ON(e.book.author_id == e.author.id)
+i.book.\
+    LEFT_JOIN(i.autor).\
+    ON(i.book.author_id == i.author.id)
 # "book" LEFT JOIN "autor" ON "book"."author_id" = "author"."id"
 
-e.employee.AS('e').\
-    JOIN(e.department.AS('d')).\
-    ON((e.e.department_id == e.d.id) & (e.d.type == 'Finance'))
+i.employee.AS(i.e).\
+    JOIN(i.department.AS(i.d)).\
+    ON((i.e.department_id == i.d.id) & (i.d.type == 'Finance'))
 # "employee" AS "e" JOIN "department" AS "d" ON "e"."department_id" = "d"."id" AND "d"."type" = 'Finance'
 ```
 
 ### Undefined Type
 
-pgcrud includes a special object called `pg.Undefined`. When used in comparison or sorting operations, it is automatically ignored. This 
+pgcrud includes a special object called `pg.UNDEFINED`. When used in comparison or sorting operations, it is automatically ignored. This 
 feature is particularly useful for handling optional parameters.
 
 ```python
 import pgcrud as pg
-from pgcrud import e
+from pgcrud import Identifier as i
 
-(e.id == 1) & (e.name == pg.Undefined)
+(i.id == 1) & (i.name == pg.UNDEFINED)
 # "id" = 1
 
-e.id.ASC(pg.Undefined)
+i.id.ASC(pg.UNDEFINED)
 #
 ```
 
-### Placeholders
 
-The Expression Generator has the method `e.P` which is used to create placeholders that can be used in parametrized queries.
-
-```python
-from pgcrud import e
-
-e.P()
-# %s
-
-
-e.P('id')
-# %(id)s
-```
-
-
-## Function Bearer
+## Functions
 
 The Function Bearer encapsulates all PostgreSQL functions, which can be used to transform or aggregate database objects.
 
 ```python
-from pgcrud import e, f
+from pgcrud import functions as f, Identifier as i
 
-f.avg(e.salary)
+f.avg(i.salary)
 # avg("salary")
 
-f.coalesce(e.score, 0)
+f.coalesce(i.score, 0)
 # coalesce("score", 0)
 
-f.json_agg(e.book)
+f.json_agg(i.book)
 # json_agg("book")
 ```
 
@@ -194,17 +177,17 @@ define windows, subqueries or to construct queries that cannot be achieved using
 You can define windows or use the `OVER` clause.
 
 ```python
-from pgcrud import e, f, q
-from pgcrud.frame_boundaries import UNBOUNDED_PRECEDING, CURRENT_ROW
+import pgcrud as pg
+from pgcrud import functions as f, Identifier as i, QueryBuilder as q
 
-e.w.AS(
-    q.PARTITION_BY(e.product_id).
-    ORDER_BY(e.sale_timestamp).
-    ROWS_BETWEEN(UNBOUNDED_PRECEDING, CURRENT_ROW)
+i.w.AS(
+    q.PARTITION_BY(i.product_id).
+    ORDER_BY(i.sale_timestamp).
+    ROWS_BETWEEN(pg.UNBOUNDED.PRECEDING, pg.CURRENT_ROW)
 )
-# "w" AS (PARTITION BY "product_id" ORDER BY "sale_timestamp" ROWS BETWEEN UNBOUNDED PRECEEDING AND CURRENT ROW)
+# "w" AS (PARTITION BY "product_id" ORDER BY "sale_timestamp" ROWS BETWEEN UNBOUNDED PRECEDING CURRENT ROW)
 
-(e.salary / f.avg(e.salary)).OVER(q.PARTITION_BY(e.department_id)).AS('relative_salary')
+(i.salary / f.avg(i.salary)).OVER(q.PARTITION_BY(i.department_id)).AS(i.relative_salary)
 # "salary" / avg("salary") OVER (PARTITION BY "department_id") AS "relative_salary"
 ```
 
@@ -213,22 +196,22 @@ e.w.AS(
 You can use subqueries in filter expressions or join expressions.
 
 ```python
-from pgcrud import e, f, q
+from pgcrud import functions as f, Identifier as i, QueryBuilder as q
 
-e.id.IN(
-    q.SELECT(e.department_id).
-    FROM(e.employee).
-    GROUP_BY(e.department_id).
-    HAVING(f.avg(e.salary) > 10000)
+i.id.IN(
+    q.SELECT(i.department_id).
+    FROM(i.employee).
+    GROUP_BY(i.department_id).
+    HAVING(f.avg(i.salary) > 10000)
 )
-# "id" IN (SELECT "department_id" FROM "employee" GROUP BY "department_id" HAVING avg("salary") > 10000)
+# "id" IN ((SELECT "department_id" FROM "employee" GROUP BY "department_id" HAVING avg("salary") > 10000))
 
-e.author.JOIN(
-    q.SELECT((e.author_id, f.json_agg(e.book).AS('books'))).
-        FROM(e.book).
-        GROUP_BY(e.author_id).
-        AS('author_books')
-    ).ON(e.author.id == e.author_books.author_id)
+i.author.JOIN(
+    q.SELECT(i.author_id, f.json_agg(i.book).AS(i.books)).
+        FROM(i.book).
+        GROUP_BY(i.author_id).
+        AS(i.author_books)
+    ).ON(i.author.id == i.author_books.author_id)
 # "author" JOIN (SELECT "author_id", json_agg("book") AS "books" FROM "book" GROUP BY "author_id") AS "author_books" ON "author"."id" = "author_books"."author_id"
 ```
 
@@ -238,19 +221,16 @@ pgcrud provides pre-defined functions for most relevant CRUD operations but does
 such scenarios, you can use the Query Builder to construct your query.
 
 ```python
-from pgcrud import e, f, q
+from pgcrud import functions as f, Identifier as i, QueryBuilder as q
 
 q.WITH(
-    e.stats.AS(
-        q.SELECT(e.department_id, f.avg(e.salary).AS('avg_salary')).
-        FROM(e.employee).
-        GROUP_BY(e.department_id)
+    i.stats.AS(
+        q.SELECT(i.department_id, f.avg(i.salary).AS(i.avg_salary)).
+        FROM(i.employee).
+        GROUP_BY(i.department_id)
     )
-).INSERT_INTO(e.department_stats[e.id, e.avg_salary]).\
-    SELECT(e.department_id, e.avg_salary).\
-    FROM(e.stats)
+).INSERT_INTO(i.department_stats[i.id, i.avg_salary]).\
+    SELECT(i.department_id, i.avg_salary).\
+    FROM(i.stats)
 # WITH "stats" AS (SELECT "department_id", avg("salary") AS "avg_salary" FROM "employee" GROUP BY "department_id") INSERT INTO "department_stats" ("id", "avg_salary") SELECT "department_id", "avg_salary" FROM "stats"
 ```
-
-
-
