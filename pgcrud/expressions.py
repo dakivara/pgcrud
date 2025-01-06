@@ -21,6 +21,7 @@ from pgcrud.clauses import (
     Desc,
     Following,
     Preceding,
+    Over,
 )
 from pgcrud.filter_conditions import (
     Equal,
@@ -215,6 +216,10 @@ class Expression:
 
     def ON(self, condition: FilterCondition) -> Self:
         self._clauses.append(On(condition))
+        return self
+
+    def OVER(self, query: Query) -> Self:
+        self._clauses.append(Over(DerivedTable(query)))
         return self
 
     @property

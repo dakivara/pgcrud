@@ -16,7 +16,7 @@ from pgcrud.optional_dependencies import (
 
 
 if TYPE_CHECKING:
-    from pgcrud.expressions import Expression, Literal, Undefined, Unbounded, CurrentRow, Identifier, TableIdentifier
+    from pgcrud.expressions import Expression, Literal, Undefined, Unbounded, CurrentRow, Identifier, TableIdentifier, DerivedTable
     from pgcrud.filter_conditions import FilterCondition
 
 
@@ -41,6 +41,7 @@ __all__ = [
     'Offset',
     'On',
     'OrderBy',
+    'Over',
     'PartitionBy',
     'Preceding',
     'RangeBetween',
@@ -320,6 +321,18 @@ class OrderBy(Clause):
 
     def __bool__(self) -> bool:
         return any(self.expressions)
+
+
+class Over(Clause):
+
+    def __init__(
+            self,
+            derived_table: DerivedTable,
+    ):
+        self.derived_table = derived_table
+
+    def __str__(self) -> str:
+        return f'OVER {self.derived_table}'
 
 
 class PartitionBy(Clause):
