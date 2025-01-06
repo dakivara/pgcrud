@@ -12,7 +12,7 @@ pgcrud has one function to perform **synchronous** update operations:
 
 And pgcrud has one function to perform **asynchronous** update operations:
 
-- `pg.a.update_many`: Analogous to `pg.update_many`. 
+- `pg.async_update_many`: Analogous to `pg.update_many`. 
 
 Function for single record updates do not exist because PostgreSQL UPDATE command does not inherently target a single record.
 

@@ -14,8 +14,8 @@ pgcrud has two functions to perform **synchronous** read operations:
 
 And pgcrud has two function to perform **asynchronous** read operations:
 
-- `pg.a.get_one`: Analogous to `pg.get_one`.
-- `pg.a.get_many`: Analogous to `pg.get_many`.
+- `pg.async_get_one`: Analogous to `pg.get_one`.
+- `pg.async_get_many`: Analogous to `pg.get_many`.
 
 
 ## Parameters
@@ -37,7 +37,7 @@ The following parameters are available:
 
 [^1]: The only reason why this parameter has a trailing underscore is that `from` is a reserved keyword.
 
-[^2]: Only available in `pg.get_many` and `pg.a.get_many`. 
+[^2]: Only available in `pg.get_many` and `pg.async_get_many`. 
 
 
 ## Cursor
@@ -59,7 +59,7 @@ You use a single expression to select a specific column from a table, accompanie
 
     ```python
     import pgcrud as pg
-    from pgcrud import e
+    from pgcrud import Identifier as i
 
 
     def get_author_name(
@@ -69,9 +69,9 @@ You use a single expression to select a specific column from a table, accompanie
         
         return pg.get_one(
             cursor=cursor[str],
-            select=e.name,
-            from_=e.author,
-            where=e.id == id_,
+            select=i.name,
+            from_=i.author,
+            where=i.id == id_,
         )
     ```
 
@@ -79,19 +79,19 @@ You use a single expression to select a specific column from a table, accompanie
 
     ```python
     import pgcrud as pg
-    from pgcrud import e
+    from pgcrud import Identifier as i
 
 
     async def get_author_name(
-            cursor: pg.a.Cursor, 
+            cursor: pg.AsyncCursor, 
             id_: int,
     ) -> str | None:
         
-        return await pg.a.get_one(
+        return await pg.async_get_one(
             cursor=cursor[str],
-            select=e.name,
-            from_=e.author,
-            where=e.id == id_,
+            select=i.name,
+            from_=i.author,
+            where=i.id == id_,
         )
     ```
 
@@ -104,7 +104,7 @@ You use a sequence of expressions to select multiple columns from a table, with 
 
     ```python
     import pgcrud as pg
-    from pgcrud import e
+    from pgcrud import Identifier as i
 
 
     def get_book_ids_and_titles(
@@ -114,9 +114,9 @@ You use a sequence of expressions to select multiple columns from a table, with 
         
         return pg.get_many(
             cursor=cursor[tuple[int, str]],
-            select=(e.id, e.title),
-            from_=e.book,
-            where=e.author_id == author_id,
+            select=(i.id, i.title),
+            from_=i.book,
+            where=i.author_id == author_id,
         )
     ```
 
@@ -124,19 +124,19 @@ You use a sequence of expressions to select multiple columns from a table, with 
 
     ```python
     import pgcrud as pg
-    from pgcrud import e
+    from pgcrud import Identifier as i
 
 
     async def get_book_ids_and_titles(
-            cursor: pg.a.Cursor, 
+            cursor: pg.AsyncCursor, 
             author_id: int,
     ) -> tuple[int, str] | None:
         
-        return await pg.a.get_many(
+        return await pg.async_get_many(
             cursor=cursor[tuple[int, str]],
-            select=(e.id, e.title),
-            from_=e.book,
-            where=e.author_id == author_id,
+            select=(i.id, i.title),
+            from_=i.book,
+            where=i.author_id == author_id,
         )
     ```
 
@@ -154,14 +154,14 @@ You use an expression to select from table (or view).
 
     ```python
     import pgcrud as pg
-    from pgcrud import e
+    from pgcrud import Identifier as i
         
             
     def get_book_ids(cursor: pg.Cursor) -> list[int]:
         return pg.get_many(
             cursor=cursor[int],
-            select=e.id,
-            from_=e.book,
+            select=i.id,
+            from_=i.book,
         )
     ```
 
@@ -169,14 +169,14 @@ You use an expression to select from table (or view).
 
     ```python
     import pgcrud as pg
-    from pgcrud import e
+    from pgcrud import Identifier as i
         
             
-    async def get_book_ids(cursor: pg.a.Cursor) -> list[int]:
-        return await pg.a.get_many(
+    async def get_book_ids(cursor: pg.AsyncCursor) -> list[int]:
+        return await pg.async_get_many(
             cursor=cursor[int],
-            select=e.id,
-            from_=e.book,
+            select=i.id,
+            from_=i.book,
         )
     ```
 
@@ -190,7 +190,7 @@ You use a joined expression to select from a joined table. In such a case you wi
     from pydantic import BaseModel
     
     import pgcrud as pg
-    from pgcrud import e, f
+    from pgcrud import Identifier as i, functions as f
     
     
     class Author(BaseModel):
@@ -211,10 +211,10 @@ You use a joined expression to select from a joined table. In such a case you wi
     
         return pg.get_one(
             cursor=cursor[Book],
-            select=(e.book.id, e.book.title, f.to_json(e.author).AS('author')),
-            from_=e.book.
-                JOIN(e.author).ON(e.book.author_id == e.author.id),
-            where=e.book.id == id_,
+            select=(i.book.id, i.book.title, f.to_json(i.author).AS(i.author)),
+            from_=i.book.
+                JOIN(i.author).ON(i.book.author_id == i.author.id),
+            where=i.book.id == id_,
         )
     ```
 
@@ -224,7 +224,7 @@ You use a joined expression to select from a joined table. In such a case you wi
     from pydantic import BaseModel
     
     import pgcrud as pg
-    from pgcrud import e, f
+    from pgcrud import Identifier as i, functions as f
     
     
     class Author(BaseModel):
@@ -239,28 +239,30 @@ You use a joined expression to select from a joined table. In such a case you wi
     
     
     async def get_book(
-            cursor: pg.a.Cursor,
+            cursor: pg.AsyncCursor,
             id_: int,
     ) -> Book | None:
     
-        return await pg.a.get_one(
+        return await pg.async_get_one(
             cursor=cursor[Book],
-            select=(e.book.id, e.book.title, f.to_json(e.author).AS('author')),
-            from_=e.book.
-                JOIN(e.author).ON(e.book.author_id == e.author.id),
-            where=e.book.id == id_,
+            select=(i.book.id, i.book.title, f.to_json(i.author).AS(i.author)),
+            from_=i.book.
+                JOIN(i.author).ON(i.book.author_id == i.author.id),
+            where=i.book.id == id_,
         )
     ```
 
 ## Where
 
-The `where` parameter is used to specify conditions for filtering records to fetch. It accepts a comparison expression as its input. This can be a single comparison expression or an intersection or union of expressions. 
+The `where` parameter is used to specify conditions for filtering records to fetch. It 
+accepts a comparison expression as its input. This can be a single comparison expression or an 
+intersection or union of expressions. 
 
 === "sync"
 
     ```python
     import pgcrud as pg
-    from pgcrud import e
+    from pgcrud import Identifier as i
     
     
     def get_book_titles(
@@ -271,9 +273,9 @@ The `where` parameter is used to specify conditions for filtering records to fet
         
         return pg.get_many(
             cursor=cursor[str],
-            select=e.title,
-            from_=e.book,
-            where=(e.author_id == author_id_1) | (e.author_id == author_id_2),
+            select=i.title,
+            from_=i.book,
+            where=(i.author_id == author_id_1) | (i.author_id == author_id_2),
         )
     ```
 
@@ -281,27 +283,27 @@ The `where` parameter is used to specify conditions for filtering records to fet
 
     ```python
     import pgcrud as pg
-    from pgcrud import e
+    from pgcrud import Identifier as i
     
     
     async def get_book_titles(
-            cursor: pg.a.Cursor,
+            cursor: pg.AsyncCursor,
             author_id_1: int,
             author_id_2: int,
     ) -> list[str]:
         
-        return await pg.a.get_many(
+        return await pg.async_get_many(
             cursor=cursor[str],
-            select=e.title,
-            from_=e.book,
-            where=(e.author_id == author_id_1) | (e.author_id == author_id_2),
+            select=i.title,
+            from_=i.book,
+            where=(i.author_id == author_id_1) | (i.author_id == author_id_2),
         )
     ```
 
 ### Optional Filter 
 
-It is often convenient to define a function with multiple optional filter parameters. In such cases, you can use `pg.Undefined` as the default 
-value. Any comparison expressions involving `pg.Undefined` are automatically excluded from the where condition.
+It is often convenient to define a function with multiple optional filter parameters. In such cases, you can use `pg.UNDEFINED` as the default 
+value. Any comparison expressions involving `pg.UNDEFINED` are automatically excluded from the where condition.
 
 === "sync"
 
@@ -309,7 +311,7 @@ value. Any comparison expressions involving `pg.Undefined` are automatically exc
     from pydantic import BaseModel
     
     import pgcrud as pg
-    from pgcrud import e
+    from pgcrud import Identifier as i
     
     
     class Author(BaseModel):
@@ -319,15 +321,15 @@ value. Any comparison expressions involving `pg.Undefined` are automatically exc
         
     def get_author(
             cursor: pg.Cursor,
-            id_: int | type[pg.Undefined] = pg.Undefined,
-            name: str | type[pg.Undefined] = pg.Undefined,
+            id_: int | pg.Undefined = pg.UNDEFINED,
+            name: str | pg.Undefined = pg.UNDEFINED,
     ) -> Author | None:
     
         return pg.get_one(
             cursor=cursor[Author],
-            select=(e.id, e.name),
-            from_=e.author,
-            where=(e.id == id_) & (e.name == name), 
+            select=(i.id, i.name),
+            from_=i.author,
+            where=(i.id == id_) & (i.name == name), 
         )
     ```
 
@@ -337,7 +339,7 @@ value. Any comparison expressions involving `pg.Undefined` are automatically exc
     from pydantic import BaseModel
     
     import pgcrud as pg
-    from pgcrud import e
+    from pgcrud import Identifier as i
     
     
     class Author(BaseModel):
@@ -346,16 +348,16 @@ value. Any comparison expressions involving `pg.Undefined` are automatically exc
     
         
     async def get_author(
-            cursor: pg.a.Cursor,
-            id_: int | type[pg.Undefined] = pg.Undefined,
-            name: str | type[pg.Undefined] = pg.Undefined,
+            cursor: pg.AsyncCursor,
+            id_: int | pg.Undefined = pg.UNDEFINED,
+            name: str | pg.Undefined = pg.UNDEFINED,
     ) -> Author | None:
     
-        return await pg.a.get_one(
+        return await pg.async_get_one(
             cursor=cursor[Author],
-            select=(e.id, e.name),
-            from_=e.author,
-            where=(e.id == id_) & (e.name == name), 
+            select=(i.id, i.name),
+            from_=i.author,
+            where=(i.id == id_) & (i.name == name), 
         )
     ```
 
@@ -374,7 +376,7 @@ expression to group by one column or multiple expressions to group by several co
     from pydantic import BaseModel
     
     import pgcrud as pg
-    from pgcrud import e, f
+    from pgcrud import Identifier as i, functions as f
     
     
     class AuthorStats(BaseModel):
@@ -385,9 +387,9 @@ expression to group by one column or multiple expressions to group by several co
     def get_author_stats(cursor: pg.Cursor) -> list[AuthorStats]:
         return pg.get_many(
             cursor=cursor[AuthorStats],
-            select=(e.author_id, f.count(e.book).AS('n_books')),
-            from_=e.book,
-            group_by=e.author_id,
+            select=(i.author_id, f.count(i.book).AS(i.n_books)),
+            from_=i.book,
+            group_by=i.author_id,
         )
     ```
 
@@ -397,7 +399,7 @@ expression to group by one column or multiple expressions to group by several co
     from pydantic import BaseModel
     
     import pgcrud as pg
-    from pgcrud import e, f
+    from pgcrud import Identifier as i, functions as f
     
     
     class AuthorStats(BaseModel):
@@ -405,12 +407,12 @@ expression to group by one column or multiple expressions to group by several co
         n_books: int
     
         
-    async def get_author_stats(cursor: pg.a.Cursor) -> list[AuthorStats]:
-        return await pg.a.get_many(
+    async def get_author_stats(cursor: pg.AsyncCursor) -> list[AuthorStats]:
+        return await pg.async_get_many(
             cursor=cursor[AuthorStats],
-            select=(e.author_id, f.count(e.book).AS('n_books')),
-            from_=e.book,
-            group_by=e.author_id,
+            select=(i.author_id, f.count(i.book).AS(i.n_books)),
+            from_=i.book,
+            group_by=i.author_id,
         )
     ```
 
@@ -424,7 +426,7 @@ the `where` parameter, it accepts a comparison expression as input.
 
     ```python
     import pgcrud as pg
-    from pgcrud import e, f
+    from pgcrud import Identifier as i, functions as f
     
     
     def get_top_author_ids(
@@ -434,10 +436,10 @@ the `where` parameter, it accepts a comparison expression as input.
     
         return pg.get_many(
             cursor=cursor[int],
-            select=e.author_id,
-            from_=e.book,
-            group_by=e.author_id,
-            having=f.count(e.book) > n_books,
+            select=i.author_id,
+            from_=i.book,
+            group_by=i.author_id,
+            having=f.count(i.book) > n_books,
         )
     ```
 
@@ -445,20 +447,20 @@ the `where` parameter, it accepts a comparison expression as input.
 
     ```python
     import pgcrud as pg
-    from pgcrud import e, f
+    from pgcrud import Identifier as i, functions as f
     
     
     async def get_top_author_ids(
-            cursor: pg.a.Cursor,
+            cursor: pg.AsyncCursor,
             n_books: int,
     ) -> list[int]:
     
-        return await pg.a.get_many(
+        return await pg.async_get_many(
             cursor=cursor[int],
-            select=e.author_id,
-            from_=e.book,
-            group_by=e.author_id,
-            having=f.count(e.book) > n_books,
+            select=i.author_id,
+            from_=i.book,
+            group_by=i.author_id,
+            having=f.count(i.book) > n_books,
         )
     ```
 
@@ -466,20 +468,20 @@ the `where` parameter, it accepts a comparison expression as input.
 ## Window
 
 The `window` parameter is used to define windows, which allow calculations across a set of table rows related to the current row. You can 
-pass a single or sequence of aliased expressions to the `window` parameter.
+pass a single or sequence of expressions to the `window` parameter.
 
 === "sync"
 
     ```python
     import pgcrud as pg
-    from pgcrud import e, f, q
+    from pgcrud import Identifier as i, functions as f, QueryBuilder as q
 
     def get_book_order(cursor: pg.Cursor) -> list[tuple[int, str, int]]:
         return pg.get_many(
             cursor=cursor[tuple[int, str, int]],
-            select=(e.author_id, e.title, f.row_number().OVER(e.w)),
-            from_=e.book,
-            window=e.w.AS(q.PARTITION_BY(e.author_id).ORDER_BY(e.publication_date)),
+            select=(i.author_id, i.title, f.row_number().OVER(i.w)),
+            from_=i.book,
+            window=i.w.AS(q.PARTITION_BY(i.author_id).ORDER_BY(i.publication_date)),
         )
     ```
 
@@ -487,30 +489,29 @@ pass a single or sequence of aliased expressions to the `window` parameter.
 
     ```python
     import pgcrud as pg
-    from pgcrud import e, f, q
+    from pgcrud import Identifier as i, functions as f, QueryBuilder as q
     
     
-    async def get_book_order(cursor: pg.a.Cursor) -> list[tuple[int, str, int]]:
-        return await pg.a.get_many(
+    async def get_book_order(cursor: pg.AsyncCursor) -> list[tuple[int, str, int]]:
+        return await pg.async_get_many(
             cursor=cursor[tuple[int, str, int]],
-            select=(e.author_id, e.title, f.row_number().OVER(e.w)),
-            from_=e.book,
-            window=e.w.AS(q.ORDER_BY(e.publication_date)),
+            select=(i.author_id, i.title, f.row_number().OVER(i.w)),
+            from_=i.book,
+            window=i.w.AS(q.ORDER_BY(i.publication_date)),
         )
     ```
 
 ## Order By
 
-The `order_by` parameter is used to sort records based on one or more columns. It accepts either expressions[^5] or sort operators as input.
 
-[^5]: Passing an expression will sort the records in ascending order.
+The `order_by` parameter is used to sort records based on one or more columns. It accepts either a single or a sequence of expressions.
 
 
 === "sync"
 
     ```python
     import pgcrud as pg
-    from pgcrud import e
+    from pgcrud import Identifier as i
     
     
     def get_sorted_book_ids(
@@ -520,10 +521,10 @@ The `order_by` parameter is used to sort records based on one or more columns. I
     
         return pg.get_many(
             cursor=cursor[int],
-            select=e.id,
-            from_=e.book,
-            where=e.author_id == author_id,
-            order_by=e.id.ASC(),
+            select=i.id,
+            from_=i.book,
+            where=i.author_id == author_id,
+            order_by=i.id.ASC(),
         )
     ```
 
@@ -531,28 +532,28 @@ The `order_by` parameter is used to sort records based on one or more columns. I
 
     ```python
     import pgcrud as pg
-    from pgcrud import e
+    from pgcrud import Identifier as i
     
     
     async def get_sorted_book_ids(
-            cursor: pg.a.Cursor,
+            cursor: pg.AsyncCursor,
             author_id: int,
     ) -> list[int]:
     
-        return await pg.a.get_many(
+        return await pg.async_get_many(
             cursor=cursor[int],
-            select=e.id,
-            from_=e.book,
-            where=e.author_id == author_id,
-            order_by=e.id.ASC(),
+            select=i.id,
+            from_=i.book,
+            where=i.author_id == author_id,
+            order_by=i.id.ASC(),
         )
     ```
 
 
 ### Optional Sort
 
-It is often convenient to define a function with multiple optional sort parameters. In such cases, you can use `pg.Undefined` as the default 
-value. Any sort expressions involving `pg.Undefined` are automatically excluded from the `order_by`.
+It is often convenient to define a function with multiple optional sort parameters. In such cases, you can use `pg.UNDEFINED` as the default 
+value. Any sort expressions involving `pg.UNDEFINED` are automatically excluded from the `order_by`.
 
 
 
@@ -560,22 +561,22 @@ value. Any sort expressions involving `pg.Undefined` are automatically excluded 
 
     ```python
     import pgcrud as pg
-    from pgcrud import e
+    from pgcrud import Identifier as i
     
     
     def get_book_ids(
             cursor: pg.Cursor,
             author_id: int,
-            id_asc: bool | type[pg.Undefined] = pg.Undefined,
-            title_asc: bool | type[pg.Undefined] = pg.Undefined,
+            id_asc: bool | pg.Undefined = pg.UNDEFINED,
+            title_asc: bool | pg.Undefined = pg.UNDEFINED,
     ) -> list[int]:
     
         return pg.get_many(
             cursor=cursor[int],
-            select=e.id,
-            from_=e.book,
-            where=e.author_id == author_id,
-            order_by=(e.id.ASC(id_asc), e.title.ASC(title_asc)),
+            select=i.id,
+            from_=i.book,
+            where=i.author_id == author_id,
+            order_by=(i.id.ASC(id_asc), i.title.ASC(title_asc)),
         )
     ```
 
@@ -583,22 +584,22 @@ value. Any sort expressions involving `pg.Undefined` are automatically excluded 
 
     ```python
     import pgcrud as pg
-    from pgcrud import e
+    from pgcrud import Identifier as i
     
     
     async def get_sorted_book_ids(
-            cursor: pg.a.Cursor,
+            cursor: pg.AsyncCursor,
             author_id: int,
-            id_asc: bool | type[pg.Undefined] = pg.Undefined,
-            title_asc: bool | type[pg.Undefined] = pg.Undefined,
+            id_asc: bool | pg.Undefined = pg.UNDEFINED,
+            title_asc: bool | pg.Undefined = pg.UNDEFINED,
     ) -> list[int]:
     
-        return await pg.a.get_many(
+        return await pg.async_get_many(
             cursor=cursor[int],
-            select=e.id,
-            from_=e.book,
-            where=e.author_id == author_id,
-            order_by=(e.id.ASC(id_asc), e.title.ASC(title_asc)),
+            select=i.id,
+            from_=i.book,
+            where=i.author_id == author_id,
+            order_by=(i.id.ASC(id_asc), i.title.ASC(title_asc)),
         )
     ```
 
@@ -614,7 +615,7 @@ and accepts an integer as input.
     from pydantic import BaseModel
 
     import pgcrud as pg
-    from pgcrud import e
+    from pgcrud import Identifier as i
     
     
     class Author(BaseModel):
@@ -629,8 +630,8 @@ and accepts an integer as input.
     
         return pg.get_many(
             cursor=cursor[Author],
-            select=(e.id, e.name),
-            from_=e.author,
+            select=(i.id, i.name),
+            from_=i.author,
             limit=limit,
         )
     ```
@@ -641,7 +642,7 @@ and accepts an integer as input.
     from pydantic import BaseModel
 
     import pgcrud as pg
-    from pgcrud import e
+    from pgcrud import Identifier as i
     
     
     class Author(BaseModel):
@@ -650,14 +651,14 @@ and accepts an integer as input.
 
     
     async def get_authors(
-            cursor: pg.a.Cursor,
+            cursor: pg.AsyncCursor,
             limit: int | None = None,
     ) -> list[Author]:
     
-        return await pg.a.get_many(
+        return await pg.async_get_many(
             cursor=cursor[Author],
-            select=(e.id, e.name),
-            from_=e.author,
+            select=(i.id, i.name),
+            from_=i.author,
             limit=limit,
         )
     ```
@@ -674,7 +675,7 @@ an integer as input.
     from pydantic import BaseModel
 
     import pgcrud as pg
-    from pgcrud import e
+    from pgcrud import Identifier as i
     
     
     class Author(BaseModel):
@@ -690,9 +691,9 @@ an integer as input.
     
         return pg.get_many(
             cursor=cursor[Author],
-            select=(e.id, e.name),
-            from_=e.author,
-            order_by=e.id,
+            select=(i.id, i.name),
+            from_=i.author,
+            order_by=i.id,
             limit=limit,
             offset=offset,
         )
@@ -704,7 +705,7 @@ an integer as input.
     from pydantic import BaseModel
 
     import pgcrud as pg
-    from pgcrud import e
+    from pgcrud import Identifier as i
     
     
     class Author(BaseModel):
@@ -713,16 +714,16 @@ an integer as input.
 
     
     async def get_authors(
-            cursor: pg.a.Cursor,
+            cursor: pg.AsyncCursor,
             limit: int | None = None,
             offset: int | None = None,
     ) -> list[Author]:
     
-        return await pg.a.get_many(
+        return await pg.async_get_many(
             cursor=cursor[Author],
-            select=(e.id, e.name),
-            from_=e.author,
-            order_by=e.id,
+            select=(i.id, i.name),
+            from_=i.author,
+            order_by=i.id,
             limit=limit,
             offset=offset,
         )
@@ -740,14 +741,14 @@ when you need to iterate through the data without loading it all at once.
 
     ```python
     import pgcrud as pg
-    from pgcrud import e
+    from pgcrud import Identifier as i
 
 
     def get_book_titles(cursor: pg.Cursor) -> pg.Cursor[str]:
         return pg.get_many(
             cursor=cursor[str],
-            select=e.title,
-            from_=e.book,
+            select=i.title,
+            from_=i.book,
             no_fetch=True,
         )
     ```
@@ -756,14 +757,14 @@ when you need to iterate through the data without loading it all at once.
 
     ```python
     import pgcrud as pg
-    from pgcrud import e
+    from pgcrud import Identifier as i
 
 
-    async def get_book_titles(cursor: pg.a.Cursor) -> pg.a.Cursor[str]:
-        return await pg.a.get_many(
+    async def get_book_titles(cursor: pg.AsyncCursor) -> pg.AsyncCursor[str]:
+        return await pg.async_get_many(
             cursor=cursor[str],
-            select=e.title,
-            from_=e.book,
+            select=i.title,
+            from_=i.book,
             no_fetch=True,
         )
     ```
