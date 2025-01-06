@@ -49,6 +49,7 @@ __all__ = [
     'Unbounded',
     'CurrentRow',
     'Literal',
+    'Placeholder',
     'Identifier',
     'TableIdentifier',
     'ComposedExpression',
@@ -271,6 +272,24 @@ class Literal(Expression):
     @property
     def _base_str(self) -> str:
         return _Literal(self._value).as_string()
+
+
+class Placeholder(Expression):
+
+    def __init__(
+            self,
+            name: str | None = None,
+            clauses: list[Clause] | None = None,
+    ) -> None:
+        super().__init__(clauses)
+        self._name = name
+
+    @property
+    def _base_str(self) -> str:
+        if self._name:
+            return f'%({self._name})s)'
+        else:
+            return '%s'
 
 
 class IdentifierType(type):

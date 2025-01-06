@@ -3,7 +3,7 @@ from types import ModuleType
 
 from pgcrud.config import config
 from pgcrud.db import ConnectionPool, Connection, Cursor, AsyncConnectionPool, AsyncConnection, AsyncCursor
-from pgcrud.expressions import CurrentRow, Identifier, Literal, Undefined, Unbounded
+from pgcrud.expressions import CurrentRow, Identifier, Literal, Placeholder, Undefined, Unbounded
 from pgcrud.operations.get_one import get_one
 from pgcrud.operations.get_many import get_many
 from pgcrud.operations.insert_one import insert_one
@@ -33,8 +33,9 @@ __all__ = [
 
     'QueryBuilder',
 
-    'Identifier',
     'Literal',
+    'Placeholder',
+    'Identifier',
 
     'UNDEFINED',
     'UNBOUNDED',
