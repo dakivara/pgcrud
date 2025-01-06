@@ -14,8 +14,8 @@ pgcrud has two functions to perform **synchronous** insert operations:
 
 And pgcrud has two function to perform **asynchronous** insert operations:
 
-- `pg.a.insert_one`: Analogous to `pg.insert_one`.
-- `pg.a.insert_many`: Analogous to `pg.insert_many`.
+- `pg.async_insert_one`: Analogous to `pg.insert_one`.
+- `pg.async_insert_many`: Analogous to `pg.insert_many`.
 
 
 ## Parameters
@@ -30,7 +30,7 @@ The following parameters are available:
 - `no_fetch` *(optional)*: To execute only.[^1]
 
 
-[^1]: Only available in `pg.insert_many` and `pg.a.insert_many`. 
+[^1]: Only available in `pg.insert_many` and `pg.async_insert_many`. 
 
 
 ## Cursor
@@ -41,7 +41,7 @@ The `cursor` parameter is explained in detail [here](cursor.md).
 ## Insert Into
 
 The `insert_into` specifies into which table you want to insert and which columns you want to populate. You need to pass a 
-table expression to this parameter. A table expression is of the following form: `e.table_name[e.column_name_1, e.column_name_2]`.
+an identifier or table identifier to this parameter. A table identifier is of the following form: `i.table_name[i.column_name_1, i.column_name_2]`.
 
 === "sync"
 
@@ -49,7 +49,7 @@ table expression to this parameter. A table expression is of the following form:
     from datetime import date
     
     import pgcrud as pg
-    from pgcrud import e
+    from pgcrud import Identifier as i
     
     
     def insert_author(
@@ -60,7 +60,7 @@ table expression to this parameter. A table expression is of the following form:
         
         pg.insert_one(
             cursor=cursor,
-            insert_into=e.author[e.name, e.date_of_birth],
+            insert_into=i.author[i.name, i.date_of_birth],
             values=(name, date_of_birth),
         )
     ```
@@ -71,18 +71,18 @@ table expression to this parameter. A table expression is of the following form:
     from datetime import date
     
     import pgcrud as pg
-    from pgcrud import e
+    from pgcrud import Identifier as i
     
     
     async def insert_author(
-            cursor: pg.a.Cursor,
+            cursor: pg.AsyncCursor,
             name: str,
             date_of_birth: date,
     ) -> None:
         
-        await pg.a.insert_one(
+        await pg.async_insert_one(
             cursor=cursor,
-            insert_into=e.author[e.name, e.date_of_birth],
+            insert_into=i.author[i.name, i.date_of_birth],
             values=(name, date_of_birth),
         )
     ```
@@ -105,7 +105,7 @@ In the `insert_one` method, the `values` parameter typically expects a tuple, di
     from pydantic import BaseModel
     
     import pgcrud as pg
-    from pgcrud import e
+    from pgcrud import Identifier as i
     
     
     class AuthorInput(BaseModel):
@@ -120,7 +120,7 @@ In the `insert_one` method, the `values` parameter typically expects a tuple, di
         
         pg.insert_one(
             cursor=cursor,
-            insert_into=e.author[e.name, e.date_of_birth],
+            insert_into=i.author[i.name, i.date_of_birth],
             values=input_,
         )
     ```
@@ -133,7 +133,7 @@ In the `insert_one` method, the `values` parameter typically expects a tuple, di
     from pydantic import BaseModel
     
     import pgcrud as pg
-    from pgcrud import e
+    from pgcrud import Identifier as i
     
     
     class AuthorInput(BaseModel):
@@ -142,13 +142,13 @@ In the `insert_one` method, the `values` parameter typically expects a tuple, di
     
         
     async def insert_author(
-            cursor: pg.a.Cursor,
+            cursor: pg.AsyncCursor,
             input_: AuthorInput,
     ) -> None:
         
-        await pg.a.insert_one(
+        await pg.async_insert_one(
             cursor=cursor,
-            insert_into=e.author[e.name, e.date_of_birth],
+            insert_into=i.author[i.name, i.date_of_birth],
             values=input_,
         )
     ```
@@ -166,7 +166,7 @@ In the `insert_many` method, the `values` parameter expects a sequence of tuples
     from pydantic import BaseModel
     
     import pgcrud as pg
-    from pgcrud import e
+    from pgcrud import Identifier as i
     
     
     class AuthorInput(BaseModel):
@@ -181,7 +181,7 @@ In the `insert_many` method, the `values` parameter expects a sequence of tuples
         
         pg.insert_many(
             cursor=cursor,
-            insert_into=e.author[e.name, e.date_of_birth],
+            insert_into=i.author[i.name, i.date_of_birth],
             values=input_,
         )
     ```
@@ -194,7 +194,7 @@ In the `insert_many` method, the `values` parameter expects a sequence of tuples
     from pydantic import BaseModel
     
     import pgcrud as pg
-    from pgcrud import e
+    from pgcrud import Identifier as i
     
     
     class AuthorInput(BaseModel):
@@ -203,13 +203,13 @@ In the `insert_many` method, the `values` parameter expects a sequence of tuples
     
         
     async def insert_authors(
-            cursor: pg.a.Cursor,
+            cursor: pg.AsyncCursor,
             input_: list[AuthorInput],
     ) -> None:
         
-        await pg.a.insert_many(
+        await pg.async_insert_many(
             cursor=cursor,
-            insert_into=e.author[e.name, e.date_of_birth],
+            insert_into=i.author[i.name, i.date_of_birth],
             values=input_,
         )
     ```
@@ -229,7 +229,7 @@ expects a single or multiple expressions as input.
     from datetime import date
     
     import pgcrud as pg
-    from pgcrud import e
+    from pgcrud import Identifier as i
     
     
     def insert_book(
@@ -239,9 +239,9 @@ expects a single or multiple expressions as input.
         
         return pg.insert_one(
             cursor=cursor[int],
-            insert_into=e.book[e.title, e.publication_date, e.author_id],
+            insert_into=i.book[i.title, i.publication_date, i.author_id],
             values=input_,
-            returning=e.id,
+            returning=i.id,
         )
     ```
 
@@ -251,19 +251,19 @@ expects a single or multiple expressions as input.
     from datetime import date
     
     import pgcrud as pg
-    from pgcrud import e
+    from pgcrud import Identifier as i
     
     
     async def insert_book(
-            cursor: pg.a.Cursor,
+            cursor: pg.AsyncCursor,
             input_: tuple[str, date, int],        
     ) -> int:
         
-        return await pg.a.insert_one(
+        return await pg.async_insert_one(
             cursor=cursor[int],
-            insert_into=e.book[e.title, e.publication_date, e.author_id],
+            insert_into=i.book[i.title, i.publication_date, i.author_id],
             values=input_,
-            returning=e.id,
+            returning=i.id,
         )
     ```
 
@@ -282,7 +282,7 @@ insertion. The `additional_values` expects a dictionary as input.
     from pydantic import BaseModel
         
     import pgcrud as pg
-    from pgcrud import e
+    from pgcrud import Identifier as i
     
     
     class BookInput(BaseModel):
@@ -303,14 +303,14 @@ insertion. The `additional_values` expects a dictionary as input.
     
         author_id = pg.insert_one(
             cursor[int],
-            insert_into=e.author[e.name, e.date_of_birth],
+            insert_into=i.author[i.name, i.date_of_birth],
             values=input_,
-            returning=e.id,
+            returning=i.id,
         )
         
         pg.insert_many(
             cursor=cursor,
-            insert_into=e.book[e.title, e.publication_date, e.author_id],
+            insert_into=i.book[i.title, i.publication_date, i.author_id],
             values=input_.books,
             additional_values={'author_id': author_id},
         ) 
@@ -324,7 +324,7 @@ insertion. The `additional_values` expects a dictionary as input.
     from pydantic import BaseModel
         
     import pgcrud as pg
-    from pgcrud import e
+    from pgcrud import Identifier as i
     
     
     class BookInput(BaseModel):
@@ -339,20 +339,20 @@ insertion. The `additional_values` expects a dictionary as input.
     
             
     async def insert_author_with_books(
-            cursor: pg.a.Cursor,
+            cursor: pg.AsyncCursor,
             input_: AuthorInput,
     ) -> None:
     
-        author_id = await pg.a.insert_one(
+        author_id = await pg.async_insert_one(
             cursor[int],
-            insert_into=e.author[e.name, e.date_of_birth],
+            insert_into=i.author[i.name, i.date_of_birth],
             values=input_,
-            returning=e.id,
+            returning=i.id,
         )
         
-        await pg.a.insert_many(
+        await pg.async_insert_many(
             cursor=cursor,
-            insert_into=e.book[e.title, e.publication_date, e.author_id],
+            insert_into=i.book[i.title, i.publication_date, i.author_id],
             values=input_.books,
             additional_values={'author_id': author_id},
         ) 
@@ -371,7 +371,7 @@ when you need to iterate through the data without loading it all at once.
     from datetime import date
     
     import pgcrud as pg
-    from pgcrud import e
+    from pgcrud import Identifier as i
     
     
     def insert_books(
@@ -381,9 +381,9 @@ when you need to iterate through the data without loading it all at once.
         
         return pg.insert_many(
             cursor=cursor[int],
-            insert_into=e.book[e.title, e.publication_date, e.author_id],
+            insert_into=i.book[i.title, i.publication_date, i.author_id],
             values=input_,
-            returning=e.id,
+            returning=i.id,
             no_fetch=True,
         )
     ```
@@ -394,19 +394,19 @@ when you need to iterate through the data without loading it all at once.
     from datetime import date
     
     import pgcrud as pg
-    from pgcrud import e
+    from pgcrud import Identifier as i
     
     
     async def insert_books(
-            cursor: pg.a.Cursor,
+            cursor: pg.AsyncCursor,
             input_: list[tuple[str, date, int]],        
-    ) -> pg.a.Cursor[int]:
+    ) -> pg.AsyncCursor[int]:
         
-        return await pg.a.insert_many(
+        return await pg.async_insert_many(
             cursor=cursor[int],
-            insert_into=e.book[e.title, e.publication_date, e.author_id],
+            insert_into=i.book[i.title, i.publication_date, i.author_id],
             values=input_,
-            returning=e.id,
+            returning=i.id,
             no_fetch=True,
         )
     ```
