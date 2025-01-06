@@ -287,7 +287,7 @@ class Placeholder(Expression):
     @property
     def _base_str(self) -> str:
         if self._name:
-            return f'%({self._name})s)'
+            return f'%({self._name})s'
         else:
             return '%s'
 
