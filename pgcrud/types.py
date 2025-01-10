@@ -20,6 +20,7 @@ __all__ = [
     'OrderByValueType',
     'InsertIntoValueType',
     'ValuesValueType',
+    'OnConflictValueType',
     'AdditionalValuesType',
     'ReturningValueType',
     'UpdateValueType',
@@ -47,6 +48,7 @@ WindowValueType = Union['Identifier']
 OrderByValueType = Union[Any, 'Expression', 'Query', Sequence[Union[Any, 'Expression', 'Query']]]
 InsertIntoValueType = Union['Identifier', 'TableIdentifier']
 ValuesValueType = Any
+OnConflictValueType = Union['Query']
 ReturningValueType = Union[Any, 'Expression', Sequence[Union[Any, 'Expression']]]
 UpdateValueType = Union['Identifier']
 SetValueType = tuple[Union['Identifier', Sequence['Identifier']], Any]

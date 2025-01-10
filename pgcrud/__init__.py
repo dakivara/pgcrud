@@ -3,7 +3,7 @@ from types import ModuleType
 
 from pgcrud.config import config
 from pgcrud.db import ConnectionPool, Connection, Cursor, AsyncConnectionPool, AsyncConnection, AsyncCursor
-from pgcrud.expressions import CurrentRow, Identifier, Literal, Placeholder, Undefined, Unbounded
+from pgcrud.expressions import CurrentRow, Excluded, Identifier, Literal, Placeholder, Undefined, Unbounded
 from pgcrud.operations.get_one import get_one
 from pgcrud.operations.get_many import get_many
 from pgcrud.operations.insert_one import insert_one
@@ -41,6 +41,7 @@ __all__ = [
     'UNDEFINED',
     'UNBOUNDED',
     'CURRENT_ROW',
+    'EXCLUDED',
 
     'get_one',
     'get_many',
@@ -65,6 +66,7 @@ UNDEFINED = Undefined()
 
 UNBOUNDED: Unbounded
 CURRENT_ROW: CurrentRow
+EXCLUDED: Excluded
 
 
 class InitModule(ModuleType):
@@ -76,6 +78,10 @@ class InitModule(ModuleType):
     @property
     def CURRENT_ROW(self) -> CurrentRow:
         return CurrentRow()
+
+    @property
+    def EXCLUDED(self) -> Excluded:
+        return Excluded()
 
 
 sys.modules[__name__].__class__ = InitModule

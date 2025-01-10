@@ -21,7 +21,7 @@ from pgcrud.clauses import (
     PartitionBy,
     Values,
     Set, Using, RowsBetween, RangeBetween,
-    With,
+    With, OnConflict, DoNothing, OnConstraint, DoUpdate,
 )
 from pgcrud.expressions import (
     CurrentRow,
@@ -53,11 +53,25 @@ class Query:
     def __repr__(self):
         return str(self)
 
+    def merge(self, query: Query) -> Self:
+        self._clauses += query._clauses
+        return self
+
     def AS(self, identifier: Identifier) -> DerivedTable:
         return DerivedTable(self).AS(identifier)
 
     def DELETE_FROM(self, identifier: Identifier) -> Self:
         self._clauses.append(DeleteFrom(identifier))
+        return self
+
+    @property
+    def DO_NOTHING(self) -> Self:
+        self._clauses.append(DoNothing())
+        return self
+
+    @property
+    def DO_UPDATE(self) -> Self:
+        self._clauses.append(DoUpdate())
         return self
 
     def FROM(self, expression: Expression) -> Self:
@@ -82,6 +96,15 @@ class Query:
 
     def OFFSET(self, value: int) -> Self:
         self._clauses.append(Offset(value))
+        return self
+
+    @property
+    def ON_CONFLICT(self) -> Self:
+        self._clauses.append(OnConflict())
+        return self
+
+    def ON_CONSTRAINT(self, identifier: Identifier) -> Self:
+        self._clauses.append(OnConstraint(identifier))
         return self
 
     def ORDER_BY(self, *args: Any | Expression) -> Self:

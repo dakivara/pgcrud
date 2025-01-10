@@ -49,6 +49,7 @@ __all__ = [
     'Undefined',
     'Unbounded',
     'CurrentRow',
+    'Excluded',
     'Literal',
     'Placeholder',
     'Identifier',
@@ -264,6 +265,19 @@ class CurrentRow(Expression):
         return 'CURRENT ROW'
 
 
+class Excluded(Expression):
+
+    @property
+    def _base_str(self) -> str:
+        return 'EXCLUDED'
+
+    def __call__(self, item: str) -> Identifier:
+        return Identifier(item, self)
+
+    def __getattr__(self, item: str) -> Identifier:
+        return Identifier(item, self)
+
+
 class Literal(Expression):
 
     def __init__(
@@ -308,7 +322,7 @@ class Identifier(Expression, metaclass=IdentifierType):
     def __init__(
             self,
             name: str,
-            parent: Identifier | None = None,
+            parent: Identifier | Excluded | None = None,
             clauses: list[Clause] | None = None,
     ):
         super().__init__(clauses)

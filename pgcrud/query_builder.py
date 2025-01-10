@@ -22,7 +22,10 @@ from pgcrud.clauses import (
     Set,
     Using,
     With,
-    RowsBetween, RangeBetween,
+    RowsBetween,
+    RangeBetween,
+    DoNothing,
+    OnConflict, OnConstraint, DoUpdate,
 )
 from pgcrud.expressions import (
     CurrentRow,
@@ -41,7 +44,22 @@ from pgcrud.utils import ensure_seq
 __all__ = ['QueryBuilder']
 
 
-class QueryBuilder:
+class QueryBuilderType(type):
+
+    @property
+    def DO_NOTHING(cls) -> Query:
+        return Query([DoNothing()])
+
+    @property
+    def DO_UPDATE(cls) -> Query:
+        return Query([DoUpdate()])
+
+    @property
+    def ON_CONFLICT(cls) -> Query:
+        return Query([OnConflict()])
+
+
+class QueryBuilder(metaclass=QueryBuilderType):
 
     def __new__(cls):
         raise TypeError("'QueryBuilder' object is not callable")
@@ -73,6 +91,10 @@ class QueryBuilder:
     @staticmethod
     def OFFSET(value: int) -> Query:
         return Query([Offset(value)])
+
+    @staticmethod
+    def ON_CONSTRAINT(identifier: Identifier) -> Query:
+        return Query([OnConstraint(identifier)])
 
     @staticmethod
     def ORDER_BY(*args: Expression) -> Query:

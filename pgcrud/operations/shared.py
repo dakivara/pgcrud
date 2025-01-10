@@ -2,7 +2,7 @@ from typing import Sequence
 
 from pgcrud.query import Query
 from pgcrud.query_builder import QueryBuilder as q
-from pgcrud.types import DeleteFromValueType, GroupByValueType, HavingValueType, SelectValueType, FromValueType, SetValueType, UpdateValueType, UsingValueType, WhereValueType, OrderByValueType, InsertIntoValueType, ValuesValueType, ReturningValueType, AdditionalValuesType, WindowValueType
+from pgcrud.types import DeleteFromValueType, GroupByValueType, HavingValueType, OnConflictValueType, SelectValueType, FromValueType, SetValueType, UpdateValueType, UsingValueType, WhereValueType, OrderByValueType, InsertIntoValueType, ValuesValueType, ReturningValueType, AdditionalValuesType, WindowValueType
 from pgcrud.utils import ensure_seq
 
 
@@ -49,6 +49,7 @@ def construct_composed_get_query(
 def construct_composed_insert_query(
         insert_into: InsertIntoValueType,
         values: Sequence[ValuesValueType],
+        on_conflict: OnConflictValueType | None,
         returning: ReturningValueType | None,
         additional_values: AdditionalValuesType | None,
 ) -> Query:
@@ -56,6 +57,9 @@ def construct_composed_insert_query(
     additional_values = additional_values or {}
 
     query = q.INSERT_INTO(insert_into).VALUES(*values, **additional_values)
+
+    if on_conflict:
+        query = query.ON_CONFLICT.merge(on_conflict)
 
     if returning:
         query = query.RETURNING(*ensure_seq(returning))

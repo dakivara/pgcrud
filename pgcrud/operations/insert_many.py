@@ -3,7 +3,7 @@ from typing import Literal, overload
 
 from pgcrud.db import Cursor, ServerCursor
 from pgcrud.operations.shared import construct_composed_insert_query
-from pgcrud.types import InsertIntoValueType, AdditionalValuesType, ReturningValueType, Row, ValuesValueType
+from pgcrud.types import InsertIntoValueType, AdditionalValuesType, OnConflictValueType, ReturningValueType, Row, ValuesValueType
 
 
 @overload
@@ -12,6 +12,7 @@ def insert_many(
         insert_into: InsertIntoValueType,
         values: Sequence[ValuesValueType],
         *,
+        on_conflict: OnConflictValueType | None = None,
         returning: None = None,
         additional_values: AdditionalValuesType | None = None,
         no_fetch: Literal[False] = False,
@@ -24,6 +25,7 @@ def insert_many(
         insert_into: InsertIntoValueType,
         values: Sequence[ValuesValueType],
         *,
+        on_conflict: OnConflictValueType | None = None,
         returning: ReturningValueType,
         additional_values: AdditionalValuesType | None = None,
         no_fetch: Literal[False] = False,
@@ -36,6 +38,7 @@ def insert_many(
         insert_into: InsertIntoValueType,
         values: Sequence[ValuesValueType],
         *,
+        on_conflict: OnConflictValueType | None = None,
         returning: ReturningValueType,
         additional_values: AdditionalValuesType | None = None,
         no_fetch: Literal[True],
@@ -48,6 +51,7 @@ def insert_many(
         insert_into: InsertIntoValueType,
         values: Sequence[ValuesValueType],
         *,
+        on_conflict: OnConflictValueType | None = None,
         returning: ReturningValueType,
         additional_values: AdditionalValuesType | None = None,
         no_fetch: Literal[True],
@@ -59,12 +63,13 @@ def insert_many(
         insert_into: InsertIntoValueType,
         values: Sequence[ValuesValueType],
         *,
+        on_conflict: OnConflictValueType | None = None,
         returning: ReturningValueType | None = None,
         additional_values: AdditionalValuesType | None = None,
         no_fetch: bool = False,
 ) -> list[Row] | Cursor[Row] | ServerCursor[Row] | None:
 
-    query = construct_composed_insert_query(insert_into, values, returning, additional_values)
+    query = construct_composed_insert_query(insert_into, values, on_conflict, returning, additional_values)
     cursor.execute(query)
 
     if returning:

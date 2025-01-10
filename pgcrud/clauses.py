@@ -27,6 +27,8 @@ __all__ = [
     'CrossJoin',
     'DeleteFrom',
     'Desc',
+    'DoNothing',
+    'DoUpdate',
     'Filter',
     'Following',
     'From',
@@ -40,6 +42,8 @@ __all__ = [
     'Limit',
     'Offset',
     'On',
+    'OnConflict',
+    'OnConstraint',
     'OrderBy',
     'Over',
     'PartitionBy',
@@ -147,6 +151,18 @@ class Desc(Clause):
                 return 'ASC'
         else:
             return ''
+
+
+class DoNothing(Clause):
+
+    def __str__(self) -> str:
+        return 'DO NOTHING'
+
+
+class DoUpdate(Clause):
+
+    def __str__(self) -> str:
+        return 'DO UPDATE'
 
 
 class Filter(Clause):
@@ -303,6 +319,24 @@ class On(Clause):
 
     def __str__(self) -> str:
         return f'ON {self.condition}'
+
+
+class OnConflict(Clause):
+
+    def __str__(self) -> str:
+        return 'ON CONFLICT'
+
+
+class OnConstraint(Clause):
+
+    def __init__(
+            self,
+            identifier: Identifier,
+    ):
+        self.identifier = identifier
+
+    def __str__(self) -> str:
+        return f'ON CONSTRAINT {self.identifier}'
 
 
 class OrderBy(Clause):
