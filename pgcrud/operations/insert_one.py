@@ -1,6 +1,5 @@
 from typing import overload
 
-
 from pgcrud.db import Cursor, ServerCursor
 from pgcrud.operations.shared import construct_composed_insert_query
 from pgcrud.types import InsertIntoValueType, AdditionalValuesType, OnConflictValueType, ReturningValueType, Row, ValuesValueType
@@ -24,7 +23,19 @@ def insert_one(
         insert_into: InsertIntoValueType,
         values: ValuesValueType,
         *,
-        on_conflict: OnConflictValueType | None = None,
+        on_conflict: None = None,
+        returning: ReturningValueType,
+        additional_values: AdditionalValuesType | None = None,
+) -> Row: ...
+
+
+@overload
+def insert_one(
+        cursor: Cursor[Row] | ServerCursor[Row],
+        insert_into: InsertIntoValueType,
+        values: ValuesValueType,
+        *,
+        on_conflict: OnConflictValueType,
         returning: ReturningValueType,
         additional_values: AdditionalValuesType | None = None,
 ) -> Row | None: ...

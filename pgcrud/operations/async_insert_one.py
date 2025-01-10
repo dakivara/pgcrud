@@ -23,7 +23,19 @@ async def async_insert_one(
         insert_into: InsertIntoValueType,
         values: ValuesValueType,
         *,
-        on_conflict: OnConflictValueType | None = None,
+        on_conflict: None = None,
+        returning: ReturningValueType,
+        additional_values: AdditionalValuesType | None = None,
+) -> Row: ...
+
+
+@overload
+async def async_insert_one(
+        cursor: AsyncCursor[Row] | AsyncServerCursor[Row],
+        insert_into: InsertIntoValueType,
+        values: ValuesValueType,
+        *,
+        on_conflict: OnConflictValueType,
         returning: ReturningValueType,
         additional_values: AdditionalValuesType | None = None,
 ) -> Row | None: ...
