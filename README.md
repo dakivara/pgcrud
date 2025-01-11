@@ -84,7 +84,7 @@ expressions, and provide additional capabilities for handling complex database o
 ```python
 from pgcrud import Identifier as i
 
-(i.age > 18) & (i.age < 60) & (i.id.IN([1, 2, 3]))
+(i.age > 18) & (i.age < 60) & (i.id.IN(1, 2, 3))
 # "age" > 18 AND "age" < 60 AND "id" IN (1, 2, 3)
 
 (i.weight / i.height ** 2).AS(i.bmi)
