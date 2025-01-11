@@ -13,7 +13,7 @@ from pgcrud.optional_dependencies import (
     is_msgspec_instance,
     msgspec_to_dict,
 )
-
+from pgcrud.types import SequenceType
 
 if TYPE_CHECKING:
     from pgcrud.expressions import Expression, Literal, Undefined, Unbounded, CurrentRow, Identifier, TableIdentifier, DerivedTable
@@ -489,7 +489,7 @@ class Set(Clause):
                 col_strs.append(str(identifier))
                 val_strs.append(_Literal(params[identifier._name]).as_string())
 
-        elif isinstance(self.values, (list, tuple)):
+        elif isinstance(self.values, SequenceType):
             for identifier, val in zip(self.columns, self.values, strict=True):
                 col_strs.append(str(identifier))
                 val_strs.append(_Literal(val).as_string())
@@ -574,7 +574,7 @@ class Values(Clause):
                     str_item = ', '.join(_Literal(v).as_string() for v in params.values())
                 str_list.append(f'({str_item})')
 
-            elif isinstance(value, (list, tuple)):
+            elif isinstance(value, SequenceType):
                 str_list.append(f"({', '.join(_Literal(v).as_string() for v in value)})")
 
             else:

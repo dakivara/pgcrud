@@ -1,13 +1,13 @@
-from collections.abc import Sequence
+from typing import Any
 
-from pgcrud.types import T
+from pgcrud.types import SequenceType
 
 
 __all__ = ['ensure_seq']
 
 
-def ensure_seq(value: T | Sequence[T]) -> Sequence[T]:
-    if isinstance(value, Sequence):
+def ensure_seq(value: Any | SequenceType) -> SequenceType:
+    if isinstance(value, SequenceType):
         return value
     else:
         return [value]
