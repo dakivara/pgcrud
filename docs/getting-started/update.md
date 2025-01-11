@@ -19,23 +19,129 @@ Function for single record updates do not exist because PostgreSQL UPDATE comman
 
 ## Parameters
 
-- cursor *(required)*: 
-- update *(required)*:
-- set_ *(required)*:
-- from_ *(optional)*:
-- where *(optional)*:
-- returning *(optional)*:
-- additional_values *(optional)*:
-- no_fetch *(optional)*:
+- `cursor` *(required)*: To execute the query. 
+- `update` *(required)*: To specify which table to update.
+- `set_` *(required)*: To assign new values to columns.
+- `from_` *(optional)*: To specify tables for subqueries.
+- `where` *(optional)*: To determine which rows to update.
+- `returning` *(optional)*: To fetch the updated rows.
+- `additional_values` *(optional)*: Additional values that can be updated.
+- `no_fetch` *(optional)*: To execute only.[^1]
 
-## cursor
+## Cursor
 
+The `cursor` parameter is explained in detail [here](cursor.md).
 
 ## Update
 
+The `update` parameter specifies which table to update. It expects an identifier as input.
+
+=== "sync"
+
+    ```python
+    import pgcrud as pg
+    from pgcrud import Identifier as i
+    
+    
+    def update_book(
+            cursor: pg.Cursor,
+            id_: int,
+            title: str,
+    ) -> None:
+        
+        pg.update_many(
+            cursor=cursor,
+            update=i.book,
+            set_=(i.title, title),
+            where=i.id == id_, 
+        )
+    ```
+
+=== "async"
+
+    ```python
+    import pgcrud as pg
+    from pgcrud import Identifier as i
+    
+    
+    async def update_book(
+            cursor: pg.AsyncCursor,
+            id_: int,
+            title: str,
+    ) -> None:
+        
+        await pg.async_update_many(
+            cursor=cursor,
+            update=i.book,
+            set_=(i.title, title),
+            where=i.id == id_, 
+        )
+    ```
 
 ## Set
 
+The `set` parameter expects a tuple containing two items: the first item is either a single identifier or a sequence of identifiers 
+that specify the columns to be updated, while the second item can be a single value, a sequence of values, or a model instance.
+
+=== "sync"
+
+    ```python
+    from datetime import date
+    
+    from pydantic import BaseModel
+    
+    import pgcrud as pg
+    from pgcrud import Identifier as i
+    
+    
+    class AuthorUpdate(BaseModel):
+        name: str
+        date_of_birth: date
+    
+    
+    def update_author(
+            cursor: pg.Cursor,
+            id_: int,
+            update: AuthorUpdate,
+    ) -> None:
+            
+            pg.update_many(
+                cursor=cursor,
+                update=i.book,
+                set_=((i.name, i.date_of_birth), update),
+                where=i.id == id_, 
+            )
+    ```
+
+=== "async"
+
+    ```python
+    from datetime import date
+    
+    from pydantic import BaseModel
+    
+    import pgcrud as pg
+    from pgcrud import Identifier as i
+    
+    
+    class AuthorUpdate(BaseModel):
+        name: str
+        date_of_birth: date
+    
+    
+    async def update_author(
+            cursor: pg.AsyncCursor,
+            id_: int,
+            update: AuthorUpdate,
+    ) -> None:
+            
+            await pg.async_update_many(
+                cursor=cursor,
+                update=i.book,
+                set_=((i.name, i.date_of_birth), update),
+                where=i.id == id_, 
+            )
+    ```
 
 ## From
 

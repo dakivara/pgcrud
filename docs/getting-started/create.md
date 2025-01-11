@@ -38,10 +38,9 @@ The following parameters are available:
 
 The `cursor` parameter is explained in detail [here](cursor.md).
 
-
 ## Insert Into
 
-The `insert_into` specifies into which table you want to insert and which columns you want to populate. You need to pass a 
+The `insert_into` specifies into which table you want to insert and which columns you want to populate. You need to pass 
 an identifier or table identifier to this parameter. A table identifier is of the following form: `i.table_name[i.column_name_1, i.column_name_2]`.
 
 === "sync"
