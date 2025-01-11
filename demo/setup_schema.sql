@@ -5,7 +5,7 @@ SET search_path = demo_schema;
 
 CREATE TABLE author (
     id serial PRIMARY KEY,
-    name varchar(255) NOT NULL,
+    name varchar(255) NOT NULL UNIQUE,
     date_of_birth date NOT NULL
 );
 

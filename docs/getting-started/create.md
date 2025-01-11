@@ -25,6 +25,7 @@ The following parameters are available:
 - `cursor` *(required)*: To execute the query.
 - `insert_into` *(required)*: To specify in which table to insert and which columns to populate.
 - `values` *(required)*: The values to insert.
+- `on_conflict` *(optional)*: To handle conflicts.
 - `returning` *(optional)*: To return the inserted records.
 - `additional_values` *(optional)*: Additional values that can be inserted.
 - `no_fetch` *(optional)*: To execute only.[^1]
@@ -211,6 +212,71 @@ In the `insert_many` method, the `values` parameter expects a sequence of tuples
             cursor=cursor,
             insert_into=i.author[i.name, i.date_of_birth],
             values=input_,
+        )
+    ```
+
+## On Conflict
+
+The `on_conflict` parameter is used to manage conflicts that arise from constraint violations and 
+requires a query as its input.
+
+
+=== "sync"
+
+    ```python
+    from datetime import date
+    
+    from pydantic import BaseModel
+    
+    import pgcrud as pg
+    from pgcrud import Identifier as i, QueryBuilder as q
+    
+    
+    class AuthorInput(BaseModel):
+        name: str
+        date_of_birth: date
+    
+    
+    def insert_author(
+            cursor: pg.Cursor,
+            input_: AuthorInput,
+    ) -> None:
+    
+        pg.insert_one(
+            cursor=cursor,
+            insert_into=i.author[i.name, i.date_of_birth],
+            values=input_,
+            on_conflict=q.ON_CONSTRAINT(i.author_name_key).DO_NOTHING,
+        )
+    ```
+
+
+=== "async"
+
+    ```python
+    from datetime import date
+    
+    from pydantic import BaseModel
+    
+    import pgcrud as pg
+    from pgcrud import Identifier as i, QueryBuilder as q
+    
+    
+    class AuthorInput(BaseModel):
+        name: str
+        date_of_birth: date
+    
+    
+    async def insert_author(
+            cursor: pg.AsyncCursor,
+            input_: AuthorInput,
+    ) -> None:
+    
+        await pg.async_insert_one(
+            cursor=cursor,
+            insert_into=i.author[i.name, i.date_of_birth],
+            values=input_,
+            on_conflict=q.ON_CONSTRAINT(i.author_name_key).DO_NOTHING,
         )
     ```
 
