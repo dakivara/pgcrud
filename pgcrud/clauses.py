@@ -471,32 +471,32 @@ class Set(Clause):
         if is_pydantic_installed and is_pydantic_instance(self.values):
             params = pydantic_to_dict(self.values)
             params.update(self.additional_values)
-            for ref in self.columns:
-                col_strs.append(str(ref))
-                val_strs.append(_Literal(params[ref._name]).as_string())
+            for identifier in self.columns:
+                col_strs.append(str(identifier))
+                val_strs.append(_Literal(params[identifier._name]).as_string())
 
         elif is_msgspec_installed and is_msgspec_instance(self.values):
             params = msgspec_to_dict(self.values)
             params.update(self.additional_values)
-            for ref in self.columns:
-                col_strs.append(str(ref))
-                val_strs.append(_Literal(params[ref._name]).as_string())
+            for identifier in self.columns:
+                col_strs.append(str(identifier))
+                val_strs.append(_Literal(params[identifier._name]).as_string())
 
         elif isinstance(self.values, dict):
             params = self.values
             params.update(self.additional_values)
-            for ref in self.columns:
-                col_strs.append(str(ref))
-                val_strs.append(_Literal(params[ref._name]).as_string())
+            for identifier in self.columns:
+                col_strs.append(str(identifier))
+                val_strs.append(_Literal(params[identifier._name]).as_string())
 
         elif isinstance(self.values, Sequence):
-            for ref, val in zip(self.columns, self.values, strict=True):
-                col_strs.append(str(ref))
+            for identifier, val in zip(self.columns, self.values, strict=True):
+                col_strs.append(str(identifier))
                 val_strs.append(_Literal(val).as_string())
 
         else:
-            for ref, val in zip(self.columns, [self.values], strict=True):
-                col_strs.append(str(ref))
+            for identifier, val in zip(self.columns, [self.values], strict=True):
+                col_strs.append(str(identifier))
                 val_strs.append(_Literal(val).as_string())
 
         if len(col_strs) < 2:
@@ -551,7 +551,7 @@ class Values(Clause):
                 params = pydantic_to_dict(value)
                 params.update(self.additional_values)
                 if self.order:
-                    str_item = ', '.join([_Literal(params[ref._name]).as_string() for ref in self.order])
+                    str_item = ', '.join([_Literal(params[identifier._name]).as_string() for identifier in self.order])
                 else:
                     str_item = ', '.join(_Literal(v).as_string() for v in params.values())
                 str_list.append(f'({str_item})')
@@ -560,7 +560,7 @@ class Values(Clause):
                 params = msgspec_to_dict(value)
                 params.update(self.additional_values)
                 if self.order:
-                    str_item = ', '.join([_Literal(params[ref._name]).as_string() for ref in self.order])
+                    str_item = ', '.join([_Literal(params[identifier._name]).as_string() for identifier in self.order])
                 else:
                     str_item = ', '.join(_Literal(v).as_string() for v in params.values())
                 str_list.append(f'({str_item})')
@@ -569,7 +569,7 @@ class Values(Clause):
                 params = value.copy()
                 params.update(self.additional_values)
                 if self.order:
-                    str_item = ', '.join([_Literal(params[ref._name]).as_string() for ref in self.order])
+                    str_item = ', '.join([_Literal(params[identifier._name]).as_string() for identifier in self.order])
                 else:
                     str_item = ', '.join(_Literal(v).as_string() for v in params.values())
                 str_list.append(f'({str_item})')
