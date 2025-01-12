@@ -2,15 +2,12 @@
 from __future__ import annotations
 
 from contextlib import contextmanager, asynccontextmanager
-from typing import Any, AsyncIterator, Awaitable, Callable, Iterator, TYPE_CHECKING
+from typing import Any, AsyncIterator, Awaitable, Callable, Iterator
 
 import psycopg_pool
 
+from pgcrud.db.connection import Connection, AsyncConnection
 from pgcrud.types import Row
-
-
-if TYPE_CHECKING:
-    from pgcrud.db.connection import Connection, AsyncConnection
 
 
 __all__ = [
