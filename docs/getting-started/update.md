@@ -148,9 +148,62 @@ that specify the columns to be updated, while the second item can be a single va
 
 ## Where
 
+The `where` parameter is used to specify conditions for updating records. It 
+accepts a comparison expression as its input. This can be a single comparison expression or an 
+intersection or union of expressions. 
+
+=== "sync"
+
+    ```python
+    from datetime import date
+    
+    import pgcrud as pg
+    from pgcrud import Identifier as i
+    
+    
+    def update_book(
+            cursor: pg.Cursor,
+            author_id: int,
+            title: str,
+            publication_date: date,
+    ):
+        
+        pg.update_many(
+            cursor=cursor,
+            update=i.book,
+            set_=(i.publication_date, publication_date),
+            where=(i.title == title) & (i.author_id == author_id),
+        )
+    ```
+
+=== "async"
+
+    ```python
+    from datetime import date
+    
+    import pgcrud as pg
+    from pgcrud import Identifier as i
+    
+    
+    async def update_book(
+            cursor: pg.AsyncCursor,
+            author_id: int,
+            title: str,
+            publication_date: date,
+    ):
+        
+        await pg.async_update_many(
+            cursor=cursor,
+            update=i.book,
+            set_=(i.publication_date, publication_date),
+            where=(i.title == title) & (i.author_id == author_id),
+        )
+    ```
 
 ## Returning
 
+The `returning` parameter is used to retrieve the record after update. The `returning` parameter 
+expects a single or multiple expressions as input.
 
 ## Additional Values
 

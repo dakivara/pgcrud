@@ -4,15 +4,20 @@ with PostgreSQL, you will quickly recognize the similarities, making this tutori
 
 There are 3 components in pgcrud which are essential for unlocking its full functionality.
 
-- Identifier: Creates generic references to database objects.
+- Expressions: Represent database objects.
 - Functions: Facilitates the use of PostgreSQL functions.
 - Query Builder: Enables modular query construction, mirroring PostgreSQL.
 
-## Identifier
+## Expressions
 
-Any attribute of the Identifier class is an Identifier, and any attribute of 
-an Identifier is also an Identifier[^1]. Identifiers are primarily used to 
-represent tables or columns in the database.
+Expressions represents database objects such as columns, tables, or 
+values like integers, text, booleans, and similar types.
+
+### Identifiers
+
+An identifier represents a database object, such as a column, table, or other entity. Any 
+attribute of the identifier class is an identifier and any attribute of an identifier is 
+again an identifier[^1]. 
 
 [^1]: Except for keywords, like `JOIN`, `OVER` or `AS`, which a pre-defined methods of an expression.
 
@@ -29,9 +34,32 @@ i.author.name
 # "author"."name"
 ```
 
+### Literals
+
+The Literal class is used to convert Python built-in types into PostgreSQL data types..
+
+```python
+from datetime import datetime
+
+from pgcrud import Literal
+
+Literal(1)
+# 1
+
+Literal(datetime.now())
+# '2025-01-12 15:59:10.179785'::timestamp
+
+Literal([1, 2, 3])
+# '{1,2,3}'::int2[]
+```
+
+
 ### Arithmetic Operations
 
-Identifiers fully support arithmetic operations with each other and with built-in Python objects. 
+Expressions fully support arithmetic operations with each other and with built-in Python objects. [^2] 
+
+[^2]: Built in types are automatically converted to literals.
+
 
 ```python
 from pgcrud import Identifier as i
@@ -48,7 +76,7 @@ i.weight / i.height ** 2
 
 ### Comparison Operations
 
-Identifiers fully support comparison operations with each other and with built-in Python objects. Additionally, you can 
+Expressions fully support comparison operations with each other and with built-in Python objects. Additionally, you can 
 chain them logically using the `&` and `|` operators.
 
 ```python
@@ -88,7 +116,7 @@ i.name.DESC(False)
 ```
 
 
-### Reference for Table and Columns
+### Table identifier
 
 For insert operations, you need to specify the target table and the columns you want to populate.
 
