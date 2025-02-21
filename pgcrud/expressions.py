@@ -50,6 +50,7 @@ __all__ = [
     'Unbounded',
     'CurrentRow',
     'Excluded',
+    'Star',
     'Literal',
     'Placeholder',
     'Identifier',
@@ -278,6 +279,24 @@ class Excluded(Expression):
         return Identifier(item, self)
 
 
+class Star(Expression):
+
+    def __init__(
+            self,
+            identifier: Identifier | None = None,
+            clauses: list[Clause] | None = None,
+    ):
+        super().__init__(clauses)
+        self.identifier = identifier
+
+    @property
+    def _base_str(self) -> str:
+        if self.identifier:
+            return f'{self.identifier}.*'
+        else:
+            return '*'
+
+
 class Literal(Expression):
 
     def __init__(
@@ -344,6 +363,10 @@ class Identifier(Expression, metaclass=IdentifierType):
             return f'{self._parent}.{_Identifier(self._name).as_string()}'
         else:
             return _Identifier(self._name).as_string()
+
+    @property
+    def STAR(self) -> Star:
+        return Star(self)
 
 
 class TableIdentifier(Expression):
