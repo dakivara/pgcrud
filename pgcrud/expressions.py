@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Self, TYPE_CHECKING, Sequence
+from typing import Any, Literal as LiteralType, Self, TYPE_CHECKING, Sequence
 
 from psycopg.sql import Literal as _Literal, Identifier as _Identifier
 
@@ -73,6 +73,9 @@ __all__ = [
     'JsonAgg',
     'Coalesce',
     'ToJson',
+
+    'Crypt',
+    'GenSalt',
 ]
 
 
@@ -686,3 +689,43 @@ class ToJson(Function):
     @property
     def _base_str(self) -> str:
         return f'to_json({self.expression})'
+
+
+# pgcrypto
+
+
+class Crypt(Function):
+
+    def __init__(
+            self,
+            password: str,
+            salt: Expression,
+            clauses: list[Clause] | None = None,
+    ):
+        super().__init__(clauses)
+        self.password = _Literal(password).as_string()
+        self.salt = salt
+
+    @property
+    def _base_str(self) -> str:
+        return f'crypt({self.password}, {self.salt})'
+
+
+class GenSalt(Function):
+
+    def __init__(
+            self,
+            algorithm: LiteralType['bf', 'md5', 'sha256'],
+            cost: int | None = None,
+            clauses: list[Clause] | None = None,
+    ):
+        super().__init__(clauses)
+        self.algorithm = _Literal(algorithm).as_string()
+        self.cost = _Literal(cost).as_string() if cost else None
+
+    @property
+    def _base_str(self) -> str:
+        if self.cost:
+            return f'gen_salt({self.algorithm}, {self.cost})'
+        else:
+            return f'gen_salt({self.algorithm})'
