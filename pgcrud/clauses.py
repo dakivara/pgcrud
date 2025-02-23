@@ -63,6 +63,13 @@ __all__ = [
 ]
 
 
+def to_str(value: Any) -> str:
+    if getattr(value, '_tag', '') == 'EXPRESSION':
+        return str(value)
+    else:
+        return _Literal(value).as_string()
+
+
 class Clause:
 
     _tag = 'CLAUSE'
@@ -551,34 +558,34 @@ class Values(Clause):
                 params = pydantic_to_dict(value)
                 params.update(self.additional_values)
                 if self.order:
-                    str_item = ', '.join([_Literal(params[identifier._name]).as_string() for identifier in self.order])
+                    str_item = ', '.join([to_str(params[identifier._name]) for identifier in self.order])
                 else:
-                    str_item = ', '.join(_Literal(v).as_string() for v in params.values())
+                    str_item = ', '.join(to_str(v) for v in params.values())
                 str_list.append(f'({str_item})')
 
             elif is_msgspec_installed and is_msgspec_instance(value):
                 params = msgspec_to_dict(value)
                 params.update(self.additional_values)
                 if self.order:
-                    str_item = ', '.join([_Literal(params[identifier._name]).as_string() for identifier in self.order])
+                    str_item = ', '.join([to_str(params[identifier._name]) for identifier in self.order])
                 else:
-                    str_item = ', '.join(_Literal(v).as_string() for v in params.values())
+                    str_item = ', '.join(to_str(v) for v in params.values())
                 str_list.append(f'({str_item})')
 
             elif isinstance(value, dict):
                 params = value.copy()
                 params.update(self.additional_values)
                 if self.order:
-                    str_item = ', '.join([_Literal(params[identifier._name]).as_string() for identifier in self.order])
+                    str_item = ', '.join([to_str(params[identifier._name]) for identifier in self.order])
                 else:
-                    str_item = ', '.join(_Literal(v).as_string() for v in params.values())
+                    str_item = ', '.join(to_str(v) for v in params.values())
                 str_list.append(f'({str_item})')
 
             elif isinstance(value, SequenceType):
-                str_list.append(f"({', '.join(_Literal(v).as_string() for v in value)})")
+                str_list.append(f"({', '.join(to_str(v) for v in value)})")
 
             else:
-                str_list.append(f"({_Literal(value).as_string()})")
+                str_list.append(f"({to_str(value)})")
 
         return f"VALUES {', '.join(str_list)}"
 
