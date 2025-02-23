@@ -63,6 +63,7 @@ __all__ = [
     'Power',
     'DerivedTable',
     'Function',
+    'Now',
     'RowNumber',
     'Count',
     'Sum',
@@ -547,6 +548,13 @@ class Function(Expression):
     @abstractmethod
     def _base_str(self) -> str:
         pass
+
+
+class Now(Function):
+
+    @property
+    def _base_str(self) -> str:
+        return 'now()'
 
 
 class RowNumber(Function):

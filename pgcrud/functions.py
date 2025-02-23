@@ -12,6 +12,7 @@ from pgcrud.expressions import (
     Expression,
     Max,
     Min,
+    Now,
     RowNumber,
     Count,
     JsonAgg,
@@ -38,6 +39,10 @@ __all__ = [
     'crypt',
     'gen_salt',
 ]
+
+
+def now() -> Now:
+    return Now()
 
 
 def row_number() -> RowNumber:
