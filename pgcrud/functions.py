@@ -5,7 +5,9 @@ from typing import Any, Literal, TYPE_CHECKING
 from pgcrud.expressions import (
     Crypt,
     GenSalt,
+    Lower,
     ToJson,
+    Upper,
     make_expr,
     ArrayAgg,
     Avg,
@@ -31,6 +33,8 @@ __all__ = [
     'avg',
     'min',
     'max',
+    'lower',
+    'upper',
     'array_agg',
     'json_agg',
     'coalesce',
@@ -67,6 +71,14 @@ def min(value: Any | Expression | Query) -> Min:
 
 def max(value: Any | Expression | Query) -> Max:
     return Max(make_expr(value))
+
+
+def lower(value: Any | Expression | Query) -> Lower:
+    return Lower(make_expr(value))
+
+
+def upper(value: Any | Expression | Query) -> Upper:
+    return Upper(make_expr(value))
 
 
 def array_agg(value: Any | Expression | Query) -> ArrayAgg:

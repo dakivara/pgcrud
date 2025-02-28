@@ -70,6 +70,8 @@ __all__ = [
     'Avg',
     'Min',
     'Max',
+    'Lower',
+    'Upper',
     'ArrayAgg',
     'JsonAgg',
     'Coalesce',
@@ -637,6 +639,36 @@ class Max(Function):
     @property
     def _base_str(self) -> str:
         return f'max({self.expression})'
+
+
+class Lower(Function):
+
+    def __init__(
+            self,
+            expression: Expression,
+            clauses: list[Clause] | None = None,
+    ):
+        super().__init__(clauses)
+        self.expression = expression
+
+    @property
+    def _base_str(self) -> str:
+        return f'lower({self.expression})'
+
+
+class Upper(Function):
+
+    def __init__(
+            self,
+            expression: Expression,
+            clauses: list[Clause] | None = None,
+    ):
+        super().__init__(clauses)
+        self.expression = expression
+
+    @property
+    def _base_str(self) -> str:
+        return f'upper({self.expression})'
 
 
 class ArrayAgg(Function):
