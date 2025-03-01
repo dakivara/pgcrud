@@ -651,6 +651,9 @@ class Lower(Function):
         super().__init__(clauses)
         self.expression = expression
 
+    def __bool__(self) -> bool:
+        return bool(self.expression)
+
     @property
     def _base_str(self) -> str:
         return f'lower({self.expression})'
@@ -665,6 +668,9 @@ class Upper(Function):
     ):
         super().__init__(clauses)
         self.expression = expression
+
+    def __bool__(self) -> bool:
+        return bool(self.expression)
 
     @property
     def _base_str(self) -> str:
