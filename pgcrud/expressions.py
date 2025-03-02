@@ -744,13 +744,16 @@ class Crypt(Function):
 
     def __init__(
             self,
-            password: str,
+            password: Expression,
             salt: Expression,
             clauses: list[Clause] | None = None,
     ):
         super().__init__(clauses)
-        self.password = _Literal(password).as_string()
+        self.password = password
         self.salt = salt
+
+    def __bool__(self) -> bool:
+        return bool(self.password)
 
     @property
     def _base_str(self) -> str:

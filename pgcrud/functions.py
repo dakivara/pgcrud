@@ -101,10 +101,10 @@ def to_json(value: Any | Expression | Query) -> ToJson:
 
 
 def crypt(
-        password: str,
+        password: str | Expression,
         salt: str | Expression,
 ) -> Crypt:
-    return Crypt(password, make_expr(salt))
+    return Crypt(make_expr(password), make_expr(salt))
 
 
 def gen_salt(
