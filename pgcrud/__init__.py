@@ -3,7 +3,7 @@ from types import ModuleType
 
 from pgcrud.config import config
 from pgcrud.db import ConnectionPool, Connection, Cursor, AsyncConnectionPool, AsyncConnection, AsyncCursor
-from pgcrud.expressions import CurrentRow, Excluded, Identifier, Literal, Placeholder, Undefined, Unbounded, Star
+from pgcrud.expressions import CurrentRow, Excluded, Identifier, Literal, Placeholder, Undefined, Unbounded, Star, Default
 from pgcrud.operations.get_one import get_one
 from pgcrud.operations.get_many import get_many
 from pgcrud.operations.insert_one import insert_one
@@ -38,11 +38,13 @@ __all__ = [
     'Identifier',
     'Undefined',
 
+    'STAR',
     'UNDEFINED',
+    'DEFAULT',
+
     'UNBOUNDED',
     'CURRENT_ROW',
     'EXCLUDED',
-    'STAR',
 
     'get_one',
     'get_many',
@@ -65,6 +67,7 @@ async_connect = AsyncConnection.connect
 
 STAR = Star()
 UNDEFINED = Undefined()
+DEFAULT = Default()
 
 UNBOUNDED: Unbounded
 CURRENT_ROW: CurrentRow

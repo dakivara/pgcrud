@@ -53,6 +53,7 @@ __all__ = [
     'Star',
     'Literal',
     'Placeholder',
+    'Default',
     'Identifier',
     'TableIdentifier',
     'ComposedExpression',
@@ -334,6 +335,24 @@ class Placeholder(Expression):
             return f'%({self._name})s'
         else:
             return '%s'
+
+
+class Default(Expression):
+
+    def __bool__(self) -> bool:
+        return False
+
+    @property
+    def _base_str(self) -> str:
+        return 'DEFAULT'
+
+    @property
+    def _clauses(self) -> list[Clause]:
+        return []
+
+    @_clauses.setter
+    def _clauses(self, clauses: list[Clause]) -> None:
+        pass
 
 
 class IdentifierType(type):
