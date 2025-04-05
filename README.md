@@ -39,7 +39,7 @@ With pgcrud you can easily fetch the author including the author's books in a si
 from pydantic import BaseModel
 
 import pgcrud as pg
-from pgcrud import Identifier as i, QueryBuilder as q, functions as f
+from pgcrud import IdentifierExpression as i, QueryBuilder as q, functions as f
 
 
 class Book(BaseModel):
@@ -82,7 +82,7 @@ such as columns, tables, views, or subqueries. These references support arithmet
 expressions, and provide additional capabilities for handling complex database operations.
 
 ```python
-from pgcrud import Identifier as i
+from pgcrud import IdentifierExpression as i
 
 (i.age > 18) & (i.age < 60) & (i.id.IN(1, 2, 3))
 # "age" > 18 AND "age" < 60 AND "id" IN (1, 2, 3)
@@ -104,7 +104,7 @@ You can import the Functions with `from pgcrud import functions`. Each function 
 a PostgreSQL function. You can use them to declare transformations, aggregations, and more.
 
 ```python
-from pgcrud import functions as f, Identifier as i
+from pgcrud import functions as f, IdentifierExpression as i
 
 f.avg(i.salary + i.bonus).AS(i.average_compensation)
 # avg("salary" + "bonus") AS "average_compensation"
@@ -119,7 +119,7 @@ f.to_json(i.publisher).AS(i.publisher)
 You can import the Query Builder with `from pgcrud import QueryBuilder`. The Query Builder is used to construct queries and subqueries for performing any CRUD operation.
 
 ```python
-from pgcrud import Identifier as i, QueryBuilder as q
+from pgcrud import IdentifierExpression as i, QueryBuilder as q
 
 q.SELECT(i.id, i.name, i.salary).\
 FROM(i.employee).\
