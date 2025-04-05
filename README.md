@@ -121,24 +121,24 @@ You can import the Query Builder with `from pgcrud import QueryBuilder`. The Que
 ```python
 from pgcrud import IdentifierExpression as i, QueryBuilder as q
 
-q.SELECT(i.id, i.name, i.salary).\
-FROM(i.employee).\
-WHERE(i.salary > 10000)
+q.SELECT(i.id, i.name, i.salary) \
+    .FROM(i.employee) \
+    .WHERE(i.salary > 10000)
 # SELECT "id", "name", "salary" FROM "employee" WHERE "salary" > 10000
 
-q.INSERT_INTO(i.employee[i.name, i.salary, i.department_id]).\
-VALUES(('John Doe', 1000, 1), {'name': 'Jane Doe', 'salary': 2000, 'department_id': 2}).\
-RETURNING(i.id)
+q.INSERT_INTO(i.employee[i.name, i.salary, i.department_id]) \
+    .VALUES(('John Doe', 1000, 1), {'name': 'Jane Doe', 'salary': 2000, 'department_id': 2}) \
+    .RETURNING(i.id)
 # INSERT INTO "employee" ("name", "salary", "department_id") VALUES ('John Doe', 1000, 1), ('Jane Doe', 2000, 2) RETURNING "id"
 
-q.UPDATE(i.employee).\
-SET((i.salary, i.department_id), (3000, 3)).\
-WHERE(i.id == 1)
+q.UPDATE(i.employee) \
+    .SET((i.salary, i.department_id), (3000, 3)) \
+    .WHERE(i.id == 1)
 # UPDATE "employee" SET ("salary", "department_id") = (3000, 3) WHERE "id" = 1
 
-q.DELETE_FROM(i.employee).\
-WHERE(i.salary > 10000).\
-RETURNING(i.id)
+q.DELETE_FROM(i.employee) \
+    .WHERE(i.salary > 10000) \
+    .RETURNING(i.id)
 # DELETE FROM "employee" WHERE "salary" > 10000 RETURNING "id"
 ```
 

@@ -149,14 +149,14 @@ Expressions support defining joins in a style similar to PostgreSQL.
 ```python
 from pgcrud import IdentifierExpression as i
 
-i.book.\
-    LEFT_JOIN(i.autor).\
-    ON(i.book.author_id == i.author.id)
+i.book \
+    .LEFT_JOIN(i.autor) \
+    .ON(i.book.author_id == i.author.id)
 # "book" LEFT JOIN "autor" ON "book"."author_id" = "author"."id"
 
-i.employee.AS(i.e).\
-    JOIN(i.department.AS(i.d)).\
-    ON((i.e.department_id == i.d.id) & (i.d.type == 'Finance'))
+i.employee.AS(i.e) \
+    .JOIN(i.department.AS(i.d)) \
+    .ON((i.e.department_id == i.d.id) & (i.d.type == 'Finance'))
 # "employee" AS "e" JOIN "department" AS "d" ON "e"."department_id" = "d"."id" AND "d"."type" = 'Finance'
 ```
 
@@ -257,8 +257,8 @@ q.WITH(
         FROM(i.employee).
         GROUP_BY(i.department_id)
     )
-).INSERT_INTO(i.department_stats[i.id, i.avg_salary]).\
-    SELECT(i.department_id, i.avg_salary).\
-    FROM(i.stats)
+).INSERT_INTO(i.department_stats[i.id, i.avg_salary]) \
+    .SELECT(i.department_id, i.avg_salary) \
+    .FROM(i.stats)
 # WITH "stats" AS (SELECT "department_id", avg("salary") AS "avg_salary" FROM "employee" GROUP BY "department_id") INSERT INTO "department_stats" ("id", "avg_salary") SELECT "department_id", "avg_salary" FROM "stats"
 ```
