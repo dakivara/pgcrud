@@ -1,5 +1,5 @@
 import pgcrud as pg
-from pgcrud import Identifier as i
+from pgcrud import IdentifierExpression as i
 
 from tests.models import Customer
 

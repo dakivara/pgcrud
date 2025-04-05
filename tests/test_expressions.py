@@ -1,23 +1,23 @@
-from pgcrud import Identifier
+from pgcrud import IdentifierExpression
 
 
 def test_generate_expr():
-    user = Identifier('user')
-    assert type(user) is Identifier
+    user = IdentifierExpression('user')
+    assert type(user) is IdentifierExpression
     assert str(user) == '"user"'
 
 
 def test_generate_child_expr():
-    user = Identifier('user')
+    user = IdentifierExpression('user')
     user_name = user.name
-    assert type(user_name) is Identifier
+    assert type(user_name) is IdentifierExpression
     assert user_name._parent is user
     assert str(user_name) == '"user"."name"'
 
 
 def test_arithmetic_operations():
     a = None
-    b = Identifier('b')
+    b = IdentifierExpression('b')
     c = 1
 
     assert str(a + b + c) == 'NULL + "b" + 1'
@@ -31,8 +31,8 @@ def test_arithmetic_operations():
 
 
 def test_comparison_operations():
-    a = Identifier('a')
-    b = Identifier('b')
+    a = IdentifierExpression('a')
+    b = IdentifierExpression('b')
 
     assert str(a == b) == '"a" = "b"'
     assert str(a != b) == '"a" <> "b"'
@@ -40,7 +40,7 @@ def test_comparison_operations():
     assert str(a <= b) == '"a" <= "b"'
     assert str(a > b) == '"a" > "b"'
     assert str(a >= b) == '"a" >= "b"'
-    assert str(a.IN(1, 2)) == '"a" IN (1, 2)'
-    assert str(a.NOT_IN(1, 2)) == '"a" NOT IN (1, 2)'
-    assert str(a.IS_NULL()) == '"a" IS NULL'
-    assert str(a.IS_NOT_NULL()) == '"a" IS NOT NULL'
+    assert str(a.IN([1, 2])) == '"a" IN (1, 2)'
+    assert str(a.NOT_IN([1, 2])) == '"a" NOT IN (1, 2)'
+    assert str(a.IS(None)) == '"a" IS NULL'
+    assert str(a.IS_NOT(None)) == '"a" IS NOT NULL'
