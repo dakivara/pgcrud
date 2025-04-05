@@ -22,7 +22,7 @@ again an identifier[^1].
 [^1]: Except for keywords, like `JOIN`, `OVER` or `AS`, which a pre-defined methods of an expression.
 
 ```python
-from pgcrud import Identifier as i
+from pgcrud import IdentifierExpression as i
 
 i.author
 # "author"
@@ -41,15 +41,15 @@ The Literal class is used to convert Python built-in types into PostgreSQL data 
 ```python
 from datetime import datetime
 
-from pgcrud import Literal
+from pgcrud import LiteralExpression as l
 
-Literal(1)
+l(1)
 # 1
 
-Literal(datetime.now())
+l(datetime.now())
 # '2025-01-12 15:59:10.179785'::timestamp
 
-Literal([1, 2, 3])
+l([1, 2, 3])
 # '{1,2,3}'::int2[]
 ```
 
@@ -62,7 +62,7 @@ Expressions fully support arithmetic operations with each other and with built-i
 
 
 ```python
-from pgcrud import Identifier as i
+from pgcrud import IdentifierExpression as i
 
 i.salary + i.bonus
 # "salary" + "bonus"
@@ -80,7 +80,7 @@ Expressions fully support comparison operations with each other and with built-i
 chain them logically using the `&` and `|` operators.
 
 ```python
-from pgcrud import Identifier as i
+from pgcrud import IdentifierExpression as i
 
 i.author.id == 1
 # "author"."id" = 1
@@ -100,7 +100,7 @@ i.id.IN(1, 2, 3)
 Each expression can specify the ordering of data in either ascending or descending order, with the option to reverse the order using a boolean flag.
 
 ```python
-from pgcrud import Identifier as i
+from pgcrud import IdentifierExpression as i
 
 i.id.ASC()
 # "id" ASC
@@ -121,7 +121,7 @@ i.name.DESC(False)
 For insert operations, you need to specify the target table and the columns you want to populate.
 
 ```python
-from pgcrud import Identifier as i
+from pgcrud import IdentifierExpression as i
 
 i.author[i.name, i.date_of_birth]
 # "author" ("name", "date_of_birth")
@@ -133,7 +133,7 @@ i.author[i.name, i.date_of_birth]
 You can alias any expression to simplify or make your code clearer.
 
 ```python
-from pgcrud import Identifier as i
+from pgcrud import IdentifierExpression as i
 
 (i.salary + i.bonus).AS(i.total_compensation)
 # "salary" + "bonus" AS "total_compensation"
@@ -147,7 +147,7 @@ from pgcrud import Identifier as i
 Expressions support defining joins in a style similar to PostgreSQL. 
 
 ```python
-from pgcrud import Identifier as i
+from pgcrud import IdentifierExpression as i
 
 i.book.\
     LEFT_JOIN(i.autor).\
@@ -167,7 +167,7 @@ feature is particularly useful for handling optional parameters.
 
 ```python
 import pgcrud as pg
-from pgcrud import Identifier as i
+from pgcrud import IdentifierExpression as i
 
 (i.id == 1) & (i.name == pg.UNDEFINED)
 # "id" = 1
@@ -182,7 +182,7 @@ i.id.ASC(pg.UNDEFINED)
 The Function Bearer encapsulates all PostgreSQL functions, which can be used to transform or aggregate database objects.
 
 ```python
-from pgcrud import functions as f, Identifier as i
+from pgcrud import functions as f, IdentifierExpression as i
 
 f.avg(i.salary)
 # avg("salary")
@@ -206,7 +206,7 @@ You can define windows or use the `OVER` clause.
 
 ```python
 import pgcrud as pg
-from pgcrud import functions as f, Identifier as i, QueryBuilder as q
+from pgcrud import functions as f, IdentifierExpression as i, QueryBuilder as q
 
 i.w.AS(
     q.PARTITION_BY(i.product_id).
@@ -224,7 +224,7 @@ i.w.AS(
 You can use subqueries in filter expressions or join expressions.
 
 ```python
-from pgcrud import functions as f, Identifier as i, QueryBuilder as q
+from pgcrud import functions as f, IdentifierExpression as i, QueryBuilder as q
 
 i.id.IN(
     q.SELECT(i.department_id).
@@ -249,7 +249,7 @@ pgcrud provides pre-defined functions for most relevant CRUD operations but does
 such scenarios, you can use the Query Builder to construct your query.
 
 ```python
-from pgcrud import functions as f, Identifier as i, QueryBuilder as q
+from pgcrud import functions as f, IdentifierExpression as i, QueryBuilder as q
 
 q.WITH(
     i.stats.AS(

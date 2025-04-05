@@ -49,7 +49,7 @@ an identifier or table identifier to this parameter.
     from datetime import date
     
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
     
     
     def insert_author(
@@ -71,7 +71,7 @@ an identifier or table identifier to this parameter.
     from datetime import date
     
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
     
     
     async def insert_author(
@@ -105,7 +105,7 @@ In the `insert_one` method, the `values` parameter typically expects a tuple, di
     from pydantic import BaseModel
     
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
     
     
     class AuthorInput(BaseModel):
@@ -133,7 +133,7 @@ In the `insert_one` method, the `values` parameter typically expects a tuple, di
     from pydantic import BaseModel
     
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
     
     
     class AuthorInput(BaseModel):
@@ -166,7 +166,7 @@ In the `insert_many` method, the `values` parameter expects a sequence of tuples
     from pydantic import BaseModel
     
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
     
     
     class AuthorInput(BaseModel):
@@ -194,7 +194,7 @@ In the `insert_many` method, the `values` parameter expects a sequence of tuples
     from pydantic import BaseModel
     
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
     
     
     class AuthorInput(BaseModel):
@@ -228,7 +228,7 @@ requires a query as its input.
     from pydantic import BaseModel
     
     import pgcrud as pg
-    from pgcrud import Identifier as i, QueryBuilder as q
+    from pgcrud import IdentifierExpression as i, QueryBuilder as q
     
     
     class AuthorInput(BaseModel):
@@ -258,7 +258,7 @@ requires a query as its input.
     from pydantic import BaseModel
     
     import pgcrud as pg
-    from pgcrud import Identifier as i, QueryBuilder as q
+    from pgcrud import IdentifierExpression as i, QueryBuilder as q
     
     
     class AuthorInput(BaseModel):
@@ -294,7 +294,7 @@ expects a single or multiple expressions as input.
     from datetime import date
     
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
     
     
     def insert_book(
@@ -316,7 +316,7 @@ expects a single or multiple expressions as input.
     from datetime import date
     
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
     
     
     async def insert_book(
@@ -347,7 +347,7 @@ insertion. The `additional_values` expects a dictionary as input.
     from pydantic import BaseModel
         
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
     
     
     class BookInput(BaseModel):
@@ -389,7 +389,7 @@ insertion. The `additional_values` expects a dictionary as input.
     from pydantic import BaseModel
         
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
     
     
     class BookInput(BaseModel):
@@ -436,7 +436,7 @@ when you need to iterate through the data without loading it all at once.
     from datetime import date
     
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
     
     
     def insert_books(
@@ -459,7 +459,7 @@ when you need to iterate through the data without loading it all at once.
     from datetime import date
     
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
     
     
     async def insert_books(

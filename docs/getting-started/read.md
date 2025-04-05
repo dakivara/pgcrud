@@ -59,7 +59,7 @@ You use a single expression to select a specific column from a table, accompanie
 
     ```python
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
 
 
     def get_author_name(
@@ -79,7 +79,7 @@ You use a single expression to select a specific column from a table, accompanie
 
     ```python
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
 
 
     async def get_author_name(
@@ -104,7 +104,7 @@ You use a sequence of expressions to select multiple columns from a table, with 
 
     ```python
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
 
 
     def get_book_ids_and_titles(
@@ -124,7 +124,7 @@ You use a sequence of expressions to select multiple columns from a table, with 
 
     ```python
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
 
 
     async def get_book_ids_and_titles(
@@ -154,7 +154,7 @@ You use an expression to select from table (or view).
 
     ```python
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
         
             
     def get_book_ids(cursor: pg.Cursor) -> list[int]:
@@ -169,7 +169,7 @@ You use an expression to select from table (or view).
 
     ```python
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
         
             
     async def get_book_ids(cursor: pg.AsyncCursor) -> list[int]:
@@ -190,7 +190,7 @@ You use a joined expression to select from a joined table. In such a case you wi
     from pydantic import BaseModel
     
     import pgcrud as pg
-    from pgcrud import Identifier as i, functions as f
+    from pgcrud import IdentifierExpression as i, functions as f
     
     
     class Author(BaseModel):
@@ -224,7 +224,7 @@ You use a joined expression to select from a joined table. In such a case you wi
     from pydantic import BaseModel
     
     import pgcrud as pg
-    from pgcrud import Identifier as i, functions as f
+    from pgcrud import IdentifierExpression as i, functions as f
     
     
     class Author(BaseModel):
@@ -262,7 +262,7 @@ intersection or union of expressions.
 
     ```python
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
     
     
     def get_book_titles(
@@ -283,7 +283,7 @@ intersection or union of expressions.
 
     ```python
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
     
     
     async def get_book_titles(
@@ -311,7 +311,7 @@ value. Any comparison expressions involving `pg.UNDEFINED` are automatically exc
     from pydantic import BaseModel
     
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
     
     
     class Author(BaseModel):
@@ -339,7 +339,7 @@ value. Any comparison expressions involving `pg.UNDEFINED` are automatically exc
     from pydantic import BaseModel
     
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
     
     
     class Author(BaseModel):
@@ -376,7 +376,7 @@ expression to group by one column or multiple expressions to group by several co
     from pydantic import BaseModel
     
     import pgcrud as pg
-    from pgcrud import Identifier as i, functions as f
+    from pgcrud import IdentifierExpression as i, functions as f
     
     
     class AuthorStats(BaseModel):
@@ -399,7 +399,7 @@ expression to group by one column or multiple expressions to group by several co
     from pydantic import BaseModel
     
     import pgcrud as pg
-    from pgcrud import Identifier as i, functions as f
+    from pgcrud import IdentifierExpression as i, functions as f
     
     
     class AuthorStats(BaseModel):
@@ -426,7 +426,7 @@ the `where` parameter, it accepts a comparison expression as input.
 
     ```python
     import pgcrud as pg
-    from pgcrud import Identifier as i, functions as f
+    from pgcrud import IdentifierExpression as i, functions as f
     
     
     def get_top_author_ids(
@@ -447,7 +447,7 @@ the `where` parameter, it accepts a comparison expression as input.
 
     ```python
     import pgcrud as pg
-    from pgcrud import Identifier as i, functions as f
+    from pgcrud import IdentifierExpression as i, functions as f
     
     
     async def get_top_author_ids(
@@ -474,7 +474,7 @@ pass a single or sequence of expressions to the `window` parameter.
 
     ```python
     import pgcrud as pg
-    from pgcrud import Identifier as i, functions as f, QueryBuilder as q
+    from pgcrud import IdentifierExpression as i, functions as f, QueryBuilder as q
 
     def get_book_order(cursor: pg.Cursor) -> list[tuple[int, str, int]]:
         return pg.get_many(
@@ -489,7 +489,7 @@ pass a single or sequence of expressions to the `window` parameter.
 
     ```python
     import pgcrud as pg
-    from pgcrud import Identifier as i, functions as f, QueryBuilder as q
+    from pgcrud import IdentifierExpression as i, functions as f, QueryBuilder as q
     
     
     async def get_book_order(cursor: pg.AsyncCursor) -> list[tuple[int, str, int]]:
@@ -511,7 +511,7 @@ The `order_by` parameter is used to sort records based on one or more columns. I
 
     ```python
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
     
     
     def get_sorted_book_ids(
@@ -532,7 +532,7 @@ The `order_by` parameter is used to sort records based on one or more columns. I
 
     ```python
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
     
     
     async def get_sorted_book_ids(
@@ -584,7 +584,7 @@ value. Any sort expressions involving `pg.UNDEFINED` are automatically excluded 
 
     ```python
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
     
     
     async def get_sorted_book_ids(
@@ -615,7 +615,7 @@ and accepts an integer as input.
     from pydantic import BaseModel
 
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
     
     
     class Author(BaseModel):
@@ -642,7 +642,7 @@ and accepts an integer as input.
     from pydantic import BaseModel
 
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
     
     
     class Author(BaseModel):
@@ -675,7 +675,7 @@ an integer as input.
     from pydantic import BaseModel
 
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
     
     
     class Author(BaseModel):
@@ -705,7 +705,7 @@ an integer as input.
     from pydantic import BaseModel
 
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
     
     
     class Author(BaseModel):
@@ -741,7 +741,7 @@ when you need to iterate through the data without loading it all at once.
 
     ```python
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
 
 
     def get_book_titles(cursor: pg.Cursor) -> pg.Cursor[str]:
@@ -757,7 +757,7 @@ when you need to iterate through the data without loading it all at once.
 
     ```python
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
 
 
     async def get_book_titles(cursor: pg.AsyncCursor) -> pg.AsyncCursor[str]:

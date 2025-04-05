@@ -40,7 +40,7 @@ The `update` parameter specifies which table to update. It expects an identifier
 
     ```python
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
     
     
     def update_book(
@@ -61,7 +61,7 @@ The `update` parameter specifies which table to update. It expects an identifier
 
     ```python
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
     
     
     async def update_book(
@@ -91,7 +91,7 @@ that specify the columns to be updated, while the second item can be a single va
     from pydantic import BaseModel
     
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
     
     
     class AuthorUpdate(BaseModel):
@@ -121,7 +121,7 @@ that specify the columns to be updated, while the second item can be a single va
     from pydantic import BaseModel
     
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
     
     
     class AuthorUpdate(BaseModel):
@@ -158,7 +158,7 @@ intersection or union of expressions.
     from datetime import date
     
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
     
     
     def update_book(
@@ -182,7 +182,7 @@ intersection or union of expressions.
     from datetime import date
     
     import pgcrud as pg
-    from pgcrud import Identifier as i
+    from pgcrud import IdentifierExpression as i
     
     
     async def update_book(

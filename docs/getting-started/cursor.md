@@ -209,7 +209,7 @@ You can pass a Query from the Query Builder just like a normal SQL query.
     from pydantic import BaseModel
     
     import pgcrud as pg
-    from pgcrud import Identifier as i, QueryBuilder as q
+    from pgcrud import IdentifierExpression as i, QueryBuilder as q
     
     
     class Author(BaseModel):
@@ -246,7 +246,7 @@ You can pass a Query from the Query Builder just like a normal SQL query.
     from pydantic import BaseModel
     
     import pgcrud as pg
-    from pgcrud import Identifier as i, QueryBuilder as q
+    from pgcrud import IdentifierExpression as i, QueryBuilder as q
     
     
     class Author(BaseModel):
