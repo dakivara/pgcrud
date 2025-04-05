@@ -1,57 +1,59 @@
-from typing import overload
+from collections.abc import Sequence
+from typing import Any, overload
 
 from pgcrud.db import Cursor, ServerCursor
+from pgcrud.expressions.base import IdentifierExpression
 from pgcrud.operations.shared import construct_composed_insert_query
-from pgcrud.types import InsertIntoValueType, AdditionalValuesType, OnConflictValueType, ReturningValueType, Row, ValuesValueType
+from pgcrud.types import Row
 
 
 @overload
 def insert_one(
         cursor: Cursor[Row] | ServerCursor[Row],
-        insert_into: InsertIntoValueType,
-        values: ValuesValueType,
+        insert_into: IdentifierExpression,
+        values: Any,
         *,
-        on_conflict: OnConflictValueType | None = None,
+        # on_conflict: Any | None = None,
         returning: None = None,
-        additional_values: AdditionalValuesType | None = None,
+        additional_values: dict[str, Any] | None = None,
 ) -> None: ...
 
 
 @overload
 def insert_one(
         cursor: Cursor[Row] | ServerCursor[Row],
-        insert_into: InsertIntoValueType,
-        values: ValuesValueType,
+        insert_into: IdentifierExpression,
+        values: Any,
         *,
-        on_conflict: None = None,
-        returning: ReturningValueType,
-        additional_values: AdditionalValuesType | None = None,
+        # on_conflict_on_constraint: None = None,
+        returning: Any | Sequence[Any],
+        additional_values: dict[str, Any] | None = None,
 ) -> Row: ...
 
 
-@overload
-def insert_one(
-        cursor: Cursor[Row] | ServerCursor[Row],
-        insert_into: InsertIntoValueType,
-        values: ValuesValueType,
-        *,
-        on_conflict: OnConflictValueType,
-        returning: ReturningValueType,
-        additional_values: AdditionalValuesType | None = None,
-) -> Row | None: ...
+# @overload
+# def insert_one(
+#         cursor: Cursor[Row] | ServerCursor[Row],
+#         insert_into: IdentifierExpression,
+#         values: Any,
+#         *,
+#         # on_conflict: Any,
+#         returning: Any | Sequence[Any],
+#         additional_values: dict[str, Any] | None = None,
+# ) -> Row | None: ...
 
 
 def insert_one(
         cursor: Cursor[Row] | ServerCursor[Row],
-        insert_into: InsertIntoValueType,
-        values: ValuesValueType,
+        insert_into: IdentifierExpression,
+        values: Any,
         *,
-        on_conflict: OnConflictValueType | None = None,
-        returning: ReturningValueType | None = None,
-        additional_values: AdditionalValuesType | None = None,
+        # on_conflict: Any | None = None,
+        returning: Any | Sequence[Any] | None = None,
+        additional_values: dict[str, Any] | None = None,
 ) -> Row | None:
 
-    query = construct_composed_insert_query(insert_into, [values], on_conflict, returning, additional_values)
+    query = construct_composed_insert_query(insert_into, [values], returning, additional_values)
     cursor.execute(query)
 
     if returning:

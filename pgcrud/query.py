@@ -5,35 +5,37 @@ from typing import Any, Self
 
 from pgcrud.clauses import (
     Clause,
-    From,
-    Select,
-    Where,
-    GroupBy,
-    Having,
-    Window,
-    OrderBy,
-    Limit,
-    Offset,
-    InsertInto,
-    Returning,
-    Update,
-    DeleteFrom,
-    PartitionBy,
-    Values,
-    Set, Using, RowsBetween, RangeBetween,
-    With, OnConflict, DoNothing, OnConstraint, DoUpdate,
+    FromClause,
+    SelectClause,
+    WhereClause,
+    GroupByClause,
+    HavingClause,
+    WindowClause,
+    OrderByClause,
+    LimitClause,
+    OffsetClause,
+    InsertIntoClause,
+    ReturningClause,
+    UpdateClause,
+    DeleteFromClause,
+    PartitionByClause,
+    ValuesClause,
+    SetClause,
+    UsingClause,
+    RowsBetweenClause,
+    RangeBetweenClause,
+    WithClause,
+    OnConflictExpression,
+    DoNothingClause,
+    OnConstraintClause,
+    DoUpdateClause,
 )
-from pgcrud.expressions import (
-    CurrentRow,
-    Expression,
-    Literal,
-    Identifier,
-    DerivedTable,
-    TableIdentifier,
-    Unbounded,
+from pgcrud.expressions.base import (
     make_expr,
+    IdentifierExpression,
+    AsClauseExpression,
 )
-from pgcrud.filter_conditions import FilterCondition
+from pgcrud.expressions.base import QueryExpression
 from pgcrud.utils import ensure_seq
 
 
@@ -42,125 +44,126 @@ __all__ = ['Query']
 
 class Query:
 
-    _tag = 'QUERY'
-
     def __init__(self, clauses: list[Clause]):
-        self._clauses = clauses
+        self.clauses = clauses
 
     def __str__(self):
-        return ' '.join([str(clause) for clause in self._clauses if clause])
+        return ' '.join([str(clause) for clause in self.clauses if clause])
 
     def __repr__(self):
         return str(self)
 
+    @property
+    def _expr(self) -> QueryExpression:
+        return QueryExpression(self)
+
     def merge(self, query: Query) -> Self:
-        self._clauses += query._clauses
+        self.clauses += query.clauses
         return self
 
-    def AS(self, identifier: Identifier) -> DerivedTable:
-        return DerivedTable(self).AS(identifier)
+    def AS(self, value: Any) -> AsClauseExpression:
+        return AsClauseExpression(QueryExpression(self), value)
 
-    def DELETE_FROM(self, identifier: Identifier) -> Self:
-        self._clauses.append(DeleteFrom(identifier))
+    def DELETE_FROM(self, value: Any) -> Self:
+        self.clauses.append(DeleteFromClause(make_expr(value)))
         return self
 
     @property
     def DO_NOTHING(self) -> Self:
-        self._clauses.append(DoNothing())
+        self.clauses.append(DoNothingClause())
         return self
 
     @property
     def DO_UPDATE(self) -> Self:
-        self._clauses.append(DoUpdate())
+        self.clauses.append(DoUpdateClause())
         return self
 
-    def FROM(self, expression: Expression) -> Self:
-        self._clauses.append(From(make_expr(expression)))
+    def FROM(self, value: Any) -> Self:
+        self.clauses.append(FromClause(make_expr(value)))
         return self
 
-    def GROUP_BY(self, *args: Any | Expression) -> Self:
-        self._clauses.append(GroupBy([make_expr(arg) for arg in args]))
+    def GROUP_BY(self, *args: Any) -> Self:
+        self.clauses.append(GroupByClause([make_expr(arg) for arg in args]))
         return self
 
-    def HAVING(self, condition: FilterCondition) -> Self:
-        self._clauses.append(Having(condition))
+    def HAVING(self, value: Any) -> Self:
+        self.clauses.append(HavingClause(make_expr(value)))
         return self
 
-    def INSERT_INTO(self, identifier: Identifier | TableIdentifier) -> Self:
-        self._clauses.append(InsertInto(identifier))
+    def INSERT_INTO(self, value: IdentifierExpression) -> Self:
+        self.clauses.append(InsertIntoClause(value))
         return self
 
     def LIMIT(self, value: int) -> Self:
-        self._clauses.append(Limit(value))
+        self.clauses.append(LimitClause(value))
         return self
 
     def OFFSET(self, value: int) -> Self:
-        self._clauses.append(Offset(value))
+        self.clauses.append(OffsetClause(value))
         return self
 
     @property
     def ON_CONFLICT(self) -> Self:
-        self._clauses.append(OnConflict())
+        self.clauses.append(OnConflictExpression())
         return self
 
-    def ON_CONSTRAINT(self, identifier: Identifier) -> Self:
-        self._clauses.append(OnConstraint(identifier))
+    def ON_CONSTRAINT(self, value: Any) -> Self:
+        self.clauses.append(OnConstraintClause(make_expr(value)))
         return self
 
-    def ORDER_BY(self, *args: Any | Expression) -> Self:
-        self._clauses.append(OrderBy([make_expr(arg) for arg in args]))
+    def ORDER_BY(self, *args: Any) -> Self:
+        self.clauses.append(OrderByClause([make_expr(arg) for arg in args]))
         return self
 
-    def PARTITION_BY(self, *args: Expression) -> Self:
-        self._clauses.append(PartitionBy(args))
+    def PARTITION_BY(self, *args: Any) -> Self:
+        self.clauses.append(PartitionByClause([make_expr(arg) for arg in args]))
         return self
 
-    def RANGE_BETWEEN(self, start: Literal | Unbounded | CurrentRow, end: Literal | Unbounded | CurrentRow) -> Self:
-        self._clauses.append(RangeBetween(start, end))
+    def RANGE_BETWEEN(self, start: Any, end: Any) -> Self:
+        self.clauses.append(RangeBetweenClause(make_expr(start), make_expr(end)))
         return self
 
-    def RETURNING(self, *args: Any | Expression) -> Self:
-        self._clauses.append(Returning([make_expr(arg) for arg in args]))
+    def RETURNING(self, *args: Any) -> Self:
+        self.clauses.append(ReturningClause([make_expr(arg) for arg in args]))
         return self
 
-    def ROWS_BETWEEN(self, start: Literal | Unbounded | CurrentRow, end: Literal | Unbounded | CurrentRow) -> Self:
-        self._clauses.append(RowsBetween(start, end))
+    def ROWS_BETWEEN(self, start: Any, end: Any) -> Self:
+        self.clauses.append(RowsBetweenClause(make_expr(start), make_expr(end)))
         return self
 
-    def SELECT(self, *args: Any | Expression) -> Self:
-        self._clauses.append(Select([make_expr(arg) for arg in args]))
+    def SELECT(self, *args: Any) -> Self:
+        self.clauses.append(SelectClause([make_expr(arg) for arg in args]))
         return self
 
-    def SET(self, columns: Identifier | Sequence[Identifier], values: Any, **kwargs: Any) -> Self:
-        self._clauses.append(Set(ensure_seq(columns), values, kwargs))
+    def SET(self, columns: IdentifierExpression | Sequence[IdentifierExpression], values: Any, **kwargs: Any) -> Self:
+        self.clauses.append(SetClause(ensure_seq(columns), values, kwargs))
         return self
 
-    def UPDATE(self, identifier: Identifier) -> Self:
-        self._clauses.append(Update(identifier))
+    def UPDATE(self, value: Any) -> Self:
+        self.clauses.append(UpdateClause(make_expr(value)))
         return self
 
-    def USING(self, expression: Expression) -> Self:
-        self._clauses.append(Using(expression))
+    def USING(self, value: Any) -> Self:
+        self.clauses.append(UsingClause(make_expr(value)))
         return self
 
     def VALUES(self, *args: Any, **kwargs: Any) -> Self:
         order = None
-        if len(self._clauses) > 0:
-            clause = self._clauses[-1]
-            if isinstance(clause, InsertInto):
-                if isinstance(clause.identifier, TableIdentifier):
-                    order = clause.identifier._columns
-        self._clauses.append(Values(args, kwargs, order))
+        if len(self.clauses) > 0:
+            clause = self.clauses[-1]
+            if isinstance(clause, InsertIntoClause):
+                order = clause.identifier_expression._columns
+        self.clauses.append(ValuesClause(args, kwargs, order))
         return self
 
-    def WINDOW(self, *args: Identifier) -> Self:
-        self._clauses.append(Window(args))
+    def WINDOW(self, *args: Any) -> Self:
+        self.clauses.append(WindowClause([make_expr(arg) for arg in args]))
         return self
 
-    def WITH(self, *args: Identifier) -> Self:
-        self._clauses.append(With(args))
+    def WITH(self, *args: Any) -> Self:
+        self.clauses.append(WithClause([make_expr(arg) for arg in args]))
         return self
 
-    def WHERE(self, condition: FilterCondition) -> Self:
-        self._clauses.append(Where(condition))
+    def WHERE(self, value: Any) -> Self:
+        self.clauses.append(WhereClause(make_expr(value)))
         return self

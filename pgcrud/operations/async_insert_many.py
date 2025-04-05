@@ -1,20 +1,21 @@
 from collections.abc import Sequence
-from typing import Literal, overload
+from typing import Any, Literal, overload
 
 from pgcrud.db import AsyncCursor, AsyncServerCursor
+from pgcrud.expressions.base import IdentifierExpression
 from pgcrud.operations.shared import construct_composed_insert_query
-from pgcrud.types import InsertIntoValueType, AdditionalValuesType, OnConflictValueType, ReturningValueType, Row, ValuesValueType
+from pgcrud.types import Row
 
 
 @overload
 async def async_insert_many(
         cursor: AsyncCursor[Row] | AsyncServerCursor[Row],
-        insert_into: InsertIntoValueType,
-        values: Sequence[ValuesValueType],
+        insert_into: IdentifierExpression,
+        values: Sequence[Any],
         *,
-        on_conflict: OnConflictValueType | None = None,
+        # on_conflict: Any | None = None,
         returning: None = None,
-        additional_values: AdditionalValuesType | None = None,
+        additional_values: dict[str, Any] | None = None,
         no_fetch: Literal[False] = False,
 ) -> None: ...
 
@@ -22,12 +23,12 @@ async def async_insert_many(
 @overload
 async def async_insert_many(
         cursor: AsyncCursor[Row] | AsyncServerCursor[Row],
-        insert_into: InsertIntoValueType,
-        values: Sequence[ValuesValueType],
+        insert_into: IdentifierExpression,
+        values: Sequence[Any],
         *,
-        on_conflict: OnConflictValueType | None = None,
-        returning: ReturningValueType,
-        additional_values: AdditionalValuesType | None = None,
+        # on_conflict: Any | None = None,
+        returning: Any | Sequence[Any],
+        additional_values: dict[str, Any] | None = None,
         no_fetch: Literal[False] = False,
 ) -> list[Row]: ...
 
@@ -35,12 +36,12 @@ async def async_insert_many(
 @overload
 async def async_insert_many(
         cursor: AsyncCursor[Row],
-        insert_into: InsertIntoValueType,
-        values: Sequence[ValuesValueType],
+        insert_into: IdentifierExpression,
+        values: Sequence[Any],
         *,
-        on_conflict: OnConflictValueType | None = None,
-        returning: ReturningValueType,
-        additional_values: AdditionalValuesType | None = None,
+        # on_conflict: Any | None = None,
+        returning: Any | Sequence[Any],
+        additional_values: dict[str, Any] | None = None,
         no_fetch: Literal[True],
 ) -> AsyncCursor[Row]: ...
 
@@ -48,28 +49,28 @@ async def async_insert_many(
 @overload
 async def async_insert_many(
         cursor: AsyncServerCursor[Row],
-        insert_into: InsertIntoValueType,
-        values: Sequence[ValuesValueType],
+        insert_into: IdentifierExpression,
+        values: Sequence[Any],
         *,
-        on_conflict: OnConflictValueType | None = None,
-        returning: ReturningValueType,
-        additional_values: AdditionalValuesType | None = None,
+        # on_conflict: Any | None = None,
+        returning: Any | Sequence[Any],
+        additional_values: dict[str, Any] | None = None,
         no_fetch: Literal[True],
 ) -> AsyncServerCursor[Row]: ...
 
 
 async def async_insert_many(
         cursor: AsyncCursor[Row] | AsyncServerCursor[Row],
-        insert_into: InsertIntoValueType,
-        values: Sequence[ValuesValueType],
+        insert_into: IdentifierExpression,
+        values: Sequence[Any],
         *,
-        on_conflict: OnConflictValueType | None = None,
-        returning: ReturningValueType | None = None,
-        additional_values: AdditionalValuesType | None = None,
+        # on_conflict: Any | None = None,
+        returning: Any | Sequence[Any] | None = None,
+        additional_values: dict[str, Any] | None = None,
         no_fetch: bool = False,
 ) -> list[Row] | AsyncCursor[Row] | AsyncServerCursor[Row] | None:
 
-    query = construct_composed_insert_query(insert_into, values, on_conflict, returning, additional_values)
+    query = construct_composed_insert_query(insert_into, values, returning, additional_values)
     await cursor.execute(query)
 
     if returning:

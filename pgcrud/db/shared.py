@@ -3,7 +3,22 @@ from typing import Annotated, Any, get_args, get_origin
 from psycopg.rows import BaseRowFactory, scalar_row, tuple_row, dict_row, class_row, args_row, kwargs_row
 
 from pgcrud.config import ConfigDict, config
-from pgcrud.optional_dependencies import is_pydantic_installed, is_pydantic_model, is_msgspec_installed, is_msgspec_model, msgspec_kwargs_fun_generator, pydantic_kwargs_fun_generator, pydantic_args_fun_generator, msgspec_args_fun_generator, pydantic_scalar_row_generator, msgspec_scalar_row_generator, pydantic_to_dict, msgspec_to_dict, is_pydantic_instance, is_msgspec_instance
+from pgcrud.optional_dependencies import (
+    is_pydantic_installed,
+    is_pydantic_model,
+    is_msgspec_installed,
+    is_msgspec_model,
+    msgspec_kwargs_fun_generator,
+    pydantic_kwargs_fun_generator,
+    pydantic_args_fun_generator,
+    msgspec_args_fun_generator,
+    pydantic_scalar_row_generator,
+    msgspec_scalar_row_generator,
+    pydantic_to_dict,
+    msgspec_to_dict,
+    is_pydantic_instance,
+    is_msgspec_instance,
+)
 from pgcrud.types import T, ValidationType
 
 

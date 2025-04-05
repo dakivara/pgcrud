@@ -1,18 +1,21 @@
+from collections.abc import Sequence
+from typing import Any
+
 from pgcrud.db.cursor import Cursor, ServerCursor
 from pgcrud.operations.shared import construct_composed_get_query
-from pgcrud.types import GroupByValueType, HavingValueType, Row, SelectValueType, FromValueType, WhereValueType, OrderByValueType, WindowValueType
+from pgcrud.types import Row
 
 
 def get_one(
         cursor: Cursor[Row] | ServerCursor[Row],
-        select: SelectValueType,
-        from_: FromValueType,
+        select: Any | Sequence[Any],
+        from_: Any,
         *,
-        where: WhereValueType | None = None,
-        group_by: GroupByValueType | None = None,
-        having: HavingValueType | None = None,
-        window: WindowValueType | None = None,
-        order_by: OrderByValueType | None = None,
+        where: Any | None = None,
+        group_by: Any | Sequence[Any] | None = None,
+        having: Any | None = None,
+        window: Any | Sequence[Any] | None = None,
+        order_by: Any | Sequence[Any] | None = None,
         offset: int | None = None,
 ) -> Row | None:
 

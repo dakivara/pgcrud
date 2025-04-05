@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Sequence, TYPE_CHECKING
+from typing import Any, Sequence
 
-from psycopg.sql import Literal as _Literal
-
+from pgcrud.expressions.base import (
+    make_expr,
+    Expression,
+    IdentifierExpression,
+    UndefinedExpression,
+)
 from pgcrud.optional_dependencies import (
     is_pydantic_installed,
     is_pydantic_instance,
@@ -15,64 +19,44 @@ from pgcrud.optional_dependencies import (
 )
 from pgcrud.types import SequenceType
 
-if TYPE_CHECKING:
-    from pgcrud.expressions import Expression, Literal, Undefined, Unbounded, CurrentRow, Identifier, TableIdentifier, DerivedTable
-    from pgcrud.filter_conditions import FilterCondition
-
 
 __all__ = [
     'Clause',
-    'As',
-    'Asc',
-    'CrossJoin',
-    'DeleteFrom',
-    'Desc',
-    'DoNothing',
-    'DoUpdate',
-    'Filter',
-    'Following',
-    'From',
-    'FullJoin',
-    'GroupBy',
-    'Having',
-    'InnerJoin',
-    'InsertInto',
-    'Join',
-    'LeftJoin',
-    'Limit',
-    'Offset',
-    'On',
-    'OnConflict',
-    'OnConstraint',
-    'OrderBy',
-    'Over',
-    'PartitionBy',
-    'Preceding',
-    'RangeBetween',
-    'Returning',
-    'RightJoin',
-    'RowsBetween',
-    'Select',
-    'Set',
-    'Update',
-    'Using',
-    'Values',
-    'Where',
-    'Window',
-    'With',
+    'AsClause',
+    'DeleteFromClause',
+    'DescClause',
+    'DoNothingClause',
+    'DoUpdateClause',
+    'FollowingClause',
+    'FromClause',
+    'GroupByClause',
+    'HavingClause',
+    'InClause',
+    'InsertIntoClause',
+    'LimitClause',
+    'OffsetClause',
+    'OnClause',
+    'OnConflictExpression',
+    'OnConstraintClause',
+    'OrderByClause',
+    'OverClause',
+    'PartitionByClause',
+    'PrecedingClause',
+    'RangeBetweenClause',
+    'ReturningClause',
+    'RowsBetweenClause',
+    'SelectClause',
+    'SetClause',
+    'UpdateClause',
+    'UsingClause',
+    'ValuesClause',
+    'WhereClause',
+    'WindowClause',
+    'WithClause',
 ]
 
 
-def to_str(value: Any) -> str:
-    if getattr(value, '_tag', '') == 'EXPRESSION':
-        return str(value)
-    else:
-        return _Literal(value).as_string()
-
-
 class Clause:
-
-    _tag = 'CLAUSE'
 
     @abstractmethod
     def __str__(self) -> str:
@@ -85,40 +69,7 @@ class Clause:
         return True
 
 
-class As(Clause):
-
-    def __init__(
-            self,
-            alias: Expression,
-    ):
-        self.alias = alias
-
-    def __str__(self) -> str:
-        return f'AS {self.alias}'
-
-
-class Asc(Clause):
-
-    def __init__(
-            self,
-            flag: bool | Undefined = True,
-    ):
-        self.flag = flag
-
-    def __str__(self) -> str:
-        if self:
-            if self.flag:
-                return 'ASC'
-            else:
-                return 'DESC'
-        else:
-            return ''
-
-    def __bool__(self) -> bool:
-        return isinstance(self.flag, bool)
-
-
-class CrossJoin(Clause):
+class AsClause(Clause):
 
     def __init__(
             self,
@@ -127,26 +78,26 @@ class CrossJoin(Clause):
         self.expression = expression
 
     def __str__(self) -> str:
-        return f'CROSS JOIN {self.expression}'
+        return f'AS {self.expression}'
 
 
-class DeleteFrom(Clause):
+class DeleteFromClause(Clause):
 
     def __init__(
             self,
-            identifier: Identifier,
+            expression: Expression,
     ):
-        self.identifier = identifier
+        self.expression = expression
 
     def __str__(self) -> str:
-        return f'DELETE FROM {self.identifier}'
+        return f'DELETE FROM {self.expression}'
 
 
-class Desc(Clause):
+class DescClause(Clause):
 
     def __init__(
             self,
-            flag: bool | Undefined = True,
+            flag: bool | UndefinedExpression = True,
     ):
         self.flag = flag
 
@@ -160,37 +111,25 @@ class Desc(Clause):
             return ''
 
 
-class DoNothing(Clause):
+class DoNothingClause(Clause):
 
     def __str__(self) -> str:
         return 'DO NOTHING'
 
 
-class DoUpdate(Clause):
+class DoUpdateClause(Clause):
 
     def __str__(self) -> str:
         return 'DO UPDATE'
 
 
-class Filter(Clause):
-
-    def __init__(
-            self,
-            where: Where,
-    ):
-        self.where = where
-
-    def __str__(self) -> str:
-        return f'FILTER ({self.where})'
-
-
-class Following(Clause):
+class FollowingClause(Clause):
 
     def __str__(self) -> str:
         return 'FOLLOWING'
 
 
-class From(Clause):
+class FromClause(Clause):
 
     def __init__(
             self,
@@ -202,7 +141,19 @@ class From(Clause):
         return f'FROM {self.expression}'
 
 
-class FullJoin(Clause):
+class GroupByClause(Clause):
+
+    def __init__(
+            self,
+            expressions: list[Expression],
+    ):
+        self.expressions = expressions
+
+    def __str__(self) -> str:
+        return f"GROUP BY {', '.join([str(expression) for expression in self.expressions])}"
+
+
+class HavingClause(Clause):
 
     def __init__(
             self,
@@ -211,88 +162,46 @@ class FullJoin(Clause):
         self.expression = expression
 
     def __str__(self) -> str:
-        return f'FULL JOIN {self.expression}'
-
-
-class GroupBy(Clause):
-
-    def __init__(
-            self,
-            exprs: list[Expression],
-    ):
-        self.exprs = exprs
-
-    def __str__(self) -> str:
-        return f"GROUP BY {', '.join([str(expr) for expr in self.exprs])}"
-
-
-class Having(Clause):
-
-    def __init__(
-            self,
-            condition: FilterCondition,
-    ):
-        self.condition = condition
-
-    def __str__(self) -> str:
         if self:
-            return f'HAVING {self.condition}'
+            return f'HAVING {self.expression}'
         else:
             return ''
 
     def __bool__(self) -> bool:
-        return bool(self.condition)
+        return bool(self.expression)
 
 
-class InnerJoin(Clause):
-
-    def __init__(
-            self,
-            expression: Expression,
-    ):
-        self.expression = expression
-
-    def __str__(self) -> str:
-        return f'INNER JOIN {self.expression}'
-
-
-class InsertInto(Clause):
+class InClause(Clause):
 
     def __init__(
             self,
-            identifier: Identifier | TableIdentifier,
+            expressions: list[Expression],
     ):
-        self.identifier = identifier
+        self.expressions = expressions
 
-    def __str__(self) -> str:
-        return f'INSERT INTO {self.identifier}'
+    def __str__(self):
+        if self:
+            return f"IN ({', '.join([str(expression) for expression in self.expressions if expression])})"
+        else:
+            return ''
+
+    def __bool__(self) -> bool:
+        return any(self.expressions)
 
 
-class Join(Clause):
+class InsertIntoClause(Clause):
 
     def __init__(
             self,
-            expr: Expression,
+            identifier_expression: IdentifierExpression,
     ):
-        self.expr = expr
+        self.identifier_expression = identifier_expression
 
     def __str__(self) -> str:
-        return f'JOIN {self.expr}'
+        return f'INSERT INTO {self.identifier_expression}'
 
 
-class LeftJoin(Clause):
-
-    def __init__(
-            self,
-            expression: Expression,
-    ):
-        self.expression = expression
-
-    def __str__(self) -> str:
-        return f'LEFT JOIN {self.expression}'
-
-
-class Limit(Clause):
+class LimitClause(Clause):
 
     def __init__(
             self,
@@ -304,7 +213,7 @@ class Limit(Clause):
         return f'LIMIT {self.value}'
 
 
-class Offset(Clause):
+class OffsetClause(Clause):
 
     def __init__(
             self,
@@ -316,37 +225,37 @@ class Offset(Clause):
         return f'OFFSET {self.value}'
 
 
-class On(Clause):
+class OnClause(Clause):
 
     def __init__(
             self,
-            condition: FilterCondition,
+            expression: Expression,
     ):
-        self.condition = condition
+        self.expression = expression
 
     def __str__(self) -> str:
-        return f'ON {self.condition}'
+        return f'ON {self.expression}'
 
 
-class OnConflict(Clause):
+class OnConflictExpression(Clause):
 
     def __str__(self) -> str:
         return 'ON CONFLICT'
 
 
-class OnConstraint(Clause):
+class OnConstraintClause(Clause):
 
     def __init__(
             self,
-            identifier: Identifier,
+            expression: Expression,
     ):
-        self.identifier = identifier
+        self.expression = expression
 
     def __str__(self) -> str:
-        return f'ON CONSTRAINT {self.identifier}'
+        return f'ON CONSTRAINT {self.expression}'
 
 
-class OrderBy(Clause):
+class OrderByClause(Clause):
 
     def __init__(
             self,
@@ -364,19 +273,19 @@ class OrderBy(Clause):
         return any(self.expressions)
 
 
-class Over(Clause):
+class OverClause(Clause):
 
     def __init__(
             self,
-            derived_table: DerivedTable,
+            expression: Expression,
     ):
-        self.derived_table = derived_table
+        self.expression = expression
 
     def __str__(self) -> str:
-        return f'OVER {self.derived_table}'
+        return f'OVER {self.expression}'
 
 
-class PartitionBy(Clause):
+class PartitionByClause(Clause):
 
     def __init__(
             self,
@@ -388,18 +297,18 @@ class PartitionBy(Clause):
         return f"PARTITION BY {', '.join([str(expression) for expression in self.expressions])}"
 
 
-class Preceding(Clause):
+class PrecedingClause(Clause):
 
     def __str__(self) -> str:
         return 'PRECEDING'
 
 
-class RangeBetween(Clause):
+class RangeBetweenClause(Clause):
 
     def __init__(
             self,
-            start: Literal | Unbounded | CurrentRow,
-            end: Literal | Unbounded | CurrentRow,
+            start: Expression,
+            end: Expression,
     ):
         self.start = start
         self.end = end
@@ -408,7 +317,7 @@ class RangeBetween(Clause):
         return f'RANGE BETWEEN {self.start} {self.end}'
 
 
-class Returning(Clause):
+class ReturningClause(Clause):
 
     def __init__(
             self,
@@ -420,24 +329,12 @@ class Returning(Clause):
         return f"RETURNING {', '.join([str(expression) for expression in self.expressions])}"
 
 
-class RightJoin(Clause):
+class RowsBetweenClause(Clause):
 
     def __init__(
             self,
-            expression: Expression,
-    ):
-        self.expression = expression
-
-    def __str__(self) -> str:
-        return f'RIGHT JOIN {self.expression}'
-
-
-class RowsBetween(Clause):
-
-    def __init__(
-            self,
-            start: Literal | Unbounded | CurrentRow,
-            end: Literal | Unbounded | CurrentRow,
+            start: Expression,
+            end: Expression,
     ):
         self.start = start
         self.end = end
@@ -446,7 +343,7 @@ class RowsBetween(Clause):
         return f'ROWS BETWEEN {self.start} {self.end}'
 
 
-class Select(Clause):
+class SelectClause(Clause):
 
     def __init__(
             self,
@@ -458,11 +355,11 @@ class Select(Clause):
         return f"SELECT {', '.join([str(expression) for expression in self.expressions])}"
 
 
-class Set(Clause):
+class SetClause(Clause):
 
     def __init__(
             self,
-            columns: Sequence[Identifier],
+            columns: Sequence[IdentifierExpression],
             values: Any,
             additional_values: dict[str, Any],
     ):
@@ -480,31 +377,31 @@ class Set(Clause):
             params.update(self.additional_values)
             for identifier in self.columns:
                 col_strs.append(str(identifier))
-                val_strs.append(_Literal(params[identifier._name]).as_string())
+                val_strs.append(str(make_expr(params[identifier._name])))
 
         elif is_msgspec_installed and is_msgspec_instance(self.values):
             params = msgspec_to_dict(self.values)
             params.update(self.additional_values)
             for identifier in self.columns:
                 col_strs.append(str(identifier))
-                val_strs.append(_Literal(params[identifier._name]).as_string())
+                val_strs.append(str(make_expr(params[identifier._name])))
 
         elif isinstance(self.values, dict):
             params = self.values
             params.update(self.additional_values)
             for identifier in self.columns:
                 col_strs.append(str(identifier))
-                val_strs.append(_Literal(params[identifier._name]).as_string())
+                val_strs.append(str(make_expr(params[identifier._name])))
 
         elif isinstance(self.values, SequenceType):
             for identifier, val in zip(self.columns, self.values, strict=True):
                 col_strs.append(str(identifier))
-                val_strs.append(_Literal(val).as_string())
+                val_strs.append(str(make_expr(val)))
 
         else:
             for identifier, val in zip(self.columns, [self.values], strict=True):
                 col_strs.append(str(identifier))
-                val_strs.append(_Literal(val).as_string())
+                val_strs.append(str(make_expr(val)))
 
         if len(col_strs) < 2:
             return f"SET {col_strs[0]} = {val_strs[0]}"
@@ -512,19 +409,19 @@ class Set(Clause):
             return f"SET ({', '.join(col_strs)}) = ({', '.join(val_strs)})"
 
 
-class Update(Clause):
+class UpdateClause(Clause):
 
     def __init__(
             self,
-            identifier: Identifier,
+            expression: Expression,
     ):
-        self.identifier = identifier
+        self.expression = expression
 
     def __str__(self) -> str:
-        return f'UPDATE {self.identifier}'
+        return f'UPDATE {self.expression}'
 
 
-class Using(Clause):
+class UsingClause(Clause):
 
     def __init__(
             self,
@@ -536,13 +433,13 @@ class Using(Clause):
         return f'USING {self.expression}'
 
 
-class Values(Clause):
+class ValuesClause(Clause):
 
     def __init__(
             self,
             values: Sequence[Any],
             additional_values: dict[str, Any],
-            order: Sequence[Identifier] | None = None,
+            order: Sequence[IdentifierExpression] | None = None,
     ):
         self.values = values
         self.additional_values = additional_values
@@ -558,75 +455,75 @@ class Values(Clause):
                 params = pydantic_to_dict(value)
                 params.update(self.additional_values)
                 if self.order:
-                    str_item = ', '.join([to_str(params[identifier._name]) for identifier in self.order])
+                    str_item = ', '.join([str(make_expr(params[identifier._name])) for identifier in self.order])
                 else:
-                    str_item = ', '.join(to_str(v) for v in params.values())
+                    str_item = ', '.join(str(make_expr(v)) for v in params.values())
                 str_list.append(f'({str_item})')
 
             elif is_msgspec_installed and is_msgspec_instance(value):
                 params = msgspec_to_dict(value)
                 params.update(self.additional_values)
                 if self.order:
-                    str_item = ', '.join([to_str(params[identifier._name]) for identifier in self.order])
+                    str_item = ', '.join([str(make_expr(params[identifier._name])) for identifier in self.order])
                 else:
-                    str_item = ', '.join(to_str(v) for v in params.values())
+                    str_item = ', '.join(str(make_expr(v)) for v in params.values())
                 str_list.append(f'({str_item})')
 
             elif isinstance(value, dict):
                 params = value.copy()
                 params.update(self.additional_values)
                 if self.order:
-                    str_item = ', '.join([to_str(params[identifier._name]) for identifier in self.order])
+                    str_item = ', '.join([str(make_expr(params[identifier._name])) for identifier in self.order])
                 else:
-                    str_item = ', '.join(to_str(v) for v in params.values())
+                    str_item = ', '.join(str(make_expr(v)) for v in params.values())
                 str_list.append(f'({str_item})')
 
             elif isinstance(value, SequenceType):
-                str_list.append(f"({', '.join(to_str(v) for v in value)})")
+                str_list.append(f"({', '.join(str(make_expr(v)) for v in value)})")
 
             else:
-                str_list.append(f"({to_str(value)})")
+                str_list.append(f"({make_expr(value)})")
 
         return f"VALUES {', '.join(str_list)}"
 
 
-class Where(Clause):
+class WhereClause(Clause):
 
     def __init__(
             self,
-            condition: FilterCondition,
+            expression: Expression,
     ):
-        self.condition = condition
+        self.expression = expression
 
     def __str__(self) -> str:
         if self:
-            return f'WHERE {self.condition}'
+            return f'WHERE {self.expression}'
         else:
             return ''
 
     def __bool__(self) -> bool:
-        return bool(self.condition)
+        return bool(self.expression)
 
 
-class Window(Clause):
-
-    def __init__(
-            self,
-            identifiers: Sequence[Identifier],
-    ):
-        self.identifiers = identifiers
-
-    def __str__(self) -> str:
-        return f"WINDOW {','.join([str(identifier) for identifier in self.identifiers])}"
-
-
-class With(Clause):
+class WindowClause(Clause):
 
     def __init__(
             self,
-            identifiers: Sequence[Identifier],
+            expressions: Sequence[Expression],
     ):
-        self.identifiers = identifiers
+        self.expressions = expressions
 
     def __str__(self) -> str:
-        return f"WITH {','.join([str(identifier) for identifier in self.identifiers])}"
+        return f"WINDOW {','.join([str(expression) for expression in self.expressions])}"
+
+
+class WithClause(Clause):
+
+    def __init__(
+            self,
+            expressions: Sequence[Expression],
+    ):
+        self.expressions = expressions
+
+    def __str__(self) -> str:
+        return f"WITH {','.join([str(expression) for expression in self.expressions])}"

@@ -1,9 +1,15 @@
-import sys
-from types import ModuleType
-
 from pgcrud.config import config
 from pgcrud.db import ConnectionPool, Connection, Cursor, AsyncConnectionPool, AsyncConnection, AsyncCursor
-from pgcrud.expressions import CurrentRow, Excluded, Identifier, Literal, Placeholder, Undefined, Unbounded, Star, Default
+from pgcrud.expressions.base import (
+    LiteralExpression,
+    IdentifierExpression,
+    UndefinedExpression,
+    PlaceholderExpression,
+    UnboundedExpression,
+    CurrentRowExpression,
+    DefaultExpression,
+    ExcludedExpression,
+)
 from pgcrud.operations.get_one import get_one
 from pgcrud.operations.get_many import get_many
 from pgcrud.operations.insert_one import insert_one
@@ -33,15 +39,13 @@ __all__ = [
 
     'QueryBuilder',
 
-    'Literal',
-    'Placeholder',
-    'Identifier',
-    'Undefined',
+    'LiteralExpression',
+    'PlaceholderExpression',
+    'IdentifierExpression',
+    'UndefinedExpression',
 
-    'STAR',
     'UNDEFINED',
     'DEFAULT',
-
     'UNBOUNDED',
     'CURRENT_ROW',
     'EXCLUDED',
@@ -65,28 +69,8 @@ __all__ = [
 connect = Connection.connect
 async_connect = AsyncConnection.connect
 
-STAR = Star()
-UNDEFINED = Undefined()
-DEFAULT = Default()
-
-UNBOUNDED: Unbounded
-CURRENT_ROW: CurrentRow
-EXCLUDED: Excluded
-
-
-class InitModule(ModuleType):
-
-    @property
-    def UNBOUNDED(self) -> Unbounded:
-        return Unbounded()
-
-    @property
-    def CURRENT_ROW(self) -> CurrentRow:
-        return CurrentRow()
-
-    @property
-    def EXCLUDED(self) -> Excluded:
-        return Excluded()
-
-
-sys.modules[__name__].__class__ = InitModule
+UNDEFINED = UndefinedExpression()
+DEFAULT = DefaultExpression()
+UNBOUNDED = UnboundedExpression()
+CURRENT_ROW = CurrentRowExpression
+EXCLUDED = ExcludedExpression()

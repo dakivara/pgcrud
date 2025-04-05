@@ -1,20 +1,22 @@
-from typing import Literal, overload
+from collections.abc import Sequence
+from typing import Any, Literal, overload
 
 from pgcrud.db import AsyncCursor, AsyncServerCursor
+from pgcrud.expressions.base import IdentifierExpression
 from pgcrud.operations.shared import construct_composed_update_query
-from pgcrud.types import FromValueType, Row, UpdateValueType, SetValueType, WhereValueType, ReturningValueType, AdditionalValuesType
+from pgcrud.types import Row
 
 
 @overload
 async def async_update_many(
         cursor: AsyncCursor[Row] | AsyncServerCursor[Row],
-        update: UpdateValueType,
-        set_: SetValueType,
+        update: Any,
+        set_: tuple[IdentifierExpression | Sequence[IdentifierExpression], Any],
         *,
-        from_: FromValueType | None = None,
-        where: WhereValueType | None = None,
+        from_: Any | None = None,
+        where: Any | None = None,
         returning: None = None,
-        additional_values: AdditionalValuesType | None = None,
+        additional_values: dict[str, Any] | None = None,
         no_fetch: Literal[False] = False,
 ) -> None: ...
 
@@ -22,13 +24,13 @@ async def async_update_many(
 @overload
 async def async_update_many(
         cursor: AsyncCursor[Row] | AsyncServerCursor[Row],
-        update: UpdateValueType,
-        set_: SetValueType,
+        update: Any,
+        set_: tuple[IdentifierExpression | Sequence[IdentifierExpression], Any],
         *,
-        from_: FromValueType | None = None,
-        where: WhereValueType | None = None,
-        returning: ReturningValueType,
-        additional_values: AdditionalValuesType | None = None,
+        from_: Any | None = None,
+        where: Any | None = None,
+        returning: Any | Sequence[Any],
+        additional_values: dict[str, Any] | None = None,
         no_fetch: Literal[False] = False,
 ) -> list[Row]: ...
 
@@ -36,13 +38,13 @@ async def async_update_many(
 @overload
 async def async_update_many(
         cursor: AsyncCursor[Row],
-        update: UpdateValueType,
-        set_: SetValueType,
+        update: Any,
+        set_: tuple[IdentifierExpression | Sequence[IdentifierExpression], Any],
         *,
-        from_: FromValueType | None = None,
-        where: WhereValueType | None = None,
-        returning: ReturningValueType,
-        additional_values: AdditionalValuesType | None = None,
+        from_: Any | None = None,
+        where: Any | None = None,
+        returning: Any | Sequence[Any],
+        additional_values: dict[str, Any] | None = None,
         no_fetch: Literal[True],
 ) -> AsyncCursor[Row]: ...
 
@@ -50,26 +52,26 @@ async def async_update_many(
 @overload
 async def async_update_many(
         cursor: AsyncServerCursor[Row],
-        update: UpdateValueType,
-        set_: SetValueType,
+        update: Any,
+        set_: tuple[IdentifierExpression | Sequence[IdentifierExpression], Any],
         *,
-        from_: FromValueType | None = None,
-        where: WhereValueType | None = None,
-        returning: ReturningValueType,
-        additional_values: AdditionalValuesType | None = None,
+        from_: Any | None = None,
+        where: Any | None = None,
+        returning: Any | Sequence[Any],
+        additional_values: dict[str, Any] | None = None,
         no_fetch: Literal[True],
 ) -> AsyncServerCursor[Row]: ...
 
 
 async def async_update_many(
         cursor: AsyncCursor[Row] | AsyncServerCursor[Row],
-        update: UpdateValueType,
-        set_: SetValueType,
+        update: Any,
+        set_: tuple[IdentifierExpression | Sequence[IdentifierExpression], Any],
         *,
-        from_: FromValueType | None = None,
-        where: WhereValueType | None = None,
-        returning: ReturningValueType | None = None,
-        additional_values: AdditionalValuesType | None = None,
+        from_: Any | None = None,
+        where: Any | None = None,
+        returning: Any | Sequence[Any] | None = None,
+        additional_values: dict[str, Any] | None = None,
         no_fetch: bool = False,
 ) -> list[Row] | AsyncCursor[Row] | AsyncServerCursor[Row] | None:
 

@@ -1,8 +1,9 @@
-from typing import Sequence
+from collections.abc import Sequence
+from typing import Any
 
+from pgcrud.expressions.base import IdentifierExpression
 from pgcrud.query import Query
 from pgcrud.query_builder import QueryBuilder as q
-from pgcrud.types import DeleteFromValueType, GroupByValueType, HavingValueType, OnConflictValueType, SelectValueType, FromValueType, SetValueType, UpdateValueType, UsingValueType, WhereValueType, OrderByValueType, InsertIntoValueType, ValuesValueType, ReturningValueType, AdditionalValuesType, WindowValueType
 from pgcrud.utils import ensure_seq
 
 
@@ -15,13 +16,13 @@ __all__ = [
 
 
 def construct_composed_get_query(
-        select: SelectValueType,
-        from_: FromValueType,
-        where: WhereValueType | None,
-        group_by: GroupByValueType | None,
-        having: HavingValueType | None,
-        window: WindowValueType | None,
-        order_by: OrderByValueType | None,
+        select: Any | Sequence[Any],
+        from_: Any,
+        where: Any | None,
+        group_by: Any | Sequence[Any] | None,
+        having: Any | None,
+        window: Any | Sequence[Any] | None,
+        order_by: Any | Sequence[Any] | None,
         limit: int | None,
         offset: int | None,
 ) -> Query:
@@ -47,19 +48,19 @@ def construct_composed_get_query(
 
 
 def construct_composed_insert_query(
-        insert_into: InsertIntoValueType,
-        values: Sequence[ValuesValueType],
-        on_conflict: OnConflictValueType | None,
-        returning: ReturningValueType | None,
-        additional_values: AdditionalValuesType | None,
+        insert_into: IdentifierExpression,
+        values: Sequence[Any],
+        # on_conflict: Any | None,
+        returning: Any | Sequence[Any] | None,
+        additional_values: dict[str, Any] | None,
 ) -> Query:
 
     additional_values = additional_values or {}
 
     query = q.INSERT_INTO(insert_into).VALUES(*values, **additional_values)
 
-    if on_conflict:
-        query = query.ON_CONFLICT.merge(on_conflict)
+    # if on_conflict:
+    #     query = query.ON_CONFLICT.merge(on_conflict)
 
     if returning:
         query = query.RETURNING(*ensure_seq(returning))
@@ -68,12 +69,12 @@ def construct_composed_insert_query(
 
 
 def construct_composed_update_query(
-        update: UpdateValueType,
-        set_: SetValueType,
-        from_: FromValueType | None,
-        where: WhereValueType | None,
-        returning: ReturningValueType | None,
-        additional_values: AdditionalValuesType | None,
+        update: Any,
+        set_: tuple[IdentifierExpression | Sequence[IdentifierExpression], Any],
+        from_: Any | None,
+        where: Any | None,
+        returning: Any | Sequence[Any] | None,
+        additional_values: dict[str, Any] | None,
 ) -> Query:
 
     additional_values = additional_values or {}
@@ -91,10 +92,10 @@ def construct_composed_update_query(
 
 
 def construct_composed_delete_query(
-        delete_from: DeleteFromValueType,
-        using: UsingValueType | None,
-        where: WhereValueType | None,
-        returning: ReturningValueType | None,
+        delete_from: Any,
+        using: Any | None,
+        where: Any | None,
+        returning: Any | Sequence[Any] | None,
 ) -> Query:
 
     query = q.DELETE_FROM(delete_from)
