@@ -263,6 +263,9 @@ class UndefinedExpression(Expression):
     def __str__(self) -> str:
         return ''
 
+    def __bool__(self) -> bool:
+        return False
+
 
 class PlaceholderExpression(Expression):
 
@@ -527,7 +530,7 @@ class LogicalOperationExpression(Expression):
     def __str__(self) -> str:
         if self.left and self.right:
             return f'{self.left_str} {self.operator} {self.right_str}'
-        elif self.left and not self.left:
+        elif self.left and not self.right:
             return str(self.left)
         elif not self.left and self.right:
             return str(self.right)
